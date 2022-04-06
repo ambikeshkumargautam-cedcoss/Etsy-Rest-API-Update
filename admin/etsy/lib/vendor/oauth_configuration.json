@@ -1,0 +1,22 @@
+{
+	"version": "$Id: oauth_configuration.json,v 1.43 2019/12/06 02:28:21 mlemos Exp $",
+	"comments": [
+		"The servers entry should be an object with a list of object",
+		"entries, one for each server type. The server object entry name is",
+		"the name of the server type. Each server entry is an object with",
+		"some mandatory properties: oauth_version, dialog_url,",
+		"access_token_url and request_token_url (just for Oauth 1.0 and",
+		"1.0a). Check the OAuth client class for the complete list of server",
+		"properties."
+	],
+	"servers":
+	{
+		"Etsy":
+		{
+			"oauth_version": "1.0a",
+			"request_token_url": "https://openapi.etsy.com/v2/oauth/request_token?scope={SCOPE}",
+			"dialog_url": "automatic",
+			"access_token_url": "https://openapi.etsy.com/v2/oauth/access_token"
+		}
+	}
+}

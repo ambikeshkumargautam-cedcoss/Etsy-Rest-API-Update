@@ -1,0 +1,50 @@
+.ced-etsy-modal{
+	display:none;
+	position:fixed;
+	z-index:1;
+	padding-top:100px;
+	left:0;
+	top:0;
+	width:100%;
+	height:100%;
+	overflow:auto;
+	background-color:#000;
+	background-color:rgba(0,0,0,0.4);
+}
+.ced-etsy-modal-content{
+	background-color:white;
+	margin:auto;
+	padding:20px;
+	border:1px solid #888;
+	width:50%;
+	border-radius : 8px;
+}
+
+
+
+.ced_etsy_uninstall_radio{
+	font-size: 12px;
+	color: black;
+	font-family: cursive;
+	font-weight: 500;
+}
+
+.ced-etsy-close{
+	color:red;
+	float:right;
+	font-size:28px;
+	font-weight:700;
+}
+.ced-etsy-close:hover,.ced-etsy-close:focus{
+	color:#000;
+	text-decoration:none;
+	cursor:pointer;
+}
+
+#ced-etsy-submit-feedback-button{
+	color: white;
+	border-color: #2281ce;
+	background: #286090;
+	vertical-align: top;
+	font-size: 12px;
+}

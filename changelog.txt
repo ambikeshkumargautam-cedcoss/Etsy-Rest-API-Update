@@ -1,0 +1,86 @@
+*** Etsy Integration for WooCommerce  ***
+
+2022-02-09 - version 2.0.9
+* Fix - Order fetch issue
+
+2022-02-04 - version 2.0.8
+* Fix - Prevent duplicate listing creation 
+
+2021-10-12 - version 2.0.7
+* Add - Improved Stability
+* Fix - Variation prepration data issue
+
+2021-08-04 - version 2.0.6
+* Add - Optimised Import Product Feature
+
+2021-07-08 - version 2.0.5
+* Fix - Improved Stability
+
+2021-07-01 - version 2.0.4
+* Fix - Variable product sync
+
+2021-06-18 - version 2.0.3
+* Fix - Inventory and order schedules
+* Add - Improved stability
+
+2021-05-26 - version 2.0.2
+* Fix - Updated when made values
+* Fix - Profile category specific data save
+* Fix - Upload/Update gallery image issue
+* Add - Support for all types of digital files
+
+2021-05-12 - version 2.0.1
+* Fix - Add shipping profile 
+* Fix - Featured image upload issue
+
+2021-05-07 - version 2.0.0
+* Add - Auto upload products feature from Woocommerce to Etsy
+* Add - Auto import products feature from Etsy to Woocommerce [ Import Module ]
+* Add - Shipment Tracking plugin compatibility [ will update tracking information automatically to Etsy from Woocommerce ]
+* Add - Support digital files upload on Etsy from Woocommerce
+* Add - Order import settings
+* Add - Improved stability
+
+2020-11-26 - version 1.1.2
+* Add - Improved stability
+
+2020-11-12 - version 1.1.1
+* Add - Import personalization info of order
+* Add - Import gift message
+* Add - Import buyer's message
+
+2020-09-30 - version 1.1.0
+* Add - Improved Stability
+
+2020-09-30 - version 1.0.9
+* Add - App notification
+
+2020-09-01 - version 1.0.8
+* Add - Submit tracking details on Etsy from Woocommerce order section
+* Add - Email restrictions to the customer for Etsy order
+* Add - Etsy label in Woocommerce order list table.
+
+2020-07-29 - version 1.0.7
+* Add - Improved Stability
+
+2020-07-28 - version 1.0.6
+* Add - Filter products by stock status
+
+2020-07-07 - version 1.0.5
+* Add - Auto sync of existing products on Etsy
+
+2020-06-22 - version 1.0.4
+* Fix - Display variation stock issue
+
+2020-05-28 - version 1.0.3
+* Modified - Inventory Update Process
+
+2020-05-11 - version 1.0.2
+* Improved Product Upload Process
+
+2020-04-29 - version 1.0.1
+* Improved Stability
+* Design Changes
+
+2020-04-10 - version 1.0.0
+* Inital release
