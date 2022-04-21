@@ -324,7 +324,7 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 
 		} elseif ( isset( $_GET['section'] ) ) {
 
-			require_once CED_ETSY_DIRPATH . 'admin/partials/' . $this->current_action() . '.php';
+			require_once CED_ETSY_DIRPATH . 'admin/template/view/' . $this->current_action() . '.php';
 		}
 	}
 }

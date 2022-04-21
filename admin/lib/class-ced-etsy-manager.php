@@ -60,6 +60,7 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 
 		public function __construct() {
 			
+			$this->etsyProductsInstance = Ced_Product_Upload_To_Etsy\Ced_Etsy_Products::get_instance();
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shipping_configuration' ), 10, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_payment_configuration' ), 11, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shop_section_configuration' ), 12, 2 );
@@ -70,10 +71,73 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 			add_filter( 'woocommerce_order_number', array( $this, 'ced_modify_woo_order_number' ), 20, 2 );
 			add_action( 'ced_etsy_auto_submit_shipment', array( $this, 'ced_etsy_auto_submit_shipment' ) );
 			add_action( 'admin_notices', array( $this, 'ced_etsy_admin_notices' ) );
-			$this->etsyProductsInstance = Ced_Product_Upload_To_Etsy\Ced_Etsy_Products::get_instance();
+			add_action( 'admin_init', array( $this, 'ced_etsy_get_token_and_shop_data' ) );
 		}
 
+		public function ced_etsy_get_token_and_shop_data() {
 
+			$log = '';
+			if ( isset( $_GET['state'] ) && ! empty( $_GET['code'] ) ) {
+				$log       .= "Authorization successful \n";
+				$code       = $_GET['code'];
+				$state      = $_GET['state'];
+				$action     = 'public/oauth/token';
+				$query_args = array(
+					'grant_type'    => 'authorization_code',
+					'client_id'     => 'b2pa8bczfrwnuccpevnql8eh',
+					'redirect_uri'  => admin_url( 'admin.php?page=ced_etsy' ),
+					'code'          => $code,
+					'code_verifier' => $state,
+				);
+				$parameters = $query_args;
+				$shop_name  = get_option( 'ced_etsy_shop_name', '' );
+				$log       .= "retrieving access token from etsy action=$action\n";
+				$response   = etsy_request()->post( $action, $parameters, $shop_name, $query_args );
+				$log       .= "Response : \t\t\t" . json_encode( $response ) . "\n\n";
+				if ( isset( $response['access_token'] ) && ! empty( $response['access_token'] ) ) {
+					$action = 'application/shops';
+
+					$query_args = array(
+						'shop_name' => $shop_name,
+					);
+					$shop       = etsy_request()->get( $action, '', $query_args );
+					$log       .= "retrieving shop information from etsy action=$action\n";
+					$log       .= "Response : \t\t\t" . json_encode( $shop ) . "\n\n";
+					if ( isset( $shop['results'][0] ) ) {
+
+						set_transient( 'ced_etsy_token_' . $shop_name, $response, (int) $response['expires_in'] );
+						$user_details               = get_option( 'ced_etsy_details', array() );
+						$user_id                    = isset( $shop['results'][0]['user_id'] ) ? $shop['results'][0]['user_id'] : '';
+						$user_name                  = isset( $shop['results'][0]['login_name'] ) ? $shop['results'][0]['login_name'] : '';
+						$shop_id                    = isset( $shop['results'][0]['shop_id'] ) ? $shop['results'][0]['shop_id'] : '';
+						$info                       = array(
+							'details' => array(
+								'ced_etsy_shop_name'      => $shop_name,
+								'user_id'                 => $user_id,
+								'user_name'               => $user_name,
+								'shop_id'                 => $shop_id,
+								'ced_etsy_keystring'      => etsy_request()->client_id,
+								'ced_etsy_shared_string'  => etsy_request()->client_secret,
+								'ced_shop_account_status' => 'Active',
+								'token'                   => $response,
+								'shop_info'               => $shop,
+							),
+						);
+						$user_details[ $shop_name ] = $info;
+
+						if ( count( $user_details ) < 2 ) {
+							etsy_write_logs( $log, 'general' );
+							update_option( 'ced_etsy_details', $user_details );
+						}
+					}
+				}
+				
+				wp_redirect( admin_url( 'admin.php?page=ced_etsy' ) );
+				exit;
+			}
+
+		}
+		
 		public function ced_etsy_admin_notices() {
 
 			if ( isset( $_GET['page'] ) && 'ced_etsy' == $_GET['page'] ) {

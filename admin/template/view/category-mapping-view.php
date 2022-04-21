@@ -3,10 +3,9 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-require_once CED_ETSY_DIRPATH . 'admin/partials/header.php';
-
+Cedhandler::ced_header();
 $woo_store_categories     = get_terms( 'product_cat' );
-$etsyFirstLevelCategories = @file_get_contents( CED_ETSY_DIRPATH . 'admin/etsy/lib/json/categoryLevel-1.json' );
+$etsyFirstLevelCategories = @file_get_contents( CED_ETSY_DIRPATH . 'admin/lib/json/categoryLevel-1.json' );
 $etsyFirstLevelCategories = json_decode( $etsyFirstLevelCategories, true );
 
 ?>

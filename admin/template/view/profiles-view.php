@@ -4,8 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 
-require_once CED_ETSY_DIRPATH . 'admin/partials/header.php';
-
+Cedhandler::ced_header();
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }

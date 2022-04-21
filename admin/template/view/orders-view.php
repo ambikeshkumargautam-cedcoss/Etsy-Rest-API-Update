@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-$file = CED_ETSY_DIRPATH . 'admin/partials/header.php';
+Cedhandler::ced_header();
 
 if ( file_exists( $file ) ) {
 	require_once $file;

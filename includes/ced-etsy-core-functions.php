@@ -95,11 +95,11 @@ function ced_etsy_getOauthClientObject( $shop_name = '' ) {
 		$_SESSION['OAUTH_ACCESS_TOKEN'] = $ced_etsy_access_token;
 	}
 
-	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/http.php' ) ) {
-		require_once CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/http.php';
+	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/vendor/http.php' ) ) {
+		require_once CED_ETSY_DIRPATH . 'admin/lib/vendor/http.php';
 	}
-	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/oauth_client.php' ) ) {
-		require_once CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/oauth_client.php';
+	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/vendor/oauth_client.php' ) ) {
+		require_once CED_ETSY_DIRPATH . 'admin/lib/vendor/oauth_client.php';
 	}
 
 	$client                = new oauth_client_class();
@@ -236,7 +236,7 @@ function ced_etsy_cedcommerce_logo() {
 }
 
 function etsy_request() {
-	require_once CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyRequest.php';
+	require_once CED_ETSY_DIRPATH . 'admin/lib/etsyRequest.php';
 	$request = new Ced_Etsy_Request();
 	return $request;
 }

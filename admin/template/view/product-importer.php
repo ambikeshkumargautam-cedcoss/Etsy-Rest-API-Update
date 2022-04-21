@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
-require_once CED_ETSY_DIRPATH . 'admin/partials/header.php';
+Cedhandler::ced_header();
 
 class EtsyListImportedProducts extends WP_List_Table {
 

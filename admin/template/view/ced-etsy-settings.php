@@ -4,15 +4,13 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 
-require_once CED_ETSY_DIRPATH . 'admin/partials/header.php';
-
-
+Cedhandler::ced_header();
 /**
  ************************************************
  * SAVING VALUE OF THE SELECTED SHIPPING PROFILE
  ************************************************
  */
-
+$activeShop = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 if ( isset( $_POST['global_settings'] ) ) {
 
 	if ( ! isset( $_POST['global_settings_submit'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['global_settings_submit'] ) ), 'global_settings' ) ) {
@@ -40,8 +38,9 @@ if ( isset( $_POST['global_settings'] ) ) {
 		wp_schedule_event( time(), 'ced_etsy_15min', 'ced_etsy_auto_import_schedule_job_' . $activeShop );
 		update_option( 'ced_etsy_auto_import_schedule_job_' . $activeShop, $activeShop );
 	}
-	if ( ! empty( $inventory_schedule ) ) {
-		wp_schedule_event( time(), 'ced_etsy_10min', 'ced_etsy_inventory_scheduler_job_' . $activeShop );
+
+	if ( ! empty( $inventory_schedule ) && function_exists( 'as_schedule_recurring_action' ) ) {
+		as_schedule_recurring_action( time(), 600, 'ced_etsy_inventory_scheduler_job_' . $activeShop );
 		update_option( 'ced_etsy_inventory_scheduler_job_' . $activeShop, $activeShop );
 	}
 
@@ -122,7 +121,7 @@ if ( isset( $_POST['saveShopSections'] ) ) {
 
 <div class="ced_etsy_heading ">
 	<?php echo esc_html_e( get_etsy_instuctions_html() ); ?>
-	<div class="ced_etsy_child_element parent_default">
+	<div class="ced_etsy_child_element">
 		<?php
 				$activeShop = isset( $_GET['shop_name'] ) ? sanitize_text_field( $_GET['shop_name'] ) : '';
 
@@ -146,7 +145,6 @@ if ( isset( $_POST['saveShopSections'] ) ) {
 				?>
 	</div>
 </div>
-<?php do_action( 'ced_etsy_render_meta_keys_settings' ); ?>
 <form method="post" action="">
 		<?php
 			wp_nonce_field( 'global_settings', 'global_settings_submit' );
@@ -155,17 +153,19 @@ if ( isset( $_POST['saveShopSections'] ) ) {
 			 * ALL DO ACTIONS FOR THE RENDER FILES
 			 ************************************************
 			 */
-			$all_actions_for_render_settings_tab = array(
-				'ced_etsy_render_product_settings',
-				'ced_etsy_render_order_settings',
-				'ced_etsy_render_shipping_profiles',
-				'ced_etsy_render_shedulers_settings',
-				// 'ced_etsy_render_shop_section'
+			$ced_h           = new Cedhandler();
+			$ced_h->dir_name = '/admin/template/view/setting-view/';
+			$files_name      = array(
+				'ced-etsy-metakeys-template',
+				// 'ced-etsy-product-upload-settings',
+				'ced-etsy-order-settings',
+				// 'ced-etsy-shipping-profiles',
+				'ced-etsy-scheduler-settings',
 			);
-			foreach ( $all_actions_for_render_settings_tab as $key => $value ) {
-				// Add all attributes
-				do_action( $value );
+			foreach ( $files_name as $file_name ) {
+				$ced_h->ced_require( $file_name );
 			}
+
 			?>
 	<div class="left ced-button-wrapper" >
 		<button id=""  type="submit" name="global_settings" class="button-primary" ><?php esc_html_e( 'Save Settings', 'woocommerce-etsy-integration' ); ?></button>

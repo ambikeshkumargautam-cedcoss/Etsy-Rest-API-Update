@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
-require_once CED_ETSY_DIRPATH . 'admin/partials/header.php';
+Cedhandler::ced_header();
 class EtsyListProducts extends WP_List_Table {
 
 	public $show_reset;
@@ -60,7 +60,7 @@ class EtsyListProducts extends WP_List_Table {
 
 
 	public function get_product_details( $per_page = '', $page_number = 1, $post_type ) {
-		$filterFile = CED_ETSY_DIRPATH . 'admin/partials/products-filters.php';
+		$filterFile = CED_ETSY_DIRPATH . 'admin/template/products-filters.php';
 		if ( file_exists( $filterFile ) ) {
 			require_once $filterFile;
 		}

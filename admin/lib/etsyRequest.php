@@ -92,7 +92,7 @@ class Ced_Etsy_Request {
 
 	public function loadDependency() {
 
-		$fileProducts = CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyConfig.php';
+		$fileProducts = CED_ETSY_DIRPATH . 'admin/lib/etsyConfig.php';
 		if ( file_exists( $fileProducts ) ) {
 			require_once $fileProducts;
 		}
