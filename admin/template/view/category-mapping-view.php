@@ -3,8 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-require_once CED_ETSY_DIRPATH . 'admin/partials/header.php';
-
+Cedhandler::ced_header();
 $woo_store_categories     = get_terms( 'product_cat' );
 $etsyFirstLevelCategories = @file_get_contents( CED_ETSY_DIRPATH . 'admin/etsy/lib/json/categoryLevel-1.json' );
 $etsyFirstLevelCategories = json_decode( $etsyFirstLevelCategories, true );
@@ -12,7 +11,7 @@ $etsyFirstLevelCategories = json_decode( $etsyFirstLevelCategories, true );
 ?>
 <div class="ced_etsy_heading">
 <?php echo esc_html_e( get_etsy_instuctions_html() ); ?>
-<div class="ced_etsy_child_element parent_default">
+<div class="ced_etsy_child_element">
 	<?php
 				$activeShop   = isset( $_GET['shop_name'] ) ? sanitize_text_field( $_GET['shop_name'] ) : '';
 				$profile_url  = admin_url( 'admin.php?page=ced_etsy&section=profiles-view&shop_name=' . $activeShop );
@@ -39,8 +38,7 @@ $etsyFirstLevelCategories = json_decode( $etsyFirstLevelCategories, true );
 			<thead>
 				<th><b><?php esc_html_e( 'Select', 'woocommerce-etsy-integration' ); ?></b></th>
 				<th><b><?php esc_html_e( 'Store Categories', 'woocommerce-etsy-integration' ); ?></b></th>
-				<th colspan="3"><b><?php esc_html_e( 'Mapped to Etsy Category', 'woocommerce-etsy-integration' ); ?></b></th>
-				<td><span><input type="button" class="button-primary" name="" id="ced_etsy_category_refresh_button" value="Update Etsy Categories"></span></td>
+				<th colspan="4"><b><?php esc_html_e( 'Mapped to Etsy Category', 'woocommerce-etsy-integration' ); ?></b></th>
 			</thead>
 			<tbody>
 				<?php

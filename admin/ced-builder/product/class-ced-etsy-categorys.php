@@ -1,4 +1,6 @@
 <?php
+namespace Ced_Category_Import;
+
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
@@ -32,8 +34,9 @@ if ( ! class_exists( 'Class_Ced_Etsy_Category' ) ) {
 		 * @since    1.0.0
 		 */
 		public function getEtsyCategories( $shop_name = '' ) {
-			$action     = 'application/seller-taxonomy/nodes';
-			$categories = etsy_request()->get( $action, $shop_name );
+			$client     = ced_etsy_getOauthClientObject( $shop_name );
+			$success    = $client->CallAPI( 'https://openapi.etsy.com/v2/taxonomy/seller/get', 'GET', array(), array( 'FailOnAccessError' => true ), $categories );
+			$categories = json_decode( json_encode( $categories ), true );
 			return $categories;
 		}
 	}

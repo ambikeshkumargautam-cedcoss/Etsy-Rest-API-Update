@@ -59,108 +59,20 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 		 */
 
 		public function __construct() {
-
-			$this->loadDependency();
+			
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shipping_configuration' ), 10, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_payment_configuration' ), 11, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shop_section_configuration' ), 12, 2 );
 			add_action( 'woocommerce_thankyou', array( $this, 'ced_etsy_update_inventory_on_order_creation' ), 10, 1 );
-			// add_action( 'admin_init', array( $this, 'ced_etsy_schedules' ) );
+			add_action( 'admin_init', array( $this, 'ced_etsy_schedules' ) );
 			add_filter( 'woocommerce_duplicate_product_exclude_meta', array( $this, 'woocommerce_duplicate_product_exclude_meta' ) );
 			add_action( 'updated_post_meta', array( $this, 'ced_relatime_sync_inventory_to_etsy' ), 12, 4 );
 			add_filter( 'woocommerce_order_number', array( $this, 'ced_modify_woo_order_number' ), 20, 2 );
 			add_action( 'ced_etsy_auto_submit_shipment', array( $this, 'ced_etsy_auto_submit_shipment' ) );
 			add_action( 'admin_notices', array( $this, 'ced_etsy_admin_notices' ) );
-			add_action( 'admin_init', array( $this, 'ced_etsy_get_token_and_shop_data' ) );
-			add_action( 'ced_etsy_refresh_token', array( $this, 'ced_etsy_refresh_token' ) );
+			$this->etsyProductsInstance = Ced_Product_Upload_To_Etsy\Ced_Etsy_Products::get_instance();
 		}
 
-		public function ced_etsy_refresh_token( $shop_name = '' ) {
-
-			if ( ! $shop_name || get_transient( 'ced_etsy_token_' . $shop_name ) ) {
-				return;
-			}
-			$user_details  = get_option( 'ced_etsy_details', array() );
-			$refresh_token = isset( $user_details[ $shop_name ]['details']['token']['refresh_token'] ) ? $user_details[ $shop_name ]['details']['token']['refresh_token'] : '';
-			$query_args    = array(
-				'grant_type'    => 'refresh_token',
-				'client_id'     => etsy_request()->client_id,
-				'refresh_token' => $refresh_token,
-			);
-			$parameters    = $query_args;
-			$action        = 'public/oauth/token';
-			$response      = etsy_request()->post( $action, $parameters, $shop_name, $query_args );
-			if ( isset( $response['access_token'] ) && ! empty( $response['access_token'] ) ) {
-				$user_details[ $shop_name ]['details']['token'] = $response;
-				update_option( 'ced_etsy_details', $user_details );
-				set_transient( 'ced_etsy_token_' . $shop_name, $response, (int) $response['expires_in'] );
-			}
-
-		}
-
-		public function ced_etsy_get_token_and_shop_data() {
-
-			$log = '';
-			if ( isset( $_GET['state'] ) && ! empty( $_GET['code'] ) ) {
-				$log       .= "Authorization successful \n";
-				$code       = $_GET['code'];
-				$state      = $_GET['state'];
-				$action     = 'public/oauth/token';
-				$query_args = array(
-					'grant_type'    => 'authorization_code',
-					'client_id'     => 'b2pa8bczfrwnuccpevnql8eh',
-					'redirect_uri'  => admin_url( 'admin.php?page=ced_etsy' ),
-					'code'          => $code,
-					'code_verifier' => $state,
-				);
-				$parameters = $query_args;
-				$shop_name  = get_option( 'ced_etsy_shop_name', '' );
-				$log       .= "retrieving access token from etsy action=$action\n";
-				$response   = etsy_request()->post( $action, $parameters, $shop_name, $query_args );
-				$log       .= "Response : \t\t\t" . json_encode( $response ) . "\n\n";
-				if ( isset( $response['access_token'] ) && ! empty( $response['access_token'] ) ) {
-					$action = 'application/shops';
-
-					$query_args = array(
-						'shop_name' => $shop_name,
-					);
-					$shop       = etsy_request()->get( $action, '', $query_args );
-					$log       .= "retrieving shop information from etsy action=$action\n";
-					$log       .= "Response : \t\t\t" . json_encode( $shop ) . "\n\n";
-					if ( isset( $shop['results'][0] ) ) {
-
-						set_transient( 'ced_etsy_token_' . $shop_name, $response, (int) $response['expires_in'] );
-						$user_details               = get_option( 'ced_etsy_details', array() );
-						$user_id                    = isset( $shop['results'][0]['user_id'] ) ? $shop['results'][0]['user_id'] : '';
-						$user_name                  = isset( $shop['results'][0]['login_name'] ) ? $shop['results'][0]['login_name'] : '';
-						$shop_id                    = isset( $shop['results'][0]['shop_id'] ) ? $shop['results'][0]['shop_id'] : '';
-						$info                       = array(
-							'details' => array(
-								'ced_etsy_shop_name'      => $shop_name,
-								'user_id'                 => $user_id,
-								'user_name'               => $user_name,
-								'shop_id'                 => $shop_id,
-								'ced_etsy_keystring'      => etsy_request()->client_id,
-								'ced_etsy_shared_string'  => etsy_request()->client_secret,
-								'ced_shop_account_status' => 'Active',
-								'token'                   => $response,
-								'shop_info'               => $shop,
-							),
-						);
-						$user_details[ $shop_name ] = $info;
-
-						if ( count( $user_details ) < 2 ) {
-							etsy_write_logs( $log, 'general' );
-							update_option( 'ced_etsy_details', $user_details );
-						}
-					}
-				}
-				
-				wp_redirect( admin_url( 'admin.php?page=ced_etsy' ) );
-				exit;
-			}
-
-		}
 
 		public function ced_etsy_admin_notices() {
 
@@ -221,19 +133,21 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 
 				if ( ! empty( $tracking_no ) && ! empty( $tracking_code ) ) {
 
-					$shop_name          = get_post_meta( $woo_order_id, 'ced_etsy_order_shop_id', true );
+					$shopId             = get_post_meta( $woo_order_id, 'ced_etsy_order_shop_id', true );
 					$_ced_etsy_order_id = get_post_meta( $woo_order_id, '_ced_etsy_order_id', true );
 					$saved_etsy_details = get_option( 'ced_etsy_details', array() );
-					$shopDetails        = $saved_etsy_details[ $shop_name ];
+					$shopDetails        = $saved_etsy_details[ $shopId ];
 					$shop_id            = $shopDetails['details']['shop_id'];
-					$parameters         = array(
+					$params             = array(
 						'tracking_code' => $tracking_no,
 						'carrier_name'  => $tracking_code,
 					);
 
-					$action   = 'application/shops/' . etsy_shop_id() . '/receipts/' . $_ced_etsy_order_id . '/tracking';
-					$response = etsy_request()->post( $action, $parameters, $shop_name );
-					if ( isset( $response['receipt_id'] ) || isset( $response['Shipping_notification_email_has_already_been_sent_for_this_receipt_'] ) ) {
+					$client = ced_etsy_getOauthClientObject( $shopId );
+
+					$success = $client->CallAPI( 'https://openapi.etsy.com/v2/shops/' . $shop_id . '/receipts/' . $_ced_etsy_order_id . '/tracking', 'POST', $params, array( 'FailOnAccessError' => true ), $result );
+					$result  = json_decode( json_encode( $result ), true );
+					if ( isset( $result['results'][0] ) || isset( $result['Shipping_notification_email_has_already_been_sent_for_this_receipt_'] ) ) {
 						update_post_meta( $woo_order_id, '_etsy_umb_order_status', 'Shipped' );
 					}
 				}
@@ -318,7 +232,7 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 				 *   CALLING FUNCTION TO UDPATE THE INVENTORY
 				 * *******************************************
 				 */
-				$this->prepareProductHtmlForUpdateInventory( array( $product_id ), $shop_name, $is_sync );
+				$this->etsyProductsInstance->prepareDataForUpdatingInventory( array( $product_id ), $shop_name, $is_sync );
 			}
 		}
 
@@ -337,7 +251,7 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 				}
 			}
 			if ( is_array( $product_ids ) && ! empty( $product_ids ) ) {
-				$response        = $this->prepareProductHtmlForUpdateInventory( $product_ids, '', true );
+				$response        = $this->etsyProductsInstance->prepareDataForUpdatingInventory( $product_ids, '', true );
 				$inventory_log[] = $response;
 			}
 		}
@@ -414,46 +328,167 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 		 *
 		 * @since    1.0.0
 		 */
-		public function StoreCategories( $fetchedCategories ) {
-			$this->_cat_tree = array();
-			foreach ( $fetchedCategories['results'] as $info ) {
-				$this->merge_categories( $info );
-			}
+		public function StoreCategories( $fetchedCategories, $ajax = '' ) {
+			foreach ( $fetchedCategories['results'] as $key => $value ) {
+				if ( count( $value['children_ids'] ) > 0 ) {
+					$arr1[] = array(
+						'id'       => $value['id'],
+						'name'     => $value['name'],
+						'path'     => $value['path'],
+						'children' => count( $value['children_ids'] ),
+					);
+				} else {
+					$arr1[] = array(
+						'id'       => $value['id'],
+						'name'     => $value['name'],
+						'path'     => $value['path'],
+						'children' => 0,
+					);
+				}
+				foreach ( $value['children'] as $key1 => $value1 ) {
+					if ( count( $value1['children_ids'] ) > 0 ) {
+						$arr2[] = array(
+							'parent_id' => $value['id'],
+							'id'        => $value1['id'],
+							'name'      => $value1['name'],
+							'path'      => $value1['path'],
+							'children'  => count( $value1['children_ids'] ),
+						);
+					} else {
+						$arr2[] = array(
+							'parent_id' => $value['id'],
+							'id'        => $value1['id'],
+							'name'      => $value1['name'],
+							'path'      => $value1['path'],
+							'children'  => 0,
+						);
+					}
+					foreach ( $value1['children'] as $key2 => $value2 ) {
+						if ( count( $value2['children_ids'] ) > 0 ) {
+							$arr3[] = array(
+								'parent_id' => $value1['id'],
+								'id'        => $value2['id'],
+								'name'      => $value2['name'],
+								'path'      => $value2['path'],
+								'children'  => count( $value2['children_ids'] ),
+							);
+						} else {
+							$arr3[] = array(
+								'parent_id' => $value1['id'],
+								'id'        => $value2['id'],
+								'name'      => $value2['name'],
+								'path'      => $value2['path'],
+								'children'  => 0,
+							);
+						}
+						foreach ( $value2['children'] as $key3 => $value3 ) {
+							if ( count( $value3['children_ids'] ) > 0 ) {
+								$arr4[] = array(
+									'parent_id' => $value2['id'],
+									'id'        => $value3['id'],
+									'name'      => $value3['name'],
+									'path'      => $value3['path'],
+									'children'  => count( $value3['children_ids'] ),
+								);
+							} else {
+								$arr4[] = array(
+									'parent_id' => $value2['id'],
+									'id'        => $value3['id'],
+									'name'      => $value3['name'],
+									'path'      => $value3['path'],
+									'children'  => 0,
+								);
+							}
+							foreach ( $value3['children'] as $key4 => $value4 ) {
+								if ( count( $value4['children_ids'] ) > 0 ) {
+									$arr5[] = array(
+										'parent_id' => $value3['id'],
+										'id'        => $value4['id'],
+										'name'      => $value4['name'],
+										'path'      => $value4['path'],
+										'children'  => count( $value4['children_ids'] ),
+									);
+								} else {
+									$arr5[] = array(
+										'parent_id' => $value3['id'],
+										'id'        => $value4['id'],
+										'name'      => $value4['name'],
+										'path'      => $value4['path'],
+										'children'  => 0,
+									);
+								}
+								foreach ( $value4['children'] as $key5 => $value5 ) {
+									if ( count( $value5['children_ids'] ) > 0 ) {
+										$arr6[] = array(
+											'parent_id' => $value4['id'],
+											'id'        => $value5['id'],
+											'name'      => $value5['name'],
+											'path'      => $value5['path'],
+											'children'  => count( $value5['children_ids'] ),
+										);
+									} else {
+										$arr6[] = array(
+											'parent_id' => $value4['id'],
+											'id'        => $value5['id'],
+											'name'      => $value5['name'],
+											'path'      => $value5['path'],
+											'children'  => 0,
+										);
+									}
+									foreach ( $value5['children'] as $key6 => $value6 ) {
+										if ( is_array( $value6['children_ids'] ) && ! empty( $value6['children_ids'] ) ) {
 
-			foreach ( $this->_cat_tree  as $level => $tree ) {
-				$path = CED_ETSY_DIRPATH . 'admin/etsy/lib/json/categoryLevel-' . $level . '.json';
-				file_put_contents( $path, json_encode( $tree ) );
-			}
+											$arr7[] = array(
+												'parent_id' => $value5['id'],
+												'id'       => $value6['id'],
+												'name'     => $value6['name'],
+												'path'     => $value6['path'],
+												'children' => count( $value6['children_ids'] ),
+											);
 
-		}
-
-		function merge_categories( $info = array() ) {
-
-			$level = $info['level'];
-			$temp  = array(
-				'id'                     => $info['id'],
-				'level'                  => $info['level'],
-				'name'                   => $info['name'],
-				'parent_id'              => $info['parent_id'],
-				'full_path_taxonomy_ids' => $info['full_path_taxonomy_ids'],
-			);
-			if ( ! isset( $this->_level_tree[ $level ] ) ) {
-				$this->_level_tree[ $level ] = array();
-			}
-
-			$this->_level_tree[ $level ][] = $temp;
-			$this->_cat_tree[ $level ]     = $this->_level_tree[ $level ];
-			if ( ! empty( $info['children'] ) ) {
-
-				foreach ( $info['children']  as $child_info ) {
-					$this->merge_categories( $child_info );
-
+										} else {
+											$arr7[] = array(
+												'parent_id' => $value5['id'],
+												'id'       => $value6['id'],
+												'name'     => $value6['name'],
+												'path'     => $value6['path'],
+												'children' => 0,
+											);
+										}
+									}
+								}
+							}
+						}
+					}
 				}
 			}
 
+			$folderName = CED_ETSY_DIRPATH . 'admin/etsy/lib/json/';
+
+			$catFirstLevelFile = $folderName . 'categoryLevel-1.json';
+			file_put_contents( $catFirstLevelFile, json_encode( $arr1 ) );
+			$catSecondLevelFile = $folderName . 'categoryLevel-2.json';
+			file_put_contents( $catSecondLevelFile, json_encode( $arr2 ) );
+
+			$catThirdLevelFile = $folderName . 'categoryLevel-3.json';
+			file_put_contents( $catThirdLevelFile, json_encode( $arr3 ) );
+			$catFourthLevelFile = $folderName . 'categoryLevel-4.json';
+			file_put_contents( $catFourthLevelFile, json_encode( $arr4 ) );
+
+			$catFifthLevelFile = $folderName . 'categoryLevel-5.json';
+			file_put_contents( $catFifthLevelFile, json_encode( $arr5 ) );
+			$catSixthLevelFile = $folderName . 'categoryLevel-6.json';
+			file_put_contents( $catSixthLevelFile, json_encode( $arr6 ) );
+
+			$catSeventhLevelFile = $folderName . 'categoryLevel-7.json';
+			file_put_contents( $catSeventhLevelFile, json_encode( $arr7 ) );
+
+			update_option( 'ced_etsy_categories_fetched', 'Yes' );
+			if ( $ajax ) {
+				return 'true';
+				die;
+			}
 		}
-
-
 
 		/**
 		 * Etsy Create Auto Profiles
@@ -637,87 +672,5 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 
 			return $profileData;
 		}
-
-
-		/**
-		 * Etsy prepare data for uploading products
-		 *
-		 * @since    1.0.0
-		 */
-		public function prepareProductHtmlForUpload( $proIDs = array(), $shop_name ) {
-			if ( ! is_array( $proIDs ) ) {
-				$proIDs = array( $proIDs );
-			}
-			$response = $this->etsyProductsInstance->prepareDataForUploading( $proIDs, $shop_name );
-			return $response;
-
-		}
-
-		/**
-		 * Etsy prepare data for updating products
-		 *
-		 * @since    1.0.0
-		 */
-		public function prepareProductHtmlForUpdate( $proIDs = array(), $shop_name ) {
-			if ( ! is_array( $proIDs ) ) {
-				$proIDs = array( $proIDs );
-			}
-			$response = $this->etsyProductsInstance->prepareDataForUpdating( $proIDs, $shop_name );
-			return $response;
-		}
-
-		/**
-		 * Etsy prepare data for updating inventory of products
-		 *
-		 * @since    1.0.0
-		 */
-		public function prepareProductHtmlForUpdateInventory( $proIDs = array(), $shop_name = '', $is_sync = false ) {
-
-			if ( ! is_array( $proIDs ) ) {
-				$proIDs = array( $proIDs );
-			}
-
-			if ( empty( $shop_name ) ) {
-				$shop_name = get_option( 'ced_etsy_shop_name', '' );
-			}
-			$response = $this->etsyProductsInstance->prepareDataForUpdatingInventory( $proIDs, $shop_name, $is_sync );
-			return $response;
-		}
-
-
-		/**
-		 * Etsy prepare data for deleting products
-		 *
-		 * @since    1.0.0
-		 */
-		public function prepareProductHtmlForDelete( $proIDs = array(), $shop_name ) {
-			if ( ! is_array( $proIDs ) ) {
-				$proIDs = array( $proIDs );
-			}
-			$response = $this->etsyProductsInstance->prepareDataForDelete( $proIDs, $shop_name );
-			return $response;
-		}
-
-		/**
-		 * Etsy prepare data for deactivating products
-		 *
-		 * @since    1.0.0
-		 */
-		public function prepareProductHtmlForDeactivate( $proIDs = array(), $shop_name ) {
-			if ( ! is_array( $proIDs ) ) {
-				$proIDs = array( $proIDs );
-			}
-			$response = $this->etsyProductsInstance->deactivate_products( $proIDs, $shop_name );
-			return $response;
-		}
-
-		public function ced_update_images_on_etsy( $proIDs = array(), $shop_name ) {
-			if ( ! is_array( $proIDs ) ) {
-				$proIDs = array( $proIDs );
-			}
-			$response = $this->etsyProductsInstance->update_images_on_etsy( $proIDs, $shop_name );
-			return $response;
-		}
-
 	}
 }

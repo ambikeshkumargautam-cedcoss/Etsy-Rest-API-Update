@@ -1,53 +1,56 @@
 <?php
-
-class Class_Ced_Etsy_Orders {
+namespace Ced_Order_Import_From_Etsy;
+class Ced_Etsy_Orders {
 
 	public static $_instance;
-		/**
-		 * Ced_Etsy_Config Instance.
-		 *
-		 * Ensures only one instance of Ced_Etsy_Config is loaded or can be loaded.
-		 *
-		 * @since 1.0.0
-		 * @static
-		 */
+	/**
+	 * Ced_Etsy_Config Instance.
+	 *
+	 * Ensures only one instance of Ced_Etsy_Config is loaded or can be loaded.
+	 *
+	 * @since 1.0.0
+	 * @static
+	 */
 	public static function get_instance() {
 		if ( is_null( self::$_instance ) ) {
 			self::$_instance = new self();
 		}
 		return self::$_instance;
 	}
-	/*
-	*
-	*function for getting ordres  from etsy
-	*
-	*
-	*/
-	public function getOrders( $shop_name ) {
+
+	/**
+	 * Fetch order from Etsy. 
+	 *
+	 * @since 1.0.0
+	 */
+
+	public function getOrders( $shopId ) {
 		$saved_etsy_details = get_option( 'ced_etsy_details', true );
-		$shopDetails        = $saved_etsy_details[ $shop_name ];
+		$shopDetails        = $saved_etsy_details[ $shopId ];
 		$shop_id            = $shopDetails['details']['shop_id'];
 		$last_created_order = get_option( 'ced_etsy_last_order_created_time', '' );
 		$last_created_order = date_i18n( 'F d, Y h:i', strtotime( $last_created_order ) );
 		$current_time       = current_time( 'F-i-j h:i:s' );
-		$query_args         = array(
-			'shop_id'  => etsy_shop_id();
-			'limit'    => 25,
-			'offset'   => 0,
-			'was_paid' => 1,
+		$params             = array(
+			'shop_id'  => isset( $shop_id ) ? $shop_id : '',
+			'limit'    => 15,
+			'page'     => 1,
+			'was_paid' => '1',
 		);
 
 		$saved_global_settings_data = get_option( 'ced_etsy_global_settings', '' );
-		$fetch_order_status         = isset( $saved_global_settings_data[ $shop_name ]['ced_fetch_etsy_order_by_status'] ) ? $saved_global_settings_data[ $shop_name ]['ced_fetch_etsy_order_by_status'] : '';
+		$fetch_order_status         = isset( $saved_global_settings_data[ $shopId ]['ced_fetch_etsy_order_by_status'] ) ? $saved_global_settings_data[ $shopId ]['ced_fetch_etsy_order_by_status'] : '';
 		if ( 'all' != $fetch_order_status ) {
 			$order_status = '/' . $fetch_order_status;
 		} else {
 			$order_status = '';
 		}
-		$action   = 'application/shops/' . etsy_shop_id() . '/receipts';
-		$response = etsy_request()->get( $action, $shop_name, $query_args );
+		$client  = ced_etsy_getOauthClientObject( $shopId );
+		$success = $client->CallAPI( 'https://openapi.etsy.com/v2/shops/' . $shop_id . '/receipts' . $order_status, 'GET', $params, array( 'FailOnAccessError' => true ), $result );
+		$result  = json_decode( json_encode( $result ), true );
+
 		if ( isset( $result['results'] ) && ! empty( $result['results'] ) ) {
-			$this->createLocalOrder( $result['results'], $shop_name );
+			$this->createLocalOrder( $result['results'], $shopId );
 		}
 	}
 
@@ -57,8 +60,8 @@ class Class_Ced_Etsy_Orders {
 	*
 	*
 	*/
-	public function createLocalOrder( $orders, $shop_name = '' ) {
-		$client = ced_etsy_getOauthClientObject( $shop_name );
+	public function createLocalOrder( $orders, $shopId = '' ) {
+		$client = ced_etsy_getOauthClientObject( $shopId );
 
 		if ( is_array( $orders ) && ! empty( $orders ) ) {
 			$address        = array();
@@ -149,7 +152,7 @@ class Class_Ced_Etsy_Orders {
 							}
 
 							if ( ! $ID ) {
-								$ID = $this->get_product_id_by_params( '_ced_etsy_listing_id_' . $shop_name, $listing_id );
+								$ID = $this->get_product_id_by_params( '_ced_etsy_listing_id_' . $shopId, $listing_id );
 							}
 
 							$item        = array(
@@ -202,12 +205,10 @@ class Class_Ced_Etsy_Orders {
 					'order_items'       => isset( $orderItems ) ? $orderItems : '',
 				);
 				$creation_date   = $order['creation_tsz'];
-				$order_id        = $this->create_order( $address, $OrderItemsInfo, 'Etsy', $etsyOrderMeta, $creation_date, $shop_name );
+				$order_id        = $this->create_order( $address, $OrderItemsInfo, 'Etsy', $etsyOrderMeta, $creation_date, $shopId );
 			}
 		}
 	}
-
-
 
 	public function get_product_id_by_params( $meta_key = '', $meta_value = '' ) {
 		if ( ! empty( $meta_value ) ) {
@@ -235,7 +236,6 @@ class Class_Ced_Etsy_Orders {
 		return false;
 	}
 
-
 	/*
 	*
 	*function for creating order in woocommerce
@@ -243,7 +243,7 @@ class Class_Ced_Etsy_Orders {
 	*
 	*/
 
-	public function create_order( $address = array(), $OrderItemsInfo = array(), $frameworkName = 'etsy', $orderMeta = array(), $creation_date = '', $shop_name ) {
+	public function create_order( $address = array(), $OrderItemsInfo = array(), $frameworkName = 'etsy', $orderMeta = array(), $creation_date = '', $shopId ) {
 		$order_id      = '';
 		$order_created = false;
 		if ( count( $OrderItemsInfo ) ) {
@@ -424,11 +424,11 @@ class Class_Ced_Etsy_Orders {
 				update_post_meta( $order_id, '_is_ced_etsy_order', 1 );
 				update_post_meta( $order_id, '_etsy_umb_order_status', 'Fetched' );
 				update_post_meta( $order_id, '_umb_etsy_marketplace', $frameworkName );
-				update_post_meta( $order_id, 'ced_etsy_order_shop_id', $shop_name );
+				update_post_meta( $order_id, 'ced_etsy_order_shop_id', $shopId );
 				update_option( 'ced_etsy_last_order_created_time', $creation_date );
 
 				$renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', array() );
-				$default_order_status       = ! empty( $renderDataOnGlobalSettings[ $shop_name ]['default_order_status'] ) ? $renderDataOnGlobalSettings[ $shop_name ]['default_order_status'] : 'wc-processing';
+				$default_order_status       = ! empty( $renderDataOnGlobalSettings[ $shopId ]['default_order_status'] ) ? $renderDataOnGlobalSettings[ $shopId ]['default_order_status'] : 'wc-processing';
 				$order->update_status( $default_order_status );
 				if ( count( $orderMeta ) ) {
 					foreach ( $orderMeta as $oKey => $oValue ) {
@@ -470,12 +470,10 @@ class Class_Ced_Etsy_Orders {
 		$ship_cost = isset( $ship_params['ShippingCost'] ) ? $ship_params['ShippingCost'] : 0;
 		$ship_tax  = isset( $ship_params['ShippingTax'] ) ? $ship_params['ShippingTax'] : 0;
 		$item      = new WC_Order_Item_Shipping();
-
 		$item->set_method_title( $ship_name );
 		$item->set_method_id( $ship_name );
 		$item->set_total( $ship_cost );
 		$order->add_item( $item );
-
 		$order->calculate_totals();
 		$order->save();
 	}

@@ -3,11 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-$file = CED_ETSY_DIRPATH . 'admin/partials/header.php';
-
-if ( file_exists( $file ) ) {
-	require_once $file;
-}
+Cedhandler::ced_header();
 
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
@@ -195,7 +191,7 @@ class Ced_Etsy_List_Orders extends WP_List_Table {
 		?>
 		<div class="ced_etsy_heading">
 			<?php echo esc_html_e( get_etsy_instuctions_html() ); ?>
-			<div class="ced_etsy_child_element parent_default">
+			<div class="ced_etsy_child_element">
 				<?php
 				$activeShop = isset( $_GET['shop_name'] ) ? sanitize_text_field( $_GET['shop_name'] ) : '';
 

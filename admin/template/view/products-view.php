@@ -3,10 +3,10 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
+Cedhandler::ced_header();
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
-require_once CED_ETSY_DIRPATH . 'admin/partials/header.php';
 class EtsyListProducts extends WP_List_Table {
 
 	public $show_reset;
@@ -60,7 +60,7 @@ class EtsyListProducts extends WP_List_Table {
 
 
 	public function get_product_details( $per_page = '', $page_number = 1, $post_type ) {
-		$filterFile = CED_ETSY_DIRPATH . 'admin/partials/products-filters.php';
+		$filterFile = CED_ETSY_DIRPATH . 'admin/template/products-filters.php';
 		if ( file_exists( $filterFile ) ) {
 			require_once $filterFile;
 		}
@@ -431,7 +431,7 @@ class EtsyListProducts extends WP_List_Table {
 		?>
 		<div class="ced_etsy_heading">
 		<?php echo esc_html_e( get_etsy_instuctions_html() ); ?>
-<div class="ced_etsy_child_element parent_default">
+<div class="ced_etsy_child_element">
 		<?php
 				$activeShop   = isset( $_GET['shop_name'] ) ? sanitize_text_field( $_GET['shop_name'] ) : '';
 				$profile_url  = admin_url( 'admin.php?page=ced_etsy&section=profiles-view&shop_name=' . $activeShop );

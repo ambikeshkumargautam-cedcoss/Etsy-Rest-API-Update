@@ -73,8 +73,6 @@ class Woocommmerce_Etsy_Integration {
 		$this->load_dependencies();
 		$this->set_locale();
 		$this->define_admin_hooks();
-		$this->define_public_hooks();
-
 	}
 
 	/**
@@ -101,6 +99,13 @@ class Woocommmerce_Etsy_Integration {
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-woocommmerce-etsy-integration-loader.php';
 
 		/**
+		 * The class responsible for orchestrating the actions and filters of the
+		 * core plugin.
+		 */
+		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'includes/class-ced-etsy-autoloader.php';
+		new CedEtsyAutoloader();
+
+		/**
 		 * The class responsible for defining internationalization functionality
 		 * of the plugin.
 		 */
@@ -110,13 +115,6 @@ class Woocommmerce_Etsy_Integration {
 		 * The class responsible for defining all actions that occur in the admin area.
 		 */
 		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'admin/class-woocommmerce-etsy-integration-admin.php';
-
-		/**
-		 * The class responsible for defining all actions that occur in the public-facing
-		 * side of the site.
-		 */
-		require_once plugin_dir_path( dirname( __FILE__ ) ) . 'public/class-woocommmerce-etsy-integration-public.php';
-
 		$this->loader = new Woocommmerce_Etsy_Integration_Loader();
 
 	}
@@ -177,19 +175,6 @@ class Woocommmerce_Etsy_Integration {
 		$this->loader->add_filter( 'wp_ajax_ced_etsy_submit_shipment', $plugin_admin, 'ced_etsy_submit_shipment' );
 		$this->loader->add_filter( 'wp_ajax_ced_esty_delete_mapped_profiles', $plugin_admin, 'ced_esty_delete_mapped_profiles' );
 		$this->loader->add_filter( 'wp_ajax_ced_update_inventory_etsy_to_woocommerce', $plugin_admin, 'ced_update_inventory_etsy_to_woocommerce' );
-		/**
-		 **************************************
-		 * INCLUDE TEMPLATE FOR SETTINGS  TAB
-		 **************************************
-		 */
-
-		$this->loader->add_action( 'ced_etsy_render_meta_keys_settings', $plugin_admin, 'ced_etsy_render_meta_key_settings_in_setting_tab' );
-		$this->loader->add_action( 'ced_etsy_render_product_settings', $plugin_admin, 'ced_etsy_render_product_settings_in_setting_tab' );
-		// $this->loader->add_action( 'ced_etsy_render_product_configuration', $plugin_admin, 'ced_etsy_render_product_configuration_in_setting_tab' );
-		$this->loader->add_action( 'ced_etsy_render_shipping_profiles', $plugin_admin, 'ced_etsy_render_shipping_profiles_in_setting_tab' );
-		$this->loader->add_action( 'ced_etsy_render_shop_section', $plugin_admin, 'ced_etsy_render_shop_section_in_setting_tab' );
-		$this->loader->add_action( 'ced_etsy_render_order_settings', $plugin_admin, 'ced_etsy_render_order_settings_in_setting_tab' );
-		$this->loader->add_action( 'ced_etsy_render_shedulers_settings', $plugin_admin, 'ced_etsy_render_shedulers_settings_in_setting_tab' );
 
 		/**
 		 *********************************************
@@ -243,21 +228,6 @@ class Woocommmerce_Etsy_Integration {
 		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'ced_etsy_add_order_metabox' );
 		$this->loader->add_action( 'admin_footer_text', $plugin_admin, 'ced_etsy_admin_footer_text' );
 		$this->loader->add_action( 'wp_ajax_ced_etsy_submit_feedback', $plugin_admin, 'ced_etsy_submit_feedback' );
-
-	}
-
-	/**
-	 * Register all of the hooks related to the public-facing functionality
-	 * of the plugin.
-	 *
-	 * @since    1.0.0
-	 */
-	private function define_public_hooks() {
-
-		$plugin_public = new Woocommmerce_Etsy_Integration_Public( $this->get_plugin_name(), $this->get_version() );
-
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_styles' );
-		$this->loader->add_action( 'wp_enqueue_scripts', $plugin_public, 'enqueue_scripts' );
 
 	}
 

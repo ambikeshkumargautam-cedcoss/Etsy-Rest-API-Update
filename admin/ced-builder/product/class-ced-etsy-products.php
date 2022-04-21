@@ -1,11 +1,51 @@
 <?php
+namespace Ced_Product_Upload_To_Etsy;
 
 if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
-	class Class_Ced_Etsy_Products {
+	class Ced_Etsy_Products {
 
+		/**
+		 * The ID of this plugin.
+		 *
+		 * @since    1.0.0
+		 * @var      string    $_instance    The ID of this plugin.
+		 */
 		public static $_instance;
+		/**
+		 * Saved data at the global settings.
+		 *
+		 * @since    2.0.8
+		 * @var      string    $renderDataOnGlobalSettings    variable to hold all saved data.
+		 */
 		private $renderDataOnGlobalSettings;
+		/**
+		 * The saved cedEtsy Data.
+		 *
+		 * @since    2.0.8
+		 * @var      string    $saved_etsy_details    All saved data.
+		 */
 		private $saved_etsy_details;
+		/**
+		 * Hold the Woocommerce product. 
+		 *
+		 * @since    2.0.8
+		 * @var      string    $ced_product    Wocommerce product. 
+		 */
+		public  $ced_product;
+		/**
+		 * The listing ID of uploaded product.
+		 *
+		 * @since    1.0.0
+		 * @var      string    $l_id    The listing ID of the product.
+		 */
+		private $l_id;
+		/**
+		 * Active Etsy shopName.
+		 *
+		 * @since    1.0.0
+		 * @var      string    $shop_name  Etsy shopName.
+		 */
+		public $shop_name;
 		/**
 		 * Ced_Etsy_Config Instance.
 		 *
@@ -21,9 +61,10 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 			return self::$_instance;
 		}
 
-		public function __construct() {
-			$this->renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', '' );
-			$this->saved_etsy_details         = get_option( 'ced_etsy_details', '' );
+		public function __construct( $shop_name = '' ) {
+			$this->shop_name                  = $shop_name;
+			$this->renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', array() );
+			$this->saved_etsy_details         = get_option( 'ced_etsy_details', array() );
 		}
 
 
@@ -39,7 +80,9 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 		 */
 
 		public function prepareDataForUploading( $proIDs = array(), $shop_name = '' ) {
-
+			if ( ! is_array( $proIDs ) ) {
+				$proIDs = array( $proIDs );
+			}
 			if ( is_array( $proIDs ) && ! empty( $proIDs ) ) {
 				$shop_name = trim( $shop_name );
 				self::prepareItems( $proIDs, $shop_name );
@@ -62,27 +105,41 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 		 * @return Uploaded Ids
 		 */
 		private function prepareItems( $proIDs = array(), $shop_name = '' ) {
+			if ( '' == $shop_name || empty( $shop_name ) ) {
+				return;
+			}
 
-			foreach ( $proIDs as $key => $value ) {
-				$productData     = wc_get_product( $value );
-				$image_id        = get_post_thumbnail_id( $value );
-				$productType     = $productData->get_type();
-				$alreadyUploaded = false;
+			foreach ( $proIDs as $key => $pr_id ) {
 
-				$already_uploaded = get_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name, true );
-
-				if ( $already_uploaded ) {
+				/**
+				 * ********************************************
+				 *  Get Post meta check if alreay got uploaded.
+				 * ********************************************
+				 * 
+				 * @since 2.0.8
+				 */
+				
+				$listing_id = get_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, true );
+				if ( $listing_id ) {
 					continue;
 				}
-				if ( 'variable' == $productType ) {
-					$attributes = $productData->get_variation_attributes();
+
+				$this->ced_product = wc_get_product( absint( $pr_id ) );
+				$pro_type          = $this->ced_product->get_type();
+				$alreadyUploaded   = false;
+				if ( 'variable' == $pro_type ) {
+					$attributes = $this->ced_product->get_variation_attributes();
 					if ( count( $attributes ) > 2 ) {
 						$error                = array();
 						$error['msg']         = 'Varition attributes cannot be more than 2 . Etsy accepts variations using two attributes only.';
 						$this->uploadResponse = $error;
 						return $this->uploadResponse;
 					}
-					$preparedData = $this->getFormattedData( $value, $shop_name );
+					$preparedData = $this->getFormattedData( $pr_id, $shop_name );
+					if (isset($preparedData['msg'])) {
+						$this->uploadResponse = $preparedData['msg'];
+						continue;
+					}
 					if ( 'Profile Not Assigned' == $preparedData || 'Quantity Cannot Be 0' == $preparedData ) {
 						$error                = array();
 						$error['msg']         = $preparedData;
@@ -90,52 +147,17 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 						return $this->uploadResponse;
 					}
 					$this->data = $preparedData;
-					self::doupload( $value, $shop_name );
+					self::doupload( $pr_id, $shop_name );
 					$response = $this->uploadResponse;
 					if ( isset( $response['results'] ) ) {
-
-						$listingID = isset( $response['results'][0]['listing_id'] ) ? $response['results'][0]['listing_id'] : '';
-						update_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name, $response['results'][0]['listing_id'] );
-						update_post_meta( $value, '_ced_etsy_url_' . $shop_name, $response['results'][0]['url'] );
-						$parent_image_id = $image_id;
-						if ( WC()->version < '3.0.0' ) {
-							$attachment_ids = $productData->get_gallery_attachment_ids();
-						} else {
-							$attachment_ids = $productData->get_gallery_image_ids();
-						}
-						$previous_thum_ids = get_post_meta( $value, 'ced_etsy_previous_thumb_ids' . $listingID, true );
-						if ( empty( $previous_thum_ids ) || ! is_array( $previous_thum_ids ) ) {
-							$previous_thum_ids = array();
-						}
-						if ( ! empty( $attachment_ids ) ) {
-							foreach ( array_reverse( $attachment_ids ) as $attachment_id ) {
-
-								if ( isset( $previous_thum_ids[ $attachment_id ] ) ) {
-									continue;
-								}
-
-								$image_result = self::doImageUpload( $listingID, $value, $attachment_id, $shop_name );
-								if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
-									$previous_thum_ids[ $attachment_id ] = $image_result['results'][0]['listing_image_id'];
-									update_post_meta( $value, 'ced_etsy_previous_thumb_ids' . $listingID, $previous_thum_ids );
-								}
-							}
-						}
-
-						if ( ! isset( $previous_thum_ids[ $parent_image_id ] ) ) {
-							$image_result = self::doImageUpload( $listingID, $value, $parent_image_id, $shop_name );
-
-							if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
-								$previous_thum_ids[ $parent_image_id ] = $image_result['results'][0]['listing_image_id'];
-								update_post_meta( $value, 'ced_etsy_previous_thumb_ids' . $listingID, $previous_thum_ids );
-							}
-						}
-
-						$var_response = $this->update_variation_sku_to_etsy( $listingID, $value, $shop_name );
-
+						$this->l_id = isset( $response['results'][0]['listing_id'] ) ? $response['results'][0]['listing_id'] : '';
+						update_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, $response['results'][0]['listing_id'] );
+						update_post_meta( $pr_id, '_ced_etsy_url_' . $shop_name, $response['results'][0]['url'] );
+						$this->ced_update_uploaded_images( $pr_id, $shop_name );
+						$var_response = $this->update_variation_sku_to_etsy( $this->l_id, $pr_id, $shop_name );
 						if ( ! isset( $var_response['results'] ) ) {
-							$this->prepareDataForDelete( array( $value ), $shop_name );
-							foreach ( $var_response as $key => $value ) {
+							$this->prepareDataForDelete( array( $pr_id ), $shop_name );
+							foreach ( $var_response as $key => $v_id ) {
 								$error                = array();
 								$error['msg']         = isset( $key ) ? ucwords( str_replace( '_', ' ', $key ) ) : '';
 								$this->uploadResponse = $error;
@@ -144,66 +166,97 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 							}
 						}
 					}
-				} elseif ( 'simple' == $productType ) {
-					$preparedData = $this->getFormattedData( $value, $shop_name );
+				} elseif ( 'simple' == $pro_type ) {
+					$preparedData = $this->getFormattedData( $pr_id, $shop_name );
+					if (isset($preparedData['msg'])) {
+						$this->uploadResponse = $preparedData['msg'];
+						continue;
+					}
 					if ( 'Profile Not Assigned' == $preparedData || 'Quantity Cannot Be 0' == $preparedData ) {
 						$error                = array();
 						$error['msg']         = $preparedData;
 						$this->uploadResponse = $error;
 						return $this->uploadResponse;
 					}
+					
 					$this->data = $preparedData;
-					self::doupload( $value, $shop_name );
+					self::doupload( $pr_id, $shop_name );
 					$response = $this->uploadResponse;
-					if ( isset( $response['listing_id'] ) ) {
-						$listingID = isset( $response['listing_id'] ) ? $response['listing_id'] : '';
-						update_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name, $response['listing_id'] );
-						update_post_meta( $value, '_ced_etsy_url_' . $shop_name, $response['url'] );
-						$this->update_sku_to_etsy( $listingID, $value, $shop_name );
-						$this->ced_etsy_upload_attributes( $listingID, $value, $shop_name );
-						if ( WC()->version < '3.0.0' ) {
-							$attachment_ids = $productData->get_gallery_attachment_ids();
-						} else {
-							$attachment_ids = $productData->get_gallery_image_ids();
-						}
-						$previous_thum_ids = get_post_meta( $value, 'ced_etsy_previous_thumb_ids' . $listingID, true );
-
-						if ( empty( $previous_thum_ids ) || ! is_array( $previous_thum_ids ) ) {
-							$previous_thum_ids = array();
-						}
-
-						if ( ! empty( $attachment_ids ) ) {
-							foreach ( array_reverse( $attachment_ids ) as $attachment_id ) {
-
-								if ( isset( $previous_thum_ids[ $attachment_id ] ) ) {
-									continue;
-								}
-
-								$image_result = self::doImageUpload( $listingID, $value, $attachment_id, $shop_name );
-								if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
-									$previous_thum_ids[ $attachment_id ] = $image_result['results'][0]['listing_image_id'];
-									update_post_meta( $value, 'ced_etsy_previous_thumb_ids' . $listingID, $previous_thum_ids );
-								}
-							}
-						}
-						$parent_image_id = $image_id;
-						if ( ! isset( $previous_thum_ids[ $parent_image_id ] ) ) {
-							$image_result = self::doImageUpload( $listingID, $value, $parent_image_id, $shop_name );
-
-							if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
-								$previous_thum_ids[ $parent_image_id ] = $image_result['results'][0]['listing_image_id'];
-								update_post_meta( $value, 'ced_etsy_previous_thumb_ids' . $listingID, $previous_thum_ids );
-							}
-						}
-
-						if ( $this->is_downloadable ) {
-							$digital_response = $this->prepare_files( $value, $shop_name, $listingID );
-						}
+					if ( isset( $response['results'] ) ) {
+						$this->l_id = isset( $response['results'][0]['listing_id'] ) ? $response['results'][0]['listing_id'] : '';
+						update_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, $response['results'][0]['listing_id'] );
+						update_post_meta( $pr_id, '_ced_etsy_url_' . $shop_name, $response['results'][0]['url'] );
+						$this->update_sku_to_etsy( $this->l_id, $pr_id, $shop_name );
+						$this->ced_etsy_upload_attributes( $this->l_id, $pr_id, $shop_name );
+						$this->ced_update_uploaded_images( $pr_id, $shop_name );
 					}
 				}
 			}
 			return $this->uploadResponse;
 		}
+
+		/**
+		 * *************************
+		 * Update uploaded images.
+		 * *************************
+		 *
+		 * @since 2.0.8
+		 *
+		 * @param array  $p_id Checked Product ids
+		 * @param string $shopName Active Shop Name
+		 *
+		 * @return
+		 */
+
+		private function ced_update_uploaded_images( $p_id = '', $shop_name = '' ) {
+			if ( empty( $p_id ) || empty( $shop_name ) ) {
+				return;
+			}
+			$prnt_img_id = get_post_thumbnail_id( $p_id );
+			if ( WC()->version < '3.0.0' ) {
+				$attachment_ids = $this->ced_product->get_gallery_attachment_ids();
+			} else {
+				$attachment_ids = $this->ced_product->get_gallery_image_ids();
+			}
+			$previous_thum_ids = get_post_meta( $p_id, 'ced_etsy_previous_thumb_ids' . $this->l_id, true );
+			if ( empty( $previous_thum_ids ) || ! is_array( $previous_thum_ids ) ) {
+				$previous_thum_ids = array();
+			}
+			$attachment_ids = array_slice( $attachment_ids, 0,9 );
+			if ( ! empty( $attachment_ids ) ) {
+				foreach ( array_reverse( $attachment_ids ) as $attachment_id ) {
+					if ( isset( $previous_thum_ids[ $attachment_id ] ) ) {
+						continue;
+					}
+					$image_result = self::doImageUpload( $this->l_id, $p_id, $attachment_id, $shop_name );
+					if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
+						$previous_thum_ids[ $attachment_id ] = $image_result['results'][0]['listing_image_id'];
+						update_post_meta( $p_id, 'ced_etsy_previous_thumb_ids' . $this->l_id, $previous_thum_ids );
+					}
+				}
+			}
+			if ( ! isset( $previous_thum_ids[ $prnt_img_id ] ) ) {
+				$image_result = self::doImageUpload( $this->l_id, $p_id, $prnt_img_id, $shop_name );
+				if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
+					$previous_thum_ids[ $prnt_img_id ] = $image_result['results'][0]['listing_image_id'];
+					update_post_meta( $p_id, 'ced_etsy_previous_thumb_ids' . $this->l_id, $previous_thum_ids );
+				}
+			}
+		}
+
+		/**
+		 * *************************
+		 * Prepare file to be upload.
+		 * *************************
+		 *
+		 * @since 2.0.5
+		 *
+		 * @param array  $p_id Checked Product ids
+		 * @param string $shopName Active Shop Name
+		 * @param string $listingID Listing ID from Etsy. 
+		 *
+		 * @return
+		 */
 
 		public function prepare_files( $product_id, $shop_name, $listingID ) {
 			$downloadable_data = $this->downloadable_data;
@@ -219,7 +272,23 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 			}
 		}
 
+		/**
+		 * *************************
+		 * Update uploaded images.
+		 * *************************
+		 *
+		 * @since 2.0.5
+		 *
+		 * @param array  $p_id Checked Product ids
+		 * @param string $shopName Active Shop Name
+		 * @param integer $listingID Listing ID of the Product. 
+		 * @param array $file_data All files data which is going to be upload. 
+		 * @param integer $count number of counts. 
+		 *
+		 * @return
+		 */
 		public function upload_files( $product_id, $shop_name, $listingID, $file_data, $count ) {
+
 			$listing_files_uploaded = get_post_meta( $product_id, '_ced_etsy_product_files_uploaded' . $listingID, true );
 			if ( empty( $listing_files_uploaded ) ) {
 				$listing_files_uploaded = array();
@@ -235,14 +304,8 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 			);
 			$saved_etsy_details      = get_option( 'ced_etsy_details', array() );
 			$saved_shop_etsy_details = $saved_etsy_details[ $shop_name ];
-
-			$ced_etsy_keystring     = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
-			$ced_etsy_shared_string = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
-
-			$outh_secret_token = isset( $saved_shop_etsy_details['oauth_secret'] ) ? $saved_shop_etsy_details['oauth_secret'] : '';
-
-			$oauth_token        = isset( $saved_shop_etsy_details['access_token']['oauth_token'] ) ? $saved_shop_etsy_details['access_token']['oauth_token'] : '';
-			$oauth_token_secret = isset( $saved_shop_etsy_details['access_token']['oauth_token_secret'] ) ? $saved_shop_etsy_details['access_token']['oauth_token_secret'] : '';
+			$ced_etsy_keystring      = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
+			$ced_etsy_shared_string  = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
 
 			try {
 				$args = array(
@@ -252,9 +315,8 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					'data'   => $params,
 				);
 
-				$file_type = explode( '.', $file_data['file'] );
-				$file_type = ! empty( end( $file_type ) ) ? end( $file_type ) : 'jpeg';
-
+				$file_type   = explode( '.', $file_data['file'] );
+				$file_type   = ! empty( end( $file_type ) ) ? end( $file_type ) : 'jpeg';
 				$requestBody = array(
 					'action'                 => 'uploadListingFile',
 					'ced_etsy_keystring'     => $ced_etsy_keystring,
@@ -265,19 +327,8 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					'file_type'              => $file_type,
 					'file_url'               => $file_data['file'],
 				);
-				$serverUrl   = 'http://3.129.122.174/demo/ced-manage-etsy.php';
-				$curl        = curl_init();
-				curl_setopt( $curl, CURLOPT_URL, $serverUrl );
-				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
-				curl_setopt( $curl, CURLOPT_CUSTOMREQUEST, 'POST' );
-				curl_setopt( $curl, CURLOPT_POST, 1 );
-				curl_setopt( $curl, CURLOPT_POSTFIELDS, $requestBody );
-				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
-				$result = curl_exec( $curl );
-				$result = json_decode( $result, true );
-				$http   = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-				curl_close( $curl );
-
+				$result      = $this->ced_etsy_post_request( $requestBody );
+				$result      = !is_array( $result ) ? json_decode( $result, true ) : $result;
 				if ( isset( $result['results'] ) ) {
 					$listing_files_uploaded[ $file_data['id'] ] = $result['results'][0]['listing_file_id'];
 					update_post_meta( $product_id, '_ced_etsy_product_files_uploaded' . $listingID, $listing_files_uploaded );
@@ -308,16 +359,10 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 			$saved_shop_etsy_details = $this->saved_etsy_details[ $active_shop ];
 			$ced_etsy_keystring      = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
 			$ced_etsy_shared_string  = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
-
-			$outh_secret_token = isset( $saved_shop_etsy_details['oauth_secret'] ) ? $saved_shop_etsy_details['oauth_secret'] : '';
-
-			$oauth_token        = isset( $saved_shop_etsy_details['access_token']['oauth_token'] ) ? $saved_shop_etsy_details['access_token']['oauth_token'] : '';
-			$oauth_token_secret = isset( $saved_shop_etsy_details['access_token']['oauth_token_secret'] ) ? $saved_shop_etsy_details['access_token']['oauth_token_secret'] : '';
-
-			$image_path = get_attached_file( $image_id );
-			$image_url  = wp_get_attachment_url( $image_id );
-			$image_data = file_get_contents( $image_url );
-			$image_data = base64_encode( $image_data );
+			$image_path              = get_attached_file( $image_id );
+			$image_url               = wp_get_attachment_url( $image_id );
+			$image_data              = file_get_contents( $image_url );
+			$image_data              = base64_encode( $image_data );
 			try {
 				$args = array(
 					'params' => array(
@@ -337,18 +382,8 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					'image_url'              => $image_url,
 					'active_shop'            => $active_shop,
 				);
-				$serverUrl   = 'http://3.129.122.174/demo/ced-manage-etsy.php';
-				$curl        = curl_init();
-				curl_setopt( $curl, CURLOPT_URL, $serverUrl );
-				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
-				curl_setopt( $curl, CURLOPT_CUSTOMREQUEST, 'POST' );
-				curl_setopt( $curl, CURLOPT_POST, 1 );
-				curl_setopt( $curl, CURLOPT_POSTFIELDS, $requestBody );
-				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
-				$result = curl_exec( $curl );
-				$result = json_decode( $result, true );
-				$http   = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-				curl_close( $curl );
+				$result      = $this->ced_etsy_post_request( $requestBody );
+				$result      = !is_array( $result ) ? json_decode( $result, true ) : $result;
 				return $result;
 			} catch ( Exception $e ) {
 				$this->error_msg .= 'Message: ' . $product_id . '--' . $e->getMessage();
@@ -356,9 +391,25 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 
 		}
 
+		/**
+		 * ************************************
+		 * UPLOAD IMAGED ON THE ETSY SHOP ;)
+		 * ************************************
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param array $product_ids All  product ID. 
+		 * @param array $shop_name Active shop name of Etsy. 
+		 *
+		 * @return Array. 
+		 */
 
 		public function update_images_on_etsy( $product_ids = array(), $shop_name = '' ) {
 
+			if ( ! is_array( $product_ids ) ) {
+				$product_ids = array( $product_ids );
+			}
+			
 			if ( is_array( $product_ids ) && ! empty( $product_ids ) ) {
 				foreach ( $product_ids as $key => $value ) {
 
@@ -450,8 +501,7 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 			$attribute       = $product->get_variation_attributes();
 			$attribule_array = array();
 			foreach ( $attribute as $name => $value ) {
-				$attribule_array['name'] = str_replace( 'pa_', '', $name );
-
+				$attribule_array['name']           = str_replace( 'pa_', '', $name );
 				$attribule_array['options']        = array_values( $value );
 				$proVariations['tier_variation'][] = $attribule_array;
 			}
@@ -493,11 +543,12 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 		  */
 
 		private function update_sku_to_etsy( $listing_id, $productid = '', $active_shop ) {
-			$this->getProfileAssignedData( $productid, $active_shop );
+			$profileData                = $this->getProfileAssignedData( $productid, $active_shop );
+			$client                     = ced_etsy_getOauthClientObject( $active_shop );
 			$params                     = array( 'listing_id' => (int) $listing_id );
-			$action                     = "application/listings/{$listing_id}/inventory";
-			$inventory_details          = etsy_request()->get( $action, $active_shop );
-			$product_json               = $inventory_details['products'];
+			$success                    = $client->CallAPI( "https://openapi.etsy.com/v2/listings/{$listing_id}/inventory", 'GET', $params, array( 'FailOnAccessError' => true ), $inventory_details );
+			$inventory_details          = json_decode( json_encode( $inventory_details ), true );
+			$product_json               = $inventory_details['results']['products'];
 			$sku                        = get_post_meta( $productid, '_sku', true );
 			$quantity                   = get_post_meta( $productid, '_ced_etsy_stock', true );
 			$price_at_product_lvl       = get_post_meta( $productid, '_ced_etsy_price', true );
@@ -507,7 +558,7 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 			$markupValue_at_profile_lvl = $this->fetchMetaValueOfProduct( $productid, '_ced_etsy_markup_value' );
 			$price_at_profile_lvl       = $this->fetchMetaValueOfProduct( $productid, '_ced_etsy_price' );
 
-				 // Price
+				   // Price
 			if ( ! empty( $price_at_product_lvl ) ) {
 				$price = (float) $price_at_product_lvl;
 				if ( 'Percentage_Increased' == $markuptype_at_product_lvl ) {
@@ -549,18 +600,13 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 			if ( empty( $sku ) ) {
 				$sku = (string) $productid;
 			}
-			unset( $product_json[0]['offerings'] );
-			$product_json[0]['offerings'][0]['quantity']   = (int) $quantity;
-			$product_json[0]['offerings'][0]['price']      = (float) $price;
-			$product_json[0]['offerings'][0]['is_enabled'] = true;
-			$product_json[0]['sku']                        = $sku;
-			unset( $product_json[0]['product_id'] );
-			unset( $product_json[0]['is_deleted'] );
+			$product_json[0]['offerings'][0]['quantity'] = (int) $quantity;
+			$product_json[0]['offerings'][0]['price']    = (float) $price;
+			$product_json[0]['sku']                      = $sku;
 
-			$action = "application/listings/{$listing_id}/inventory";
-
-			$parameters = array( 'products' => $product_json );
-			$response   = etsy_request()->post( $action, $parameters, $active_shop, array(), 'PUT' );
+			$params            = array( 'products' => json_encode( $product_json ) );
+			$success           = $client->CallAPI( "https://openapi.etsy.com/v2/listings/$listing_id/inventory", 'PUT', $params, array( 'FailOnAccessError' => true ), $inventory_details );
+			$inventory_details = json_decode( json_encode( $inventory_details ), true );
 		}
 
 
@@ -613,14 +659,15 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 
 								$property_id_to_listing = (int) $key;
 								$value_ids              = (int) $value;
-								$params                 = array(
+
+								$params   = array(
 									'listing_id'  => (int) $listing_id,
 									'property_id' => (int) $property_id_to_listing,
 									'value_ids'   => array( (int) $value_ids ),
 									'values'      => array( (string) $value_ids ),
 								);
-								$success                = $client->CallAPI( "https://openapi.etsy.com/v2/listings/{$listing_id}/attributes/{$property_id_to_listing}", 'PUT', $params, array( 'FailOnAccessError' => true ), $response );
-								$response               = json_decode( json_encode( $response ), true );
+								$success  = $client->CallAPI( "https://openapi.etsy.com/v2/listings/{$listing_id}/attributes/{$property_id_to_listing}", 'PUT', $params, array( 'FailOnAccessError' => true ), $response );
+								$response = json_decode( json_encode( $response ), true );
 							}
 						}
 						update_post_meta( $productId, 'ced_etsy_attribute_uploaded', 'true' );
@@ -646,6 +693,10 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 
 		public function prepareDataForUpdating( $proIDs = array(), $shop_name ) {
 
+			if ( ! is_array( $proIDs ) ) {
+				$proIDs = array( $proIDs );
+			}
+
 			foreach ( $proIDs as $key => $product_id ) {
 
 				$listing_id  = get_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, true );
@@ -662,6 +713,40 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 				$language   = ! empty( $language ) ? $language : 'en';
 
 				if ( ! empty( $arguements ) ) {
+					$saved_shop_etsy_details = $this->saved_etsy_details[ $shop_name ];
+					$ced_etsy_keystring      = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
+					$ced_etsy_shared_string  = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
+					$data                    = array(
+						'params' => array(
+							'listing_id' => (int) $listing_id,
+							'language'   => $language,
+						),
+						'data'   => $arguements,
+					);
+					$requestBody             = array(
+						'action'                 => 'updateListing',
+						'ced_etsy_keystring'     => $ced_etsy_keystring,
+						'ced_etsy_shared_string' => $ced_etsy_shared_string,
+						'saved_etsy_details'     => json_encode( $this->saved_etsy_details ),
+						'data'                   => json_encode( $data ),
+						'active_shop'            => $shop_name,
+					);
+
+					$result = $this->ced_etsy_post_request( $requestBody );
+					$result = !is_array( $result ) ? json_decode( $result, true ) : $result;
+					if ( isset( $result['exception'] ) ) {
+						$error        = array();
+						$error['msg'] = isset( $result['exception']['last_response'] ) ? $result['exception']['last_response'] : 'some error occured';
+						return $error;
+					} else {
+
+						if ( $this->is_downloadable ) {
+							$digital_response = $this->prepare_files( $product_id, $shop_name, $listing_id );
+						}
+
+						$this->ced_etsy_upload_attributes( $listing_id, $product_id, $shop_name );
+					}
+					return $result;
 
 				}
 			}
@@ -691,6 +776,10 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 		  */
 
 		public function prepareDataForUpdatingInventory( $proIDs = array(), $shop_name, $is_sync = false ) {
+			if ( ! is_array( $proIDs ) ) {
+				$proIDs = array( $proIDs );
+			}
+
 			if ( is_array( $proIDs ) && ! empty( $proIDs ) ) {
 				foreach ( $proIDs as $key => $value ) {
 					$listing_id = get_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name, true );
@@ -805,22 +894,18 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 
 
 		public function deactivate_products( $proIDs = array(), $shop_name = '' ) {
+			if ( ! is_array( $proIDs ) ) {
+				$proIDs = array( $proIDs );
+			}
+
 			$message                 = '';
 			$saved_shop_etsy_details = $this->saved_etsy_details[ $shop_name ];
 			$ced_etsy_keystring      = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
 			$ced_etsy_shared_string  = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
-
-			$outh_secret_token = isset( $saved_shop_etsy_details['oauth_secret'] ) ? $saved_shop_etsy_details['oauth_secret'] : '';
-
-			$oauth_token        = isset( $saved_shop_etsy_details['access_token']['oauth_token'] ) ? $saved_shop_etsy_details['access_token']['oauth_token'] : '';
-			$oauth_token_secret = isset( $saved_shop_etsy_details['access_token']['oauth_token_secret'] ) ? $saved_shop_etsy_details['access_token']['oauth_token_secret'] : '';
-
 			foreach ( $proIDs as $key => $value ) {
 				$listing_id = get_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name, true );
-
-				$data = array( 'state' => 'inactive' );
-
-				$args = array(
+				$data       = array( 'state' => 'inactive' );
+				$args       = array(
 					'params' => array( 'listing_id' => (int) $listing_id ),
 					'data'   => $data,
 				);
@@ -833,20 +918,9 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					'data'                   => json_encode( $args ),
 					'active_shop'            => $shop_name,
 				);
-				$serverUrl   = 'http://3.129.122.174/demo/ced-manage-etsy.php';
-				$curl        = curl_init();
-				curl_setopt( $curl, CURLOPT_URL, $serverUrl );
-				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
-				curl_setopt( $curl, CURLOPT_CUSTOMREQUEST, 'POST' );
-				curl_setopt( $curl, CURLOPT_POST, 1 );
-				curl_setopt( $curl, CURLOPT_POSTFIELDS, $requestBody );
-				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
-				$result = curl_exec( $curl );
-				$result = json_decode( $result, true );
-				$http   = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-				curl_close( $curl );
+				$result      = $this->ced_etsy_post_request( $requestBody );
+				$result      = !is_array( $result ) ? json_decode( $result, true ) : $result;
 				return $result;
-
 			}
 
 		}
@@ -866,7 +940,7 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 
 		private function activate_products( $proIDs = array(), $shop_name ) {
 
-			$state = isset( $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_ced_etsy_product_list_type'] ) ? $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_ced_etsy_product_list_type']['default'] : '';
+			$state = isset( $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_ced_etsy_product_list_type'] ) ? $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_ced_etsy_product_list_type'] : '';
 			if ( 'active' != $state ) {
 				return;
 			}
@@ -875,16 +949,9 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 			$saved_shop_etsy_details = $this->saved_etsy_details[ $shop_name ];
 			$ced_etsy_keystring      = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
 			$ced_etsy_shared_string  = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
-
-			$outh_secret_token  = isset( $saved_shop_etsy_details['oauth_secret'] ) ? $saved_shop_etsy_details['oauth_secret'] : '';
-			$oauth_token        = isset( $saved_shop_etsy_details['access_token']['oauth_token'] ) ? $saved_shop_etsy_details['access_token']['oauth_token'] : '';
-			$oauth_token_secret = isset( $saved_shop_etsy_details['access_token']['oauth_token_secret'] ) ? $saved_shop_etsy_details['access_token']['oauth_token_secret'] : '';
-
 			foreach ( $proIDs as $key => $value ) {
-				$listing_id = get_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name, true );
-
-				$data = array( 'state' => 'active' );
-
+				$listing_id  = get_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name, true );
+				$data        = array( 'state' => 'active' );
 				$args        = array(
 					'params' => array( 'listing_id' => (int) $listing_id ),
 					'data'   => $data,
@@ -897,20 +964,9 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					'data'                   => json_encode( $args ),
 					'active_shop'            => $shop_name,
 				);
-				$serverUrl   = 'http://3.129.122.174/demo/ced-manage-etsy.php';
-				$curl        = curl_init();
-				curl_setopt( $curl, CURLOPT_URL, $serverUrl );
-				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
-				curl_setopt( $curl, CURLOPT_CUSTOMREQUEST, 'POST' );
-				curl_setopt( $curl, CURLOPT_POST, 1 );
-				curl_setopt( $curl, CURLOPT_POSTFIELDS, $requestBody );
-				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
-				$result = curl_exec( $curl );
-				$result = json_decode( $result, true );
-				$http   = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-				curl_close( $curl );
+				$result      = $this->ced_etsy_post_request( $requestBody );
+				$result      = !is_array( $result ) ? json_decode( $result, true ) : $result;
 				return $result;
-
 			}
 
 		}
@@ -929,6 +985,11 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 		  */
 
 		public function prepareDataForDelete( $proIDs = array(), $shop_name ) {
+			
+			if ( ! is_array( $proIDs ) ) {
+				$proIDs = array( $proIDs );
+			}
+
 			$message = array();
 			foreach ( $proIDs as $key => $value ) {
 				$client     = ced_etsy_getOauthClientObject( $shop_name );
@@ -1069,12 +1130,11 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					$po_values   = array_reverse( $po_values );
 
 					foreach ( $po_values as $kk => $po_value ) {
-						if ( ! isset( $variationProductAttributes[ $kk ] ) ) {
-							continue;
+						if ( ! isset($variationProductAttributes[$kk]) ) {
+						continue;
 						}
 						$att_name_po .= $po_value . '~';
 					}
-
 					$com_to_be_prepared[ trim( strtolower( $att_name_po ) ) ] = trim( strtolower( $att_name_po ) );
 				}
 			}
@@ -1091,12 +1151,18 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 				$attribute_two_value = '';
 				$count               = 0;
 				foreach ( $productAttributes as $name => $attr_values ) {
+					$name         = str_replace( 'attribute_', '', $name );
+					$term         = get_term_by( 'slug', $attr_values, $name );
+					$product_term = $attr_values;
+					if ( is_object( $term ) ) {
+						$product_term = $term->name;
+					}
 					if ( 0 == $count ) {
-						$attribute_one       = $name;
-						$attribute_one_value = $attr_values;
+						$attribute_one       = wc_attribute_label( $name );
+						$attribute_one_value = $product_term;
 					} else {
-						$attribute_two       = $name;
-						$attribute_two_value = $attr_values;
+						$attribute_two       = wc_attribute_label( $name );
+						$attribute_two_value = $product_term;
 					}
 					++$count;
 				}
@@ -1300,6 +1366,7 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 				$setPropertyIds = array_unique( $setPropertyIds );
 				$setPropertyIds = implode( ',', $setPropertyIds );
 			}
+
 			$client = ced_etsy_getOauthClientObject( $shop_name );
 			$params = array(
 				'products'             => json_encode( $final_attribute_variation_final ),
@@ -1315,16 +1382,9 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 
 				$saved_etsy_details      = get_option( 'ced_etsy_details', array() );
 				$saved_shop_etsy_details = $saved_etsy_details[ $shop_name ];
-
-				$ced_etsy_keystring     = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
-				$ced_etsy_shared_string = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
-
-				$outh_secret_token = isset( $saved_shop_etsy_details['oauth_secret'] ) ? $saved_shop_etsy_details['oauth_secret'] : '';
-
-				$oauth_token        = isset( $saved_shop_etsy_details['access_token']['oauth_token'] ) ? $saved_shop_etsy_details['access_token']['oauth_token'] : '';
-				$oauth_token_secret = isset( $saved_shop_etsy_details['access_token']['oauth_token_secret'] ) ? $saved_shop_etsy_details['access_token']['oauth_token_secret'] : '';
-
-				$requestBody = array(
+				$ced_etsy_keystring      = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
+				$ced_etsy_shared_string  = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
+				$requestBody             = array(
 					'action'                 => 'updateInventory',
 					'ced_etsy_keystring'     => $ced_etsy_keystring,
 					'ced_etsy_shared_string' => $ced_etsy_shared_string,
@@ -1335,20 +1395,10 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					'quantity_on_property'   => $setPropertyIds,
 					'active_shop'            => $shop_name,
 				);
-
-				$serverUrl = 'http://3.129.122.174/demo/ced-manage-etsy.php';
-				$curl      = curl_init();
-				curl_setopt( $curl, CURLOPT_URL, $serverUrl );
-				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
-				curl_setopt( $curl, CURLOPT_CUSTOMREQUEST, 'POST' );
-				curl_setopt( $curl, CURLOPT_POST, 1 );
-				curl_setopt( $curl, CURLOPT_POSTFIELDS, $requestBody );
-				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
-				$result = curl_exec( $curl );
-				$result = json_decode( $result, true );
-				$http   = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-				curl_close( $curl );
-				$response = $result;
+				$result                  = $this->ced_etsy_post_request( $requestBody );
+				if ( !is_array( $result ) ) {
+					$result = json_decode( $result, true );
+				}
 				if ( isset( $result['exception'] ) || ( isset( $result['status'] ) && 201 == $result['status'] ) ) {
 					$response     = array();
 					$response_msg = isset( $result['message']['lastResponse'] ) ? $result['message']['lastResponse'] : '';
@@ -1392,7 +1442,6 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 			}
 
 			$product            = wc_get_product( $product_id );
-			$this->product      = $product;
 			$productData        = $product->get_data();
 			$productType        = $product->get_type();
 			$productTitle       = get_post_meta( $product_id, '_ced_etsy_title', true );
@@ -1406,40 +1455,49 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 				$this->downloadable_data = $productData['downloads'];
 			}
 
-			// Product Title
-			if ( empty( $productTitle ) ) {
-				$productTitle = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_title' );
-			}
-			if ( empty( $productTitle ) ) {
-				$productTitle = $productData['name'];
+			if ( empty( $shop_name ) ) {
+				$shop_name = $this->shop_name;
 			}
 
-			if ( empty( $productPrefix ) ) {
-				$productPrefix = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_title_pre' );
+			$etsy_data_field = $this->renderDataOnGlobalSettings[$shop_name]['product_data'];
+			$all_data        = array();
+			foreach ( $etsy_data_field as $meta_key => $value ) {
+					$prep_value = get_post_meta( $product_id, $meta_key, true );
+				if ( empty( $prep_value ) ) {
+					$prep_value = $this->fetchMetaValueOfProduct( $product_id, $meta_key );
+				}
+				if ( empty( $prep_value ) ) {
+					$prep_value = $value['default'];
+				}
+					$all_data[$meta_key] = $prep_value;
 			}
 
-			if ( empty( $productPostfix ) ) {
-				$productPostfix = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_title_post' );
-			}
-
-			$productTitle = $productPrefix . ' ' . $productTitle . ' ' . $productPostfix;
-
-			if ( empty( $productDescription ) ) {
-				$productDescription = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_description' );
-			}
-			if ( empty( $productDescription ) ) {
-				$productDescription = $productData['description'] . '</br>' . $productData['short_description'];
-			}
-
+			$productTitle         = !empty( $all_data['_ced_etsy_title'] ) ? $all_data['_ced_etsy_title'] : $productData['name'];
+			$productPrefix        = !empty( $all_data['_ced_etsy_title_pre'] ) ? $all_data['_ced_etsy_title_pre'] : '';
+			$productPostfix       = !empty( $all_data['_ced_etsy_title_post'] ) ? $all_data['_ced_etsy_title_post'] : '';
+			$DesPrefix            = !empty( $all_data['_ced_etsy_description_pre'] ) ? $all_data['_ced_etsy_description_pre'] : '';
+			$DesPostfix           = !empty( $all_data['_ced_etsy_description_post'] ) ? $all_data['_ced_etsy_description_post'] : '';
+			$productTitle         = $productPrefix . ' ' . $productTitle . ' ' . $productPostfix;
+			$productDescription   = !empty( $all_data['_ced_etsy_description'] ) ? $all_data['_ced_etsy_description'] : $DesPrefix . $productData['description'] . '</br>' . $productData['short_description'] . $DesPostfix;
+			$materials            = !empty( $all_data['_ced_etsy_materials'] ) ? $all_data['_ced_etsy_materials'] : '';
+			$tags                 = !empty( $all_data['_ced_etsy_tags'] ) ? $all_data['_ced_etsy_tags'] : '';
+			$who_made             = !empty( $all_data['_ced_etsy_who_made'] ) ? $all_data['_ced_etsy_who_made'] : 'i_did';
+			$recipient            = !empty( $all_data['_ced_etsy_recipient'] ) ? $all_data['_ced_etsy_recipient'] : '';
+			$occasion             = !empty( $all_data['_ced_etsy_occasion'] ) ? $all_data['_ced_etsy_occasion'] : '';
+			$when_made            = !empty( $all_data['_ced_etsy_when_made'] ) ? $all_data['_ced_etsy_when_made'] : '2020_2021';
+			$producTUploadType    = !empty( $all_data['_ced_etsy_product_list_type'] ) ? $all_data['_ced_etsy_product_list_type'] : 'draft';
+			$shop_section_id      = !empty( $all_data['_ced_etsy_shop_section'] ) ? $all_data['_ced_etsy_shop_section'] : '';
+			$is_supply            = !empty( $all_data['_ced_etsy_product_supply'] ) ? $all_data['_ced_etsy_product_supply'] : 0;
+			$processing_min       = !empty( $all_data['_ced_etsy_processing_min'] ) ? $all_data['_ced_etsy_processing_min'] : 1;
+			$processing_max       = !empty( $all_data['_ced_etsy_processing_max'] ) ? $all_data['_ced_etsy_processing_max'] : 3;
+			$shippingTemplateId   = !empty( $all_data['_ced_etsy_shipping_profile'] ) ? $all_data['_ced_etsy_shipping_profile'] : '';
 			$productPrice         = get_post_meta( $product_id, '_ced_etsy_price', true );
 			$price_at_profile_lvl = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_price' );
 
 			// Price
 			if ( ! empty( $productPrice ) ) {
-
 				$markuptype_at_product_lvl = get_post_meta( $product_id, '_ced_etsy_markup_type', true );
 				$markupValue               = (float) get_post_meta( $product_id, '_ced_etsy_markup_value', true );
-
 				if ( 'Percentage_Increased' == $markuptype_at_product_lvl ) {
 					$productPrice = (float) $productPrice + ( ( (float) $markupValue / 100 ) * (float) $productPrice );
 				} else {
@@ -1484,19 +1542,6 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 				}
 			}
 
-			$materials = get_post_meta( $product_id, '_ced_etsy_materials', true );
-			// Materials
-			if ( empty( $materials ) ) {
-				$materials = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_materials' );
-			}
-
-			// Tags
-			$tags = get_post_meta( $product_id, '_ced_etsy_tags', true );
-
-			if ( empty( $tags ) ) {
-				$tags = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_tags' );
-			}
-
 			if ( ! empty( $tags ) ) {
 				$explode_tags = explode( ',', $tags );
 				if ( is_array( $explode_tags ) ) {
@@ -1537,40 +1582,6 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 				$materials = array( str_replace( ' ', ',', $materials ) );
 			}
 
-			$who_made = get_post_meta( $product_id, '_ced_etsy_who_made', true );
-			if ( empty( $who_made ) ) {
-				$who_made = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_who_made' );
-			}
-
-			$recipient = get_post_meta( $product_id, '_ced_etsy_recipient', true );
-			if ( empty( $recipient ) ) {
-				$recipient = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_recipient' );
-			}
-
-			$occasion = get_post_meta( $product_id, '_ced_etsy_occasion', true );
-			if ( empty( $occasion ) ) {
-				$occasion = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_occasion' );
-			}
-
-			$when_made = get_post_meta( $product_id, '_ced_etsy_when_made', true );
-			if ( empty( $when_made ) ) {
-				$when_made = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_when_made' );
-			}
-
-			$producTUploadType = get_post_meta( $product_id, '_ced_etsy_product_list_type', true );
-			if ( empty( $producTUploadType ) ) {
-				$producTUploadType = ! empty( $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_product_list_type' ) ) ? $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_product_list_type' ) : 'draft';
-			}
-
-			$shop_section_id = get_post_meta( $product_id, '_ced_etsy_shop_section', true );
-			if ( empty( $shop_section_id ) ) {
-				$shop_section_id = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_shop_section' );
-			}
-
-			$is_supply = get_post_meta( $product_id, '_ced_etsy_product_supply', true );
-			if ( empty( $is_supply ) ) {
-				$is_supply = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_product_supply' );
-			}
 			if ( isset( $is_supply ) && ! empty( $is_supply ) && 'true' == $is_supply ) {
 				$is_supply = 1;
 			}
@@ -1578,71 +1589,74 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 				$is_supply = 0;
 			}
 
-			$processing_min = get_post_meta( $product_id, '_ced_etsy_processing_min', true );
-			if ( empty( $processing_min ) ) {
-				$processing_min = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_processing_min' );
-			}
-
-			$processing_max = get_post_meta( $product_id, '_ced_etsy_processing_max', true );
-			if ( empty( $processing_max ) ) {
-				$processing_max = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_processing_max' );
-			}
-
 			$saved_shop_etsy_details = $this->saved_etsy_details[ $shop_name ];
-			$shippingTemplateId      = get_post_meta( $product_id, '_ced_etsy_shipping_profile', true );
-			if ( empty( $shippingTemplateId ) ) {
-				$shippingTemplateId = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_shipping_profile' );
-			}
 			if ( empty( $shippingTemplateId ) ) {
 				if ( empty( $shippingTemplateId ) ) {
 					$shippingTemplateId = isset( $saved_shop_etsy_details['shippingTemplateId'] ) ? $saved_shop_etsy_details['shippingTemplateId'] : '';
 				}
 			}
+
+			if (empty($shippingTemplateId)) {
+				$error['msg'] = 'Shipping profile is not selected';
+				return $error;
+			}
+
 			$categoryId = $this->fetchMetaValueOfProduct( $product_id, '_umb_etsy_category' );
 			if ( ! empty( $calling_from ) && 'getFormattedData' == $calling_from ) {
 				$arguements = array(
-					'quantity'                       => (int) $productQuantity,
-					'title'                          => trim( ucwords( strtolower( strtoupper( $productTitle ) ) ) ),
-					'description'                    => strip_tags( $productDescription ),
-					'price'                          => (float) $productPrice,
-					'who_made'                       => ! empty( $who_made ) ? $who_made : 'i_did',
-					'when_made'                      => ! empty( $when_made ) ? $when_made : '2020_2021',
-					'taxonomy_id'                    => (int) $categoryId,
-					// 'shipping_profile_id'            => doubleval( $shippingTemplateId ),
-					// 'materials'                      => ! empty( $materials ) ? $materials : null,
-					// 'shop_sectison_id'               => ! empty( $shop_section_id ) ? (int) $shop_section_id : null,
-					// 'processing_min'                 => ! empty( $processing_min ) ? (int) $processing_min : 1,
-					// 'processing_max'                 => ! empty( $processing_max ) ? (int) $processing_max : 3,
-					// 'tags'                           => ! empty( $tags ) ? $tags : '',
-					// 'styles'                         => ! empty( $styles ) ? $styles : '',
-					// 'item_weight'                    => ! empty( $item_weight ) ? (float) $item_weight : 1.00,
-					// 'item_length'                    => ! empty( $item_length ) ? (float) $item_length : 1.00,
-					// 'item_width'                     => ! empty( $item_width ) ? (float) $item_width : 1.00,
-					// 'item_height'                    => ! empty( $item_height ) ? (float) $item_height : 1.00,
-					// 'item_weight_unit'               => ! empty( $item_weight_unit ) ? $item_weight_unit : '',
-					// 'item_dimensions_unit'           => ! empty( $item_dimensions_unit ) ? $item_dimensions_unit : '',
-					// 'is_personalizable'              => ! empty( $is_personalizable ) ? (bool) $is_personalizable : true,
-					// 'personalization_is_required'    => ! empty( $personalization_is_required ) ? (bool) $personalization_is_required : false,
-					// 'personalization_char_count_max' => ! empty( $personalization_char_count_max ) ? (int) $personalization_char_count_max : '',
-					// 'personalization_instructions'   => ! empty( $personalization_instructions ) ? (string) $personalization_instructions : '',
-					// 'is_supply'                      => isset( $is_supply ) ? (int) $is_supply : 0,
-					// 'is_customizable'                => ! empty( $is_customizable ) ? (bool) $is_customizable : '',
-					// 'should_auto_renew'              => ! empty( $should_auto_renew ) ? (bool) $should_auto_renew : '',
-					// 'is_taxable'                     => ! empty( $is_taxable ) ? (bool) $is_taxable : '',
-					'type'                           => /*! empty( $type ) ? (string) $type : */'download',
-					// 'state'                          => 'draft',
-					'image_ids'                      => array( 3750251561 ),
+					'quantity'             => (int) $productQuantity,
+					'title'                => trim( ucwords( strtolower( strtoupper( $productTitle ) ) ) ),
+					'description'          => strip_tags( $productDescription ),
+					'price'                => (float) $productPrice,
+					'shipping_template_id' => doubleval( $shippingTemplateId ),
+					'shop_section_id'      => (int) $shop_section_id,
+					'non_taxable'          => 0,
+					'state'                => $producTUploadType,
+					'processing_min'       => ! empty( $processing_min ) ? (int) $processing_min : 1,
+					'processing_max'       => ! empty( $processing_max ) ? (int) $processing_max : 3,
+					'taxonomy_id'          => (int) $categoryId,
+					'who_made'             => ! empty( $who_made ) ? $who_made : 'i_did',
+					'is_supply'            => isset( $is_supply ) ? (int) $is_supply : 0,
+					'when_made'            => ! empty( $when_made ) ? $when_made : '2020_2021',
 				);
 			}
 
-			// $imagelink = file_get_contents('https://cdn.codespeedy.com/wp-content/themes/CodeSpeedy-March-2019/img/CodeSpeedy-Logo.png');
+			if ( ! empty( $tags ) ) {
+				$arguements['tags'] = $tags[0];
+			}
+			if ( ! empty( $materials ) ) {
+				$arguements['materials'] = $materials[0];
+			}
 
-			// // image string data into base64
-			// $encdata = base64_encode($imagelink);
+			if ( ! empty( $calling_from ) && 'prepareDataForUpdating' == $calling_from ) {
+				$arguements = array(
+					'title'                => trim( ucwords( strtolower( strtoupper( $productTitle ) ) ) ),
+					'description'          => strip_tags( $productDescription ),
+					'shipping_template_id' => doubleval( $shippingTemplateId ),
+					'shop_section_id'      => (int) $shop_section_id,
+					'taxonomy_id'          => (int) $categoryId,
+					'who_made'             => ! empty( $who_made ) ? $who_made : 'i_did',
+					'is_supply'            => (bool) $is_supply,
+					'when_made'            => ! empty( $when_made ) ? $when_made : '2020_2021',
+				);
 
-			return array_filter( $arguements );
+				if ( ! empty( $tags ) ) {
+					$arguements['tags'] = $tags;
+				}
+				if ( ! empty( $materials ) ) {
+					$arguements['materials'] = $materials;
+				}
+			}
+
+			if ( ! empty( $recipient ) ) {
+				$arguements['recipient'] = $recipient;
+			}
+
+			if ( ! empty( $occasion ) ) {
+				$arguements['occasion'] = $occasion;
+			}
+			return $arguements;
 		}
-
 
 		/**
 		 * *************************************************************************************************************
@@ -1874,13 +1888,6 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 
 		private function doupload( $product_id, $shop_name ) {
 
-			do_action( 'ced_etsy_refresh_token', $shop_name );
-			$shop_id = etsy_shop_id( $shop_name );
-			// print_r( $this->data );
-			$response             = etsy_request()->post( "application/shops/{$shop_id}/listings", $this->data, $shop_name );
-			$this->uploadResponse = $response;
-			return;
-
 			$language = isset( $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] ) ? $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] : 'en';
 			if ( isset( $language ) && 'en' === $language ) {
 
@@ -1888,6 +1895,17 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 				$params   = $this->data;
 				$success  = $client->CallAPI( 'https://openapi.etsy.com/v2/listings', 'POST', $params, array( 'FailOnAccessError' => true ), $listings_details );
 				$response = json_decode( json_encode( $listings_details ), true );
+				
+				/**
+				 * ************************************************
+				 *  Update post meta after uploading the Products. 
+				 * ************************************************
+				 * 
+				 * @since 2.0.8
+				 */
+				if ( isset( $response['result'][0]['listing_id'] ) ) {
+					update_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, $response['results'][0]['listing_id'] );
+				}
 
 				$error = array();
 				if ( isset( $client->error ) && ! empty( $client->error ) ) {
@@ -1919,16 +1937,9 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					'params' => array( 'language' => $language ),
 				);
 				$saved_shop_etsy_details = $this->saved_etsy_details[ $shop_name ];
-
-				$ced_etsy_keystring     = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
-				$ced_etsy_shared_string = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
-
-				$outh_secret_token = isset( $saved_shop_etsy_details['oauth_secret'] ) ? $saved_shop_etsy_details['oauth_secret'] : '';
-
-				$oauth_token        = isset( $saved_shop_etsy_details['access_token']['oauth_token'] ) ? $saved_shop_etsy_details['access_token']['oauth_token'] : '';
-				$oauth_token_secret = isset( $saved_shop_etsy_details['access_token']['oauth_token_secret'] ) ? $saved_shop_etsy_details['access_token']['oauth_token_secret'] : '';
-
-				$requestBody = array(
+				$ced_etsy_keystring      = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
+				$ced_etsy_shared_string  = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
+				$requestBody             = array(
 					'action'                 => 'createListing',
 					'ced_etsy_keystring'     => $ced_etsy_keystring,
 					'ced_etsy_shared_string' => $ced_etsy_shared_string,
@@ -1936,19 +1947,19 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					'data'                   => json_encode( $params ),
 					'active_shop'            => $shop_name,
 				);
+				$result                  = $this->ced_etsy_post_request( $requestBody );
+				$result                  = !is_array( $result ) ? json_decode( $result, true ) : $result;
+				/**
+				 * ************************************************
+				 *  Update post meta after uploading the Products. 
+				 * ************************************************
+				 * 
+				 * @since 2.0.8
+				 */
+				if ( isset( $result['result'][0]['listing_id'] ) ) {
+					update_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, $result['results'][0]['listing_id'] );
+				}
 
-				$serverUrl = 'http://3.129.122.174/demo/ced-manage-etsy.php';
-				$curl      = curl_init();
-				curl_setopt( $curl, CURLOPT_URL, $serverUrl );
-				curl_setopt( $curl, CURLOPT_RETURNTRANSFER, 1 );
-				curl_setopt( $curl, CURLOPT_CUSTOMREQUEST, 'POST' );
-				curl_setopt( $curl, CURLOPT_POST, 1 );
-				curl_setopt( $curl, CURLOPT_POSTFIELDS, $requestBody );
-				curl_setopt( $curl, CURLOPT_SSL_VERIFYPEER, false );
-				$result = curl_exec( $curl );
-				$result = json_decode( $result, true );
-				$http   = curl_getinfo( $curl, CURLINFO_HTTP_CODE );
-				curl_close( $curl );
 				if ( isset( $result['exception'] ) ) {
 					$error                = array();
 					$error['msg']         = isset( $result['exception']['last_response'] ) ? $result['exception']['last_response'] : 'some error occured';
@@ -1957,6 +1968,41 @@ if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
 					$this->uploadResponse = $result;
 				}
 			}
+		}
+
+
+		/**
+		 * ****************************
+		 *  Curl Request to Cedcommerce
+		 * ****************************
+		 *
+		 * @since 2.0.8
+		 *
+		 * @param array()  $request Requesting to cedcommerce server for post request over Etsy.
+		 *
+		 * @link  http://www.cedcommerce.com/
+		 * @return array. 
+		 */
+
+		private function ced_etsy_post_request( $requestBody = '' ) {
+			if ('' == $requestBody || empty( $requestBody) || null == $requestBody ) {
+				return;
+			}
+			$response = wp_remote_post( 'http://3.129.122.174/demo/ced-manage-etsy.php',
+						array(
+							'method'      => 'POST',
+							'timeout'     => 5,
+							'redirection' => 5,
+							'headers'     => array(),
+							'body'        => $requestBody,
+							'sslverify'   => false,
+							'data_format' => 'body',
+						)
+			);
+			// Response body.
+			$body         = wp_remote_retrieve_body( $response );
+			$responceData = ( ! is_wp_error( $response ) ) ? json_decode( $body, true ) : null;
+			return $responceData;
 		}
 
 	}

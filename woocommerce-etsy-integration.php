@@ -76,6 +76,7 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-woocommmerce-etsy-integrat
 * @link  http://www.cedcommerce.com/
 */
 require_once plugin_dir_path( __FILE__ ) . 'includes/ced-etsy-core-functions.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-ced-etsy-common-handler.php';
 
 /**
  * Begins execution of the plugin.

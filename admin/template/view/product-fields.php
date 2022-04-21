@@ -64,7 +64,7 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 
 			$active_shop = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : $shop_name;
 			if ( empty( $active_shop ) ) {
-				$active_shop = get_option( 'ced_etsy_shop_name ', '' );
+				$active_shop = get_option( 'ced_etsy_shop_name', '' );
 			}
 			$saved_etsy_details      = get_option( 'ced_etsy_details', array() );
 			$saved_shop_etsy_details = isset( $saved_etsy_details[ $active_shop ] ) ? $saved_etsy_details[ $active_shop ] : '';
@@ -74,11 +74,11 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 			$sections                = array();
 
 			$shop_id = isset( $saved_shop_etsy_details['details']['shop_id'] ) ? $saved_shop_etsy_details['details']['shop_id'] : '';
-			if ( ! empty( $shop_id ) ) {
+			if ( ! empty( $shop_id ) && isset( $saved_shop_etsy_details['access_token'] ) ) {
+				$client  = ced_etsy_getOauthClientObject( $active_shop );
+				$success = $client->CallAPI( "https://openapi.etsy.com/v2/shops/{$shop_id}/sections", 'GET', array( 'shop_id' => $shop_id ), array( 'FailOnAccessError' => true ), $shopSections );
 
-				$action = "application/shops/{$shop_id}/sections";
-
-				$shopSections = etsy_request()->get( $action, $shop_name );
+				$shopSections = json_decode( json_encode( $shopSections ), true );
 
 				if ( isset( $shopSections['count'] ) && $shopSections['count'] >= 1 ) {
 					$shopSections = $shopSections['results'];
@@ -138,19 +138,6 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 				),
 				array(
 					'type'   => '_text_input',
-					'id'     => '_ced_etsy_title',
-					'fields' => array(
-						'id'          => '_ced_etsy_title',
-						'label'       => __( 'Title', 'woocommerce-etsy-integration' ),
-						'desc_tip'    => true,
-						'description' => __( 'Title of the product to be uploaded on etsy.If left blank woocommerce title will be used.', 'woocommerce-etsy-integration' ),
-						'type'        => 'text',
-						'is_required' => true,
-						'class'       => 'wc_input_price',
-					),
-				),
-				array(
-					'type'   => '_text_input',
 					'id'     => '_ced_etsy_title_pre',
 					'fields' => array(
 						'id'          => '_ced_etsy_title_pre',
@@ -159,6 +146,19 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 						'description' => __( 'Text to be added before the title.', 'woocommerce-etsy-integration' ),
 						'type'        => 'text',
 						'is_required' => false,
+						'class'       => 'wc_input_price',
+					),
+				),
+				array(
+					'type'   => '_text_input',
+					'id'     => '_ced_etsy_title',
+					'fields' => array(
+						'id'          => '_ced_etsy_title',
+						'label'       => __( 'Title', 'woocommerce-etsy-integration' ),
+						'desc_tip'    => true,
+						'description' => __( 'Title of the product to be uploaded on etsy.If left blank woocommerce title will be used.', 'woocommerce-etsy-integration' ),
+						'type'        => 'text',
+						'is_required' => true,
 						'class'       => 'wc_input_price',
 					),
 				),
@@ -177,6 +177,19 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 				),
 				array(
 					'type'   => '_text_input',
+					'id'     => '_ced_etsy_description_pre',
+					'fields' => array(
+						'id'          => '_ced_etsy_description_pre',
+						'label'       => __( 'Description Prefix', 'woocommerce-etsy-integration' ),
+						'desc_tip'    => true,
+						'description' => __( 'Text to be added before the Description.', 'woocommerce-etsy-integration' ),
+						'type'        => 'text',
+						'is_required' => false,
+						'class'       => 'wc_input_price',
+					),
+				),
+				array(
+					'type'   => '_text_input',
 					'id'     => '_ced_etsy_description',
 					'fields' => array(
 						'id'          => '_ced_etsy_description',
@@ -185,6 +198,19 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 						'description' => __( 'Description of the product to be uploaded on etsy.If left blank woocommerce description will be used.', 'woocommerce-etsy-integration' ),
 						'type'        => 'text',
 						'is_required' => true,
+						'class'       => 'wc_input_price',
+					),
+				),
+				array(
+					'type'   => '_text_input',
+					'id'     => '_ced_etsy_description_post',
+					'fields' => array(
+						'id'          => '_ced_etsy_description_post',
+						'label'       => __( 'Description Suffix', 'woocommerce-etsy-integration' ),
+						'desc_tip'    => true,
+						'description' => __( 'Text to be added after the Description.', 'woocommerce-etsy-integration' ),
+						'type'        => 'text',
+						'is_required' => false,
 						'class'       => 'wc_input_price',
 					),
 				),

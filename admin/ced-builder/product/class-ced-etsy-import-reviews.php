@@ -1,4 +1,6 @@
 <?php
+namespace Ced_Product_Review_From_Etsy;
+
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
@@ -6,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! class_exists( 'Class_Ced_Etsy_Import_Reviews' ) ) {
 
-	class Class_Ced_Etsy_Import_Reviews {
+	class Ced_Etsy_Import_Reviews {
 
 
 		public static $_instance;

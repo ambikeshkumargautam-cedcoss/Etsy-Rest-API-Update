@@ -44,23 +44,78 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @param      string $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
-		ini_set( 'display_errors', 1 );
-		ini_set( 'display_startup_errors', 1 );
-		error_reporting( E_ALL );
-		$this->plugin_name = $plugin_name;
-		$this->version     = $version;
-		$this->loadDependency();
-		$this->keyString    = 'ghvcvauxf2taqidkdx2sw4g4';
-		$this->sharedString = '27u2kvhfmo';
-		add_action( 'manage_edit-shop_order_columns', array( $this, 'ced_etsy_add_table_columns' ) );
-		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'ced_etsy_manage_table_columns' ), 10, 2 );
-		add_action( 'wp_ajax_ced_etsy_auto_upload_categories', array( $this, 'ced_etsy_auto_upload_categories' ) );
+		// $this->ced_etsy_mager   = Ced_Etsy_Manager::get_instance();
+		// $this->ced_etsy_order   = Ced_Order_Import_From_Etsy\Ced_Etsy_Orders::get_instance();
+		// $this->ced_etsy_product = Ced_Product_Upload_To_Etsy\Ced_Etsy_Products::get_instance();
+		// $this->importProduct    = Ced_Product_Import_From_Etsy\Ced_Etsy_Import_Products::get_instance();
+		// $this->plugin_name      = $plugin_name;
+
+		// add_action( 'manage_edit-shop_order_columns', array( $this, 'ced_etsy_add_table_columns' ) );
+		// add_action( 'manage_shop_order_posts_custom_column', array( $this, 'ced_etsy_manage_table_columns' ), 10, 2 );
+		// add_action( 'wp_ajax_ced_etsy_auto_upload_categories', array( $this, 'ced_etsy_auto_upload_categories' ) );
+
+		// // product webhook action
+		// add_action( 'wp_ajax_ced_etsy_product_webhook', array( $this, 'ced_etsy_product_webhook' ) );
+		// add_action( 'wp_ajax_nopriv_ced_etsy_product_webhook', array( $this, 'ced_etsy_product_webhook' ) );
+
+		// // order webhook action
+		// add_action( 'wp_ajax_ced_etsy_order_webhook', array( $this, 'ced_etsy_order_webhook' ) );
+		// add_action( 'wp_ajax_nopriv_ced_etsy_order_webhook', array( $this, 'ced_etsy_order_webhook' ) );
 	}
-	public function loadDependency() {
-		require_once CED_ETSY_DIRPATH . 'admin/etsy/class-etsy.php';
-		$this->CED_ETSY_Manager = CED_ETSY_Manager::get_instance();
+	
+	/**
+	 * Webhook while updating the product in Woocommerce.
+	 *
+	 * @since    2.0.8
+	 */
+	public function ced_etsy_product_webhook() {
+
+		$data      = file_get_contents( 'php://input' );
+		$events    = json_decode( $data, true );
+		$id        = $events['id'];
+		$shop_name = get_option( 'ced_etsy_shop_name', '' );
+
+		if ( ! empty( $id ) ) {
+			$upload_dir      = ced_upload_dir_etsy();
+			$fp              = fopen( $upload_dir . '/ced_etsy_product_webhook' . gmdate( 'j.n.Y' ) . '.log', 'a' );
+			$ced_etsy_log   .= 'Time:' . gmdate( 'h:i:sa' ) . "\r\n";
+			$ced_etsy_log   .= 'Date :' . date_i18n( 'Y-m-d H:i:s' ) . "\r\nMessage : processing of Product Webhook : Product Id - " . $id . "\r\n";
+			$ced_etsy_log   .= 'etsy Product ID :' . $id . "\r\n";
+			$response        = $this->ced_etsy_product->prepareDataForUpdating( array( $id ), $shop_name );
+			$inventory_log[] = $response;
+			$ced_etsy_log    = $response;
+			fwrite( $fp, $ced_etsy_log );
+			fclose( $fp );
+
+		}
+
 	}
 
+	/**
+	 * Webhook whle creating order on Woocommerce.
+	 *
+	 * @since    2.0.8
+	 */
+	public function ced_etsy_order_webhook() {
+
+		$data      = file_get_contents( 'php://input' );
+		$events    = json_decode( $data, true );
+		$order_id  = $events['id'];
+		$shop_name = get_option( 'ced_etsy_shop_name', '' );
+		if ( ! empty( $order_id ) ) {
+			$upload_dir      = ced_upload_dir_etsy();
+			$fp              = fopen( $upload_dir . '/ced_etsy_order_webhook' . gmdate( 'j.n.Y' ) . '.log', 'a' );
+			$ced_etsy_log   .= 'Time:' . gmdate( 'h:i:sa' ) . "\r\n";
+			$ced_etsy_log   .= 'Date :' . date_i18n( 'Y-m-d H:i:s' ) . "\r\nMessage : processing of order Webhook : Product Id - " . $order_id . "\r\n";
+			$ced_etsy_log   .= 'etsy Product ID :' . $order_id . "\r\n";
+			$response        = $this->ced_etsy_product->prepareDataForUpdatingInventory( array( $order_id ), $shop_name );
+			$inventory_log[] = $response;
+			$ced_etsy_log    = $response;
+			fwrite( $fp, $ced_etsy_log );
+			fclose( $fp );
+		}
+
+	}
 
 	public function ced_etsy_auto_upload_categories() {
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
@@ -136,10 +191,10 @@ class Woocommmerce_Etsy_Integration_Admin {
 
 		wp_enqueue_style( 'ced-boot-css', 'https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css', array(), '2.0.0', 'all' );
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/woocommmerce-etsy-integration-admin.css', array(), $this->version, 'all' );
+		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . '/assets/css/woocommmerce-etsy-integration-admin.css', array(), $this->version, 'all' );
 
 		if ( 'plugins.php' == $pagenow ) {
-			wp_enqueue_style( 'ced-etsy-uninstall-css', plugin_dir_url( __FILE__ ) . 'css/etsy-integration-for-woocommerce-uninstall.css', array(), $this->version, 'all' );
+			wp_enqueue_style( 'ced-etsy-uninstall-css', plugin_dir_url( __FILE__ ) . 'assets/css/etsy-integration-for-woocommerce-uninstall.css', array(), $this->version, 'all' );
 		}
 		if ( isset($_GET['page']) && $_GET['page'] == "ced_etsy" ) {
 			wp_enqueue_style( 'ced-bootstrap-etsy', 'https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css', array(), $this->version, 'all' );
@@ -197,7 +252,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 		wp_enqueue_script( 'woocommerce_admin' );
 
 		$shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/woocommmerce-etsy-integration-admin.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'assets/js/woocommmerce-etsy-integration-admin.js', array( 'jquery' ), $this->version, false );
 		$ajax_nonce     = wp_create_nonce( 'ced-etsy-ajax-seurity-string' );
 		$localize_array = array(
 			'ajax_url'   => admin_url( 'admin-ajax.php' ),
@@ -223,7 +278,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 	public function ced_etsy_add_menus() {
 		global $submenu;
 		if ( empty( $GLOBALS['admin_page_hooks']['cedcommerce-integrations'] ) ) {
-			add_menu_page( __( 'CedCommerce', 'woocommerce-etsy-integration' ), __( 'CedCommerce', 'woocommerce-etsy-integration' ), 'manage_woocommerce', 'cedcommerce-integrations', array( $this, 'ced_marketplace_listing_page' ), plugins_url( 'woocommerce-etsy-integration/admin/images/logo1.png' ), 12 );
+			add_menu_page( __( 'CedCommerce', 'woocommerce-etsy-integration' ), __( 'CedCommerce', 'woocommerce-etsy-integration' ), 'manage_woocommerce', 'cedcommerce-integrations', array( $this, 'ced_marketplace_listing_page' ), plugins_url( 'woocommerce-etsy-integration/admin/assets/images/logo1.png' ), 12 );
 
 			$menus = apply_filters( 'ced_add_marketplace_menus_array', array() );
 
@@ -322,7 +377,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 	public function ced_marketplace_listing_page() {
 		$activeMarketplaces = apply_filters( 'ced_add_marketplace_menus_array', array() );
 		if ( is_array( $activeMarketplaces ) && ! empty( $activeMarketplaces ) ) {
-			require CED_ETSY_DIRPATH . 'admin/partials/marketplaces.php';
+			require CED_ETSY_DIRPATH . 'admin/template/view/marketplaces.php';
 		}
 	}
 
@@ -333,7 +388,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 			'menu_link'       => 'ced_etsy',
 			'instance'        => $this,
 			'function'        => 'ced_etsy_accounts_page',
-			'card_image_link' => CED_ETSY_URL . 'admin/images/etsy.png',
+			'card_image_link' => CED_ETSY_URL . 'admin/assets/images/etsy.png',
 		);
 		return $menus;
 	}
@@ -344,8 +399,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @since    1.0.0
 	 */
 	public function ced_etsy_accounts_page() {
-
-		$fileAccounts = CED_ETSY_DIRPATH . 'admin/partials/ced-etsy-accounts.php';
+		$fileAccounts = CED_ETSY_DIRPATH . 'admin/template/view/ced-etsy-accounts.php';
 		if ( file_exists( $fileAccounts ) ) {
 			echo "<div class='cedcommerce-etsy-wrap'>";
 			require_once $fileAccounts;
@@ -1624,98 +1678,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 			}
 		}
 	}
-
-	/**
-	 * *********************************************************************
-	 * Include product settings template in the Etsy->Settings Tab.
-	 * *********************************************************************
-	 */
-	public function ced_etsy_render_product_settings_in_setting_tab() {
-
-		$Settings_file = CED_ETSY_DIRPATH . 'admin/pages/setting-pages/ced-etsy-product-upload-settings.php';
-		if ( file_exists( $Settings_file ) ) {
-			require_once $Settings_file;
-		}
-	}
-
-
-	/**
-	 * ****************************************************************
-	 * Include Order  settings template in the Etsy->Settings Tab.
-	 * ****************************************************************
-	 */
-	public function ced_etsy_render_order_settings_in_setting_tab() {
-
-		$Settings_file = CED_ETSY_DIRPATH . 'admin/pages/setting-pages/ced-etsy-order-settings.php';
-		if ( file_exists( $Settings_file ) ) {
-			require_once $Settings_file;
-		}
-	}
-
-	/**
-	 * ***************************************************************
-	 * Include product Scheduler  template in the Etsy->Settings Tab.
-	 * ***************************************************************
-	 */
-	public function ced_etsy_render_shedulers_settings_in_setting_tab() {
-
-		$Settings_file = CED_ETSY_DIRPATH . 'admin/pages/setting-pages/ced-etsy-scheduler-settings.php';
-		if ( file_exists( $Settings_file ) ) {
-			require_once $Settings_file;
-		}
-	}
-
-	/**
-	 * **************************************************************
-	 * Include Shipping Profiles template in the Etsy->Settings Tab.
-	 * **************************************************************
-	 */
-	public function ced_etsy_render_shipping_profiles_in_setting_tab() {
-
-		$Shipping_profile_file = CED_ETSY_DIRPATH . 'admin/pages/setting-pages/ced-etsy-shipping-profiles.php';
-		if ( file_exists( $Shipping_profile_file ) ) {
-			require_once $Shipping_profile_file;
-		}
-	}
-	/**
-	 * *************************************************************
-	 * Include Payment Methods  template in the Etsy->Settings Tab.
-	 * *************************************************************
-	 */
-	public function ced_etsy_render_product_configuration_in_setting_tab() {
-
-		$product_config_page = CED_ETSY_DIRPATH . 'admin/pages/setting-pages/ced-etsy-product-configuration.php';
-		if ( file_exists( $product_config_page ) ) {
-			require_once $product_config_page;
-		}
-	}
-
-	/**
-	 * **********************************************************
-	 * Include Shop section template in the Etsy->Settings Tab.
-	 * **********************************************************
-	 */
-	public function ced_etsy_render_shop_section_in_setting_tab() {
-
-		$Settings_file = CED_ETSY_DIRPATH . 'admin/pages/setting-pages/ced-etsy-shop-section.php';
-		if ( file_exists( $Settings_file ) ) {
-			require_once $Settings_file;
-		}
-	}
-
-	/**
-	 * **********************************************************
-	 * Include Shop section template in the Etsy->Settings Tab.
-	 * **********************************************************
-	 */
-	public function ced_etsy_render_meta_key_settings_in_setting_tab() {
-
-		$Settings_file = require_once CED_ETSY_DIRPATH . 'admin/pages/setting-pages/ced-etsy-metakeys-template.php';
-		if ( file_exists( $Settings_file ) ) {
-			require_once $Settings_file;
-		}
-	}
-
+	
 	/**
 	 * ***********************************************************
 	 * CED etsy prdouct field table on the simple product level .

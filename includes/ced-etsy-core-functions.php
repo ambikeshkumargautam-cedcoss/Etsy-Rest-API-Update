@@ -95,11 +95,11 @@ function ced_etsy_getOauthClientObject( $shop_name = '' ) {
 		$_SESSION['OAUTH_ACCESS_TOKEN'] = $ced_etsy_access_token;
 	}
 
-	if ( file_exists( CED_ETSY_DIRPATH . 'admin/etsy/lib/vendor/http.php' ) ) {
-		require_once CED_ETSY_DIRPATH . 'admin/etsy/lib/vendor/http.php';
+	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/http.php' ) ) {
+		require_once CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/http.php';
 	}
-	if ( file_exists( CED_ETSY_DIRPATH . 'admin/etsy/lib/vendor/oauth_client.php' ) ) {
-		require_once CED_ETSY_DIRPATH . 'admin/etsy/lib/vendor/oauth_client.php';
+	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/oauth_client.php' ) ) {
+		require_once CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/oauth_client.php';
 	}
 
 	$client                = new oauth_client_class();
@@ -231,7 +231,7 @@ function etsy_get_product_id_by_shopname_and_listing_id( $shop_name = '', $listi
 
 function ced_etsy_cedcommerce_logo() {
 	?>
-	<a href="https://cedcommerce.com" target="_blank"><img src="<?php echo esc_url( CED_ETSY_URL . 'admin/images/ced-logo.png' ); ?> "></a>
+	<a href="https://cedcommerce.com" target="_blank"><img src="<?php echo esc_url( CED_ETSY_URL . 'admin/assets/images/ced-logo.png' ); ?> "></a>
 	<?php
 }
 

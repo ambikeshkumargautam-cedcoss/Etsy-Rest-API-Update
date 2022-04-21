@@ -108,14 +108,15 @@ if ( ! empty( $profile_data ) ) {
 	$profile_category_data = isset( $profile_category_data ) ? $profile_category_data : '';
 	$profile_category_id   = isset( $profile_category_data['_umb_etsy_category']['default'] ) ? (int) $profile_category_data['_umb_etsy_category']['default'] : '';
 
-	$profile_data              = isset( $profile_data[0] ) ? $profile_data[0] : $profile_data;
-	$success                   = $client->CallAPI( "https://openapi.etsy.com/v2/taxonomy/seller/{$profile_category_id}/properties", 'GET', array( 'taxonomy_id' => $profile_category_id ), array( 'FailOnAccessError' => true ), $getTaxonomyNodeProperties );
-	$getTaxonomyNodeProperties = json_decode( json_encode( $getTaxonomyNodeProperties ), true );
-	$action                    = "application/seller-taxonomy/nodes/{$profile_category_id}/properties";
-	$getTaxonomyNodeProperties = etsy_request()->get( $action, $shop_name );
-	$getTaxonomyNodeProperties = $getTaxonomyNodeProperties['results'];
-	$productFieldInstance      = Ced_Etsy_Product_Fields::get_instance();
-	$taxonomyList              = $productFieldInstance->get_taxonomy_node_properties( $getTaxonomyNodeProperties );
+	$profile_data                          = isset( $profile_data[0] ) ? $profile_data[0] : $profile_data;
+	$success                               = $client->CallAPI( "https://openapi.etsy.com/v2/taxonomy/seller/{$profile_category_id}/properties", 'GET', array( 'taxonomy_id' => $profile_category_id ), array( 'FailOnAccessError' => true ), $getTaxonomyNodeProperties );
+	$getTaxonomyNodeProperties             = json_decode( json_encode( $getTaxonomyNodeProperties ), true );
+	$getTaxonomyNodeProperties             = $getTaxonomyNodeProperties['results'];
+	$success                               = $client->CallAPI( 'https://openapi.etsy.com/v2//property_sets', 'GET', array(), array( 'FailOnAccessError' => true ), $variation_category_attribute );
+	$variation_category_attribute          = json_decode( json_encode( $variation_category_attribute ), true );
+	$variation_category_attribute_property = $variation_category_attribute['results']['0']['properties'];
+	$productFieldInstance                  = Ced_Etsy_Product_Fields::get_instance();
+	$taxonomyList                          = $productFieldInstance->get_taxonomy_node_properties( $getTaxonomyNodeProperties );
 }
 $attributes    = wc_get_attribute_taxonomies();
 $attrOptions   = array();
@@ -132,8 +133,32 @@ if ( ! empty( $attributes ) ) {
 		$attrOptions[ 'umb_pattr_' . $attributesObject->attribute_name ] = $attributesObject->attribute_label;
 	}
 }
+$get_posts = get_posts(
+	array(
+		'numberposts' => 5,
+		'post_type'   => array( 'product_variation' ),
+		'fields'      => 'ids',
+	)
+);
+foreach ( $get_posts as $key => $productId ) {
+	$getPostCustom = get_post_custom( $productId );
+	$_product      = wc_get_product( $productId );
 
-
+	if ( 'variation' == $_product->get_type() ) {
+		$parentId            = $_product->get_parent_id();
+		$getParentPostCustom = get_post_custom( $parentId );
+		$getPostCustom       = array_merge( $getPostCustom, $getParentPostCustom );
+	}
+}
+if ( isset( $getPostCustom ) && ! empty( $getPostCustom ) ) {
+	foreach ( $getPostCustom as $key => $value ) {
+		$key                                     = str_replace( 'attribute_', '', $key );
+		$getPostCustomend[ 'umb_pattr_' . $key ] = $key;
+	}
+}
+if ( is_array( $getPostCustomend ) ) {
+	$attrOptions = array_merge( $attrOptions, $getPostCustomend );
+}
 /* select dropdown setup */
 ob_start();
 $fieldID  = '{{*fieldID}}';
