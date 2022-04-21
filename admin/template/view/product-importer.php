@@ -6,8 +6,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
+require_once CED_ETSY_DIRPATH . 'admin/partials/header.php';
 
-Cedhandler::ced_header();
 class EtsyListImportedProducts extends WP_List_Table {
 
 	public $show_reset;
@@ -319,7 +319,7 @@ class EtsyListImportedProducts extends WP_List_Table {
 		?>
 		<div class="ced_etsy_heading">
 			<?php echo esc_html_e( get_etsy_instuctions_html() ); ?>
-			<div class="ced_etsy_child_element">
+			<div class="ced_etsy_child_element parent_default">
 				<?php
 				$activeShop = isset( $_GET['shop_name'] ) ? sanitize_text_field( $_GET['shop_name'] ) : '';
 

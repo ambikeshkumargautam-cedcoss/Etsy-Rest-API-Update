@@ -44,23 +44,22 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @param      string $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
-		// $this->ced_etsy_mager   = Ced_Etsy_Manager::get_instance();
-		// $this->ced_etsy_order   = Ced_Order_Import_From_Etsy\Ced_Etsy_Orders::get_instance();
-		// $this->ced_etsy_product = Ced_Product_Upload_To_Etsy\Ced_Etsy_Products::get_instance();
-		// $this->importProduct    = Ced_Product_Import_From_Etsy\Ced_Etsy_Import_Products::get_instance();
-		// $this->plugin_name      = $plugin_name;
+		$this->ced_etsy_mager   = Ced_Etsy_Manager::get_instance();
+		$this->ced_etsy_order   = Ced_Order_Import_From_Etsy\Ced_Etsy_Orders::get_instance();
+		$this->ced_etsy_product = Ced_Product_Upload_To_Etsy\Ced_Etsy_Products::get_instance();
+		$this->importProduct    = Ced_Product_Import_From_Etsy\Ced_Etsy_Import_Products::get_instance();
+		$this->plugin_name      = $plugin_name;
+		add_action( 'manage_edit-shop_order_columns', array( $this, 'ced_etsy_add_table_columns' ) );
+		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'ced_etsy_manage_table_columns' ), 10, 2 );
+		add_action( 'wp_ajax_ced_etsy_auto_upload_categories', array( $this, 'ced_etsy_auto_upload_categories' ) );
 
-		// add_action( 'manage_edit-shop_order_columns', array( $this, 'ced_etsy_add_table_columns' ) );
-		// add_action( 'manage_shop_order_posts_custom_column', array( $this, 'ced_etsy_manage_table_columns' ), 10, 2 );
-		// add_action( 'wp_ajax_ced_etsy_auto_upload_categories', array( $this, 'ced_etsy_auto_upload_categories' ) );
-
-		// // product webhook action
-		// add_action( 'wp_ajax_ced_etsy_product_webhook', array( $this, 'ced_etsy_product_webhook' ) );
-		// add_action( 'wp_ajax_nopriv_ced_etsy_product_webhook', array( $this, 'ced_etsy_product_webhook' ) );
-
-		// // order webhook action
-		// add_action( 'wp_ajax_ced_etsy_order_webhook', array( $this, 'ced_etsy_order_webhook' ) );
-		// add_action( 'wp_ajax_nopriv_ced_etsy_order_webhook', array( $this, 'ced_etsy_order_webhook' ) );
+		// product webhook action
+		add_action( 'wp_ajax_ced_etsy_product_webhook', array( $this, 'ced_etsy_product_webhook' ) );
+		add_action( 'wp_ajax_nopriv_ced_etsy_product_webhook', array( $this, 'ced_etsy_product_webhook' ) );
+		
+		// order webhook action
+		add_action( 'wp_ajax_ced_etsy_order_webhook', array( $this, 'ced_etsy_order_webhook' ) );
+		add_action( 'wp_ajax_nopriv_ced_etsy_order_webhook', array( $this, 'ced_etsy_order_webhook' ) );
 	}
 	
 	/**

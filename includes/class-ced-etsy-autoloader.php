@@ -73,20 +73,18 @@ class CedEtsyAutoloader {
 		$file = $this->ced_etsy_get_file_name_from_class( $class );
 		$path = '';
 		if (
-			   0 === strpos( strtolower($class), 'ced_pro' )
-			|| 0 === strpos( strtolower($class), 'ced_ord' )
-			|| 0 === strpos( strtolower($class), 'ced_cat' )
-		) {
-			$path = $this->include_path . 'admin/etsy/lib/';
+			   0 === strpos( strtolower($class), 'ced_pro' ) || 0 === strpos( strtolower($class), 'ced_cat' )) {
+			$path = $this->include_path . 'admin/ced-builder/product/';
+		}elseif ( 0 === strpos( strtolower($class), 'ced_ord' )) {
+			$path = $this->include_path . 'admin/ced-builder/order/';
 		} elseif ( 0 === strpos( strtolower($class), 'ced_etsy_m' ) ) {
-			$path = $this->include_path . 'admin/etsy/';
+			$path = $this->include_path . 'admin/lib/';
 		} elseif ( 0 === strpos( strtolower($class), 'woocommmerce_etsy_integration_admin' ) ) {
 			$path = $this->include_path . 'admin/';
 		}
 		if ( empty( $path ) || ! $this->ced_load_file( $path . $file ) ) {
 			$this->ced_load_file( $this->include_path . $file );
 		}
-
 	}
 
 

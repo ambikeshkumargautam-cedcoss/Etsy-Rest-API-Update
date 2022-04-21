@@ -3,6 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
+
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
@@ -17,8 +18,8 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 	public function __construct() {
 		parent::__construct(
 			array(
-				'singular' => __( 'etsy Account', 'product-lister-etsy' ), // singular name of the listed records
-				'plural'   => __( 'etsy Accounts', 'product-lister-etsy' ), // plural name of the listed records
+				'singular' => __( 'etsy Account', 'woocommerce-etsy-integration' ), // singular name of the listed records
+				'plural'   => __( 'etsy Accounts', 'woocommerce-etsy-integration' ), // plural name of the listed records
 				'ajax'     => false, // does this table support ajax?
 			)
 		);
@@ -89,7 +90,7 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 
 	/** Text displayed when no customer data is available */
 	public function no_items() {
-		esc_html_e( 'No Accounts Linked.', 'product-lister-etsy' );
+		esc_html_e( 'No Account Linked.', 'woocommerce-etsy-integration' );
 	}
 
 	/**
@@ -128,7 +129,7 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 
 	public function column_configure( $item ) {
 
-		$configure = '<a class="button-primary" href="' . admin_url( 'admin.php?page=ced_etsy&section=ced-etsy-settings&shop_name=' . $item['details']['ced_etsy_shop_name'] . '' ) . '">' . __( 'Configure', 'product-lister-etsy' ) . '</a>';
+		$configure = '<a class="btn btn-sm btn-primary" href="' . admin_url( 'admin.php?page=ced_etsy&section=ced-etsy-settings&shop_name=' . $item['details']['ced_etsy_shop_name'] . '' ) . '">' . __( 'Configure', 'woocommerce-etsy-integration' ) . '</a>';
 		return $configure;
 
 	}
@@ -141,10 +142,10 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 	public function get_columns() {
 		$columns = array(
 			'cb'        => '<input type="checkbox" />',
-			'name'      => __( 'Shop Name', 'product-lister-etsy' ),
-			'userid'    => __( 'Shop User ID', 'product-lister-etsy' ),
-			'username'  => __( 'Shop Username', 'product-lister-etsy' ),
-			'configure' => __( 'Configure', 'product-lister-etsy' ),
+			'name'      => __( 'Shop Name', 'woocommerce-etsy-integration' ),
+			'userid'    => __( 'Shop User ID', 'woocommerce-etsy-integration' ),
+			'username'  => __( 'Shop Username', 'woocommerce-etsy-integration' ),
+			'configure' => __( 'Configure', 'woocommerce-etsy-integration' ),
 		);
 		$columns = apply_filters( 'ced_etsy_alter_feed_table_columns', $columns );
 		return $columns;
@@ -168,6 +169,8 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 	 */
 	public function get_bulk_actions() {
 		$actions = array(
+			// 'bulk-enable'  => 'Enable',
+			// 'bulk-disable' => 'Disable',
 			'bulk-delete' => 'Delete',
 		);
 		return $actions;
@@ -179,30 +182,21 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 	public function renderHTML() {
 		?>
 		<div class="ced_etsy_wrap ced_etsy_wrap_extn">
-			<?php
-			$notice = get_transient( 'ced_etsy_add_account_notice' );
-			if ( $notice ) {
-				if ( 'yes' == $notice ) {
-					$class   = 'notice-success';
-					$message = 'Account added successfully.';
-				} else {
-					$class   = 'notice-error';
-					$message = 'Account not added . Etsy shop name invalid.';
-					update_option( 'ced_etsy_access_token', '' );
-					unset( $_SESSION['OAUTH_ACCESS_TOKEN'] );
-				}
-				echo "<div class='notice " . esc_attr( $class ) . "'><p>" . esc_attr( $message ) . '</p></div>';
-			}
-			?>
-			<div class="ced_etsy_setting_header cedcommerce-top-border">
+			<div class="p-2 m-2 bg-light text-dark border-4 border-primary border-top d-flex justify-content-between">
+				<div>
 				<?php esc_attr( ced_etsy_cedcommerce_logo() ); ?>
-				<label class="manage_labels"><b><?php esc_html_e( 'ETSY ACCOUNT', 'product-lister-etsy' ); ?></b></label>
+				<label class="manage_labels">
+					<b><?php esc_html_e( 'ETSY ACCOUNT', 'woocommerce-etsy-integration' ); ?></b>
+				</label>
+			</div>
+			<div>
 				<?php
 				$count = self::get_count();
 				if ( $count < 1 ) {
-					echo '<a href="javascript:void(0)" class="ced_etsy_add_account_button ced_etsy_add_button button-primary">Add Account</a>';
+					echo '<input type="button" class="btn btn-primary m-2 ced_etsy_add_account_button" value="Add Account">';
 				}
 				?>
+			</div>
 			</div>
 			<?php esc_attr( display_support_html() ); ?>
 			<div>				
@@ -225,7 +219,7 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 		<div class="ced_etsy_add_account_popup_main_wrapper">
 			<div class="ced_etsy_add_account_popup_content">
 				<div class="ced_etsy_add_account_popup_header">
-					<h5><?php esc_html_e( 'Authorise your Etsy Account', 'product-lister-etsy' ); ?></h5>
+					<h5><?php esc_html_e( 'Authorise your Etsy Account', 'woocommerce-etsy-integration' ); ?></h5>
 					<span class="ced_etsy_add_account_popup_close">X</span>
 				</div>
 				<div class="ced_etsy_add_account_popup_body">
@@ -259,6 +253,7 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 	}
 
 	public function current_action() {
+
 		if ( isset( $_GET['section'] ) ) {
 			$action = isset( $_GET['section'] ) ? sanitize_text_field( wp_unslash( $_GET['section'] ) ) : '';
 			return $action;
@@ -297,10 +292,6 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 				update_option( 'ced_etsy_access_token', '' );
 				unset( $_SESSION['OAUTH_ACCESS_TOKEN'] );
 
-				$access_tokens = get_option( 'ced_etsy_access_tokens', array() );
-				unset( $access_tokens[ $value ] );
-				update_option( 'ced_etsy_access_tokens', $access_tokens );
-
 			}
 			$redirectURL = get_admin_url() . 'admin.php?page=ced_etsy';
 			wp_redirect( $redirectURL );
@@ -333,25 +324,70 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 
 		} elseif ( isset( $_GET['section'] ) ) {
 
-			require_once CED_ETSY_DIRPATH . 'admin/template/view/' . $this->current_action() . '.php';
+			require_once CED_ETSY_DIRPATH . 'admin/partials/' . $this->current_action() . '.php';
 		}
 	}
-
 }
 
 if ( isset( $_POST['ced_etsy_authorise_account_button'] ) && 'Authorize' == $_POST['ced_etsy_authorise_account_button'] ) {
-	if ( ! isset( $_POST['etsy_accounts_actions'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['etsy_accounts_actions'] ) ), 'etsy_accounts' ) ) {
-		return;
-	}
-	unset( $_SESSION['OAUTH_ACCESS_TOKEN'] );
-	$ced_h = Cedhandler::get_instance();
-	$ced_h->etsy_vendor_signature();
+	$scopes = array(
+		'address_r',
+		'address_w',
+		'billing_r',
+		'cart_r',
+		'cart_w',
+		'email_r',
+		'favorites_r',
+		'favorites_w',
+		'feedback_r',
+		'listings_d',
+		'listings_r',
+		'listings_w',
+		'profile_r',
+		'profile_w',
+		'recommend_r',
+		'recommend_w',
+		'shops_r',
+		'shops_w',
+		'transactions_r',
+		'transactions_w',
+	);
+
+	$string = bin2hex( random_bytes( 32 ) );
+
+	$verifier = strtr(
+		trim(
+			base64_encode( pack( 'H*', $string ) ),
+			'='
+		),
+		'+/',
+		'-_'
+	);
+
+	$code_challenge = strtr(
+		trim(
+			base64_encode( pack( 'H*', hash( 'sha256', $verifier ) ) ),
+			'='
+		),
+		'+/',
+		'-_'
+	);
+
+	$scopes       = urlencode( implode( ' ', $scopes ) );
+	$client_id    = 'b2pa8bczfrwnuccpevnql8eh';
+	$redirect_uri = admin_url( 'admin.php?page=ced_etsy' );
+	$shop_name    = isset( $_POST['ced_etsy_shop_name'] ) ? $_POST['ced_etsy_shop_name'] : '';
+	update_option( 'ced_etsy_shop_name', $shop_name );
+	$auth_url = "https://www.etsy.com/oauth/connect?response_type=code&redirect_uri=$redirect_uri&scope=$scopes&client_id=$client_id&state=$verifier&code_challenge=$code_challenge&code_challenge_method=S256";
+	$log      = '';
+	$log     .= "Authorization process starts\n";
+	$log     .= "Redirecting to www.etsy.com\n";
+	etsy_write_logs( log_head() . $log, 'general', false );
+	$auth_url = "https://woodemo.cedcommerce.com/woocommerce/authorize/etsy/authorize.php";
+	wp_redirect( $auth_url );
+	exit;
 }
 
-if ( isset( $_GET['oauth_token'] ) && isset( $_GET['oauth_verifier'] ) ) {
-	$ced_h = Cedhandler::get_instance();
-	$ced_h->revieve_etsy_consent();
-}
 
 $ced_etsy_account_obj = new Ced_Etsy_Account_Table();
 $ced_etsy_account_obj->prepare_items();

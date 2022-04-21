@@ -64,7 +64,7 @@ function display_support_html() {
 	<div class="ced_contact_menu_wrap">
 		<input type="checkbox" href="#" class="ced_menu_open" name="menu-open" id="menu-open" />
 		<label class="ced_menu_button" for="menu-open">
-			<img src="<?php echo esc_url( CED_ETSY_URL . 'admin/images/icon.png' ); ?>" alt="" title="Click to Chat">
+			<img src="<?php echo esc_url( CED_ETSY_URL . 'admin/assets/images/icon.png' ); ?>" alt="" title="Click to Chat">
 		</label>
 		<a href="https://join.skype.com/UHRP45eJN8qQ" class="ced_menu_content ced_skype" target="_blank"> <i class="fa fa-skype" aria-hidden="true"></i> </a>
 		<a href="https://chat.whatsapp.com/BcJ2QnysUVmB1S2wmwBSnE" class="ced_menu_content ced_whatsapp" target="_blank"> <i class="fa fa-whatsapp" aria-hidden="true"></i> </a>
