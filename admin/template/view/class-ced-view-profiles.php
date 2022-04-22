@@ -113,7 +113,7 @@ class Ced_Etsy_Profile_Table extends WP_List_Table {
 	public function column_profile_name( $item ) {
 		$shop_name       = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 		$title           = '<strong>' . $item['profile_name'] . '</strong>';
-		$url             = admin_url( 'admin.php?page=ced_etsy&profileID=' . $item['id'] . '&section=profiles-view&panel=edit&shop_name=' . $shop_name );
+		$url             = admin_url( 'admin.php?page=ced_etsy&profileID=' . $item['id'] . '&section=profile-edit&panel=edit&shop_name=' . $shop_name );
 		$actions['edit'] = '<a href=' . $url . '>Edit</a>';
 		// $actions['delete'] = '<a href="javascript:void(0)" class="Delete_profiles" data-profileid="' . $item['id'] . '">Delete</a>';
 		print_r( $title );
@@ -147,7 +147,7 @@ class Ced_Etsy_Profile_Table extends WP_List_Table {
 
 	public function column_edit_profiles( $item ) {
 		$shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-		$edit_url  = admin_url( 'admin.php?page=ced_etsy&profileID=' . $item['id'] . '&section=profiles-view&panel=edit&shop_name=' . $shop_name );
+		$edit_url  = admin_url( 'admin.php?page=ced_etsy&profileID=' . $item['id'] . '&section=profile-edit&panel=edit&shop_name=' . $shop_name );
 		echo "<a class='button-primary' href='" . esc_url( $edit_url ) . "'>Edit</a>";
 	}
 
@@ -214,14 +214,14 @@ class Ced_Etsy_Profile_Table extends WP_List_Table {
 	 */
 	public function renderHTML() {
 		$shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-		$url       = admin_url( 'admin.php?page=ced_etsy&section=profiles-view&panel=edit&shop_name=' . $shop_name );
+		$url       = admin_url( 'admin.php?page=ced_etsy&section=profiles&panel=edit&shop_name=' . $shop_name );
 		?>
 		<div class="ced_etsy_heading">
 		<?php echo esc_html_e( get_etsy_instuctions_html() ); ?>
 <div class="ced_etsy_child_element parent_default">
 		<?php
 				$activeShop   = isset( $_GET['shop_name'] ) ? sanitize_text_field( $_GET['shop_name'] ) : '';
-				$profile_url  = admin_url( 'admin.php?page=ced_etsy&section=profiles-view&shop_name=' . $activeShop );
+				$profile_url  = admin_url( 'admin.php?page=ced_etsy&section=profiles&shop_name=' . $activeShop );
 				$instructions = array(
 					'In this section you will see all the profiles created after category mapping.',
 					'You can use the <a>Profiles</a> in order to override the settings of <a>Product Export Settigs</a> in Global Settings at category level.' .
@@ -315,13 +315,11 @@ class Ced_Etsy_Profile_Table extends WP_List_Table {
 				foreach ( $profileIds as $id ) {
 					$wpdb->delete( $tableName, array( 'id' => $id ) );
 				}
-
-				$redirectURL = get_admin_url() . 'admin.php?page=ced_etsy&section=profiles-view&shop_name=' . $shop_id;
+				$redirectURL = get_admin_url() . 'admin.php?page=ced_etsy&section=profiles&shop_name=' . $shop_id;
 				wp_redirect( $redirectURL );
 			}
 		} elseif ( isset( $_GET['panel'] ) && 'edit' == $_GET['panel'] ) {
-
-			require_once CED_ETSY_DIRPATH . 'admin/partials/profile-edit-view.php';
+			require_once CED_ETSY_DIRPATH . 'admin/partials/class-ced-view-profile-edit.php';
 		}
 	}
 }

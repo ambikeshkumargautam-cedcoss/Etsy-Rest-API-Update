@@ -38,7 +38,7 @@ if ( empty( $umb_etsy_order_status ) || 'Fetched' == $umb_etsy_order_status ) {
 
 <div id="umb_etsy_order_settings" class="panel woocommerce_options_panel">
 	<div class="ced_etsy_loader" class="loading-style-bg" style="display: none;">
-		<img src="<?php echo esc_url( CED_ETSY_URL . 'admin/images/loading.gif' ); ?>">
+		<img src="<?php echo esc_url( CED_ETSY_URL . 'admin/assets/images/loading.gif' ); ?>">
 	</div>
 
 	<div class="options_group">

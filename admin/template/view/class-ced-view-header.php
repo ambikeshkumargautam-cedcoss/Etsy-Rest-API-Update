@@ -19,55 +19,55 @@ update_option( 'ced_etsy_active_shop', trim( $activeShop ) );
 	<ul class="navigation">
 				<li>
 					<?php
-					$url = admin_url( 'admin.php?page=ced_etsy&section=ced-etsy-settings&shop_name=' . $activeShop );
+					$url = admin_url( 'admin.php?page=ced_etsy&section=settings&shop_name=' . $activeShop );
 					?>
 					<a href="<?php echo esc_attr( $url ); ?>" class="
 						<?php
-						if ( 'ced-etsy-settings' == $section || 'add-shipping-profile-view' == $section ) {
+						if ( 'settings' == $section || 'add-shipping-profile-view' == $section ) {
 							echo 'active'; }
 						?>
 							"><?php esc_html_e( 'Global Settings', 'woocommerce-etsy-integration' ); ?></a>
 							</li>
 								<li>
 									<?php
-									$url = admin_url( 'admin.php?page=ced_etsy&section=category-mapping-view&shop_name=' . $activeShop );
+									$url = admin_url( 'admin.php?page=ced_etsy&section=category-mapping&shop_name=' . $activeShop );
 									?>
 									<a class="
 									<?php
-									if ( 'category-mapping-view' == $section ) {
+									if ( 'category-mapping' == $section ) {
 										echo 'active'; }
 									?>
 										" href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Category Mapping', 'woocommerce-etsy-integration' ); ?></a>
 									</li>
 									<li>
 										<?php
-										$url = admin_url( 'admin.php?page=ced_etsy&section=profiles-view&shop_name=' . $activeShop );
+										$url = admin_url( 'admin.php?page=ced_etsy&section=profiles&shop_name=' . $activeShop );
 										?>
 										<a class="
 										<?php
-										if ( 'profiles-view' == $section ) {
+										if ( 'profiles' == $section || 'profile-edit' == $section ) {
 											echo 'active'; }
 										?>
 											" href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Profile', 'woocommerce-etsy-integration' ); ?></a>
 										</li>
 										<li>
 											<?php
-											$url = admin_url( 'admin.php?page=ced_etsy&section=products-view&shop_name=' . $activeShop );
+											$url = admin_url( 'admin.php?page=ced_etsy&section=products&shop_name=' . $activeShop );
 											?>
 											<a class="
 											<?php
-											if ( 'products-view' == $section ) {
+											if ( 'products' == $section ) {
 												echo 'active'; }
 											?>
 												" href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Products', 'woocommerce-etsy-integration' ); ?></a>
 											</li>
 											<li>
 												<?php
-												$url = admin_url( 'admin.php?page=ced_etsy&section=orders-view&shop_name=' . $activeShop );
+												$url = admin_url( 'admin.php?page=ced_etsy&section=orders&shop_name=' . $activeShop );
 												?>
 												<a class="
 												<?php
-												if ( 'orders-view' == $section ) {
+												if ( 'orders' == $section ) {
 													echo 'active'; }
 												?>
 													" href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Orders', 'woocommerce-etsy-integration' ); ?></a>

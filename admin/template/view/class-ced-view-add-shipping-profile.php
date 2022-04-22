@@ -4,8 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 
-require_once CED_ETSY_DIRPATH . 'admin/partials/header.php';
-
+Cedhandler::ced_header();
 $saved_etsy_details = get_option( 'ced_etsy_details', array() );
 
 $marketPlaceName = 'etsy';
@@ -264,7 +263,6 @@ $shipping_profile_fields = array(
 	),
 );
 ?>
-
 <div class="ced_etsy_wrap">
 	<div class="ced_etsy_account_configuration_wrapper">	
 		<div class="ced_etsy_account_configuration_fields">	

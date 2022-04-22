@@ -3,7 +3,8 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-require_once CED_ETSY_DIRPATH . 'admin/partials/product-fields.php';
+Cedhandler::ced_header();
+require_once CED_ETSY_DIRPATH . 'admin/template/product-fields.php';
 $profileID = isset( $_GET['profileID'] ) ? sanitize_text_field( wp_unslash( $_GET['profileID'] ) ) : '';
 
 global $wpdb;
@@ -97,7 +98,7 @@ if ( isset( $_POST['add_meta_keys'] ) || isset( $_POST['ced_etsy_profile_save_bu
 		);
 	}
 }
-$etsyFirstLevelCategories = file_get_contents( CED_ETSY_DIRPATH . 'admin/etsy/lib/json/categoryLevel-1.json' );
+$etsyFirstLevelCategories = @file_get_contents( CED_ETSY_DIRPATH . 'admin/lib/json/categoryLevel-1.json' );
 $etsyFirstLevelCategories = json_decode( $etsyFirstLevelCategories, true );
 
 $profile_data = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}ced_etsy_profiles WHERE `id`=%s ", $profileID ), 'ARRAY_A' );

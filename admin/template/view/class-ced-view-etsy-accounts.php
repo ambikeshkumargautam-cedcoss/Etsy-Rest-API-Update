@@ -129,7 +129,7 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 
 	public function column_configure( $item ) {
 
-		$configure = '<a class="btn btn-sm btn-primary" href="' . admin_url( 'admin.php?page=ced_etsy&section=ced-etsy-settings&shop_name=' . $item['details']['ced_etsy_shop_name'] . '' ) . '">' . __( 'Configure', 'woocommerce-etsy-integration' ) . '</a>';
+		$configure = '<a class="btn btn-sm btn-primary" href="' . admin_url( 'admin.php?page=ced_etsy&section=settings&shop_name=' . $item['details']['ced_etsy_shop_name'] . '' ) . '">' . __( 'Configure', 'woocommerce-etsy-integration' ) . '</a>';
 		return $configure;
 
 	}
@@ -323,8 +323,7 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 			wp_redirect( $redirectURL );
 
 		} elseif ( isset( $_GET['section'] ) ) {
-
-			require_once CED_ETSY_DIRPATH . 'admin/template/view/' . $this->current_action() . '.php';
+			require_once CED_ETSY_DIRPATH . 'admin/template/view/class-ced-view-' . $this->current_action() . '.php';
 		}
 	}
 }

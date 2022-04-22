@@ -376,7 +376,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 	public function ced_marketplace_listing_page() {
 		$activeMarketplaces = apply_filters( 'ced_add_marketplace_menus_array', array() );
 		if ( is_array( $activeMarketplaces ) && ! empty( $activeMarketplaces ) ) {
-			require CED_ETSY_DIRPATH . 'admin/template/view/marketplaces.php';
+			require CED_ETSY_DIRPATH . 'admin/template/view/class-cd-view-marketplaces.php';
 		}
 	}
 
@@ -398,7 +398,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @since    1.0.0
 	 */
 	public function ced_etsy_accounts_page() {
-		$fileAccounts = CED_ETSY_DIRPATH . 'admin/template/view/ced-etsy-accounts.php';
+		$fileAccounts = CED_ETSY_DIRPATH . 'admin/template/view/class-ced-view-etsy-accounts.php';
 		if ( file_exists( $fileAccounts ) ) {
 			echo "<div class='cedcommerce-etsy-wrap'>";
 			require_once $fileAccounts;
@@ -612,7 +612,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 			$etsy_category_id       = isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
 			$level                  = isset( $_POST['level'] ) ? sanitize_text_field( wp_unslash( $_POST['level'] ) ) : '';
 			$next_level             = intval( $level ) + 1;
-			$etsyCategoryList       = file_get_contents( CED_ETSY_DIRPATH . 'admin/etsy/lib/json/categoryLevel-' . $next_level . '.json' );
+			$etsyCategoryList       = file_get_contents( CED_ETSY_DIRPATH . 'admin/lib/json/categoryLevel-' . $next_level . '.json' );
 			$etsyCategoryList       = json_decode( $etsyCategoryList, true );
 			$select_html            = '';
 			$nextLevelCategoryArray = array();
@@ -656,7 +656,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 			$etsy_category_id       = isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
 			$level                  = isset( $_POST['level'] ) ? sanitize_text_field( wp_unslash( $_POST['level'] ) ) : '';
 			$next_level             = intval( $level ) + 1;
-			$etsyCategoryList       = file_get_contents( CED_ETSY_DIRPATH . 'admin/etsy/lib/json/categoryLevel-' . $next_level . '.json' );
+			$etsyCategoryList       = @file_get_contents( CED_ETSY_DIRPATH . 'admin/lib/json/categoryLevel-' . $next_level . '.json' );
 			$etsyCategoryList       = json_decode( $etsyCategoryList, true );
 			$select_html            = '';
 			$nextLevelCategoryArray = array();
@@ -719,7 +719,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				}
 			}
 			update_option( 'ced_woo_etsy_mapped_categories_name_' . $etsy_store_id, $alreadyMappedCategoriesName );
-			$this->CED_ETSY_Manager->ced_etsy_createAutoProfiles( $etsyMappedCategories, $etsyMappedCategoriesName, $etsy_store_id );
+			$this->ced_etsy_mager->ced_etsy_createAutoProfiles( $etsyMappedCategories, $etsyMappedCategoriesName, $etsy_store_id );
 			wp_die();
 		}
 	}
