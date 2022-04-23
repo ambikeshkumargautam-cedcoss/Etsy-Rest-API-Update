@@ -13,7 +13,7 @@
 			 */
 			$activeShop = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 
-			$product_fields_files = CED_ETSY_DIRPATH . 'admin/partials/product-fields.php';
+			$product_fields_files = CED_ETSY_DIRPATH . 'admin/template/product-fields.php';
 			if ( file_exists( $product_fields_files ) ) {
 				require_once $product_fields_files;
 			}

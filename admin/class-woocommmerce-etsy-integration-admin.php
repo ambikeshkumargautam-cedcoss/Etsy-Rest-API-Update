@@ -376,7 +376,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 	public function ced_marketplace_listing_page() {
 		$activeMarketplaces = apply_filters( 'ced_add_marketplace_menus_array', array() );
 		if ( is_array( $activeMarketplaces ) && ! empty( $activeMarketplaces ) ) {
-			require CED_ETSY_DIRPATH . 'admin/template/view/class-cd-view-marketplaces.php';
+			require CED_ETSY_DIRPATH . 'admin/template/view/class-ced-view-marketplaces.php';
 		}
 	}
 

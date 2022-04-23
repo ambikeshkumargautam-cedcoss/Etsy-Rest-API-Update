@@ -84,7 +84,7 @@ if ( $isShopInActive ) {
 					?>
 							<td>
 								<?php
-								$url = admin_url( 'admin.php?page=ced_etsy&section=add-shipping-profile-view&shop_name=' . $activeShop );
+								$url = admin_url( 'admin.php?page=ced_etsy&section=add-shipping-profile&shop_name=' . $activeShop );
 								?>
 								<a href="<?php echo esc_attr( $url ); ?>" class="button-primary " >Add New</a>
 							</td>

@@ -23,7 +23,7 @@ update_option( 'ced_etsy_active_shop', trim( $activeShop ) );
 					?>
 					<a href="<?php echo esc_attr( $url ); ?>" class="
 						<?php
-						if ( 'settings' == $section || 'add-shipping-profile-view' == $section ) {
+						if ( 'settings' == $section || 'add-shipping-profile' == $section ) {
 							echo 'active'; }
 						?>
 							"><?php esc_html_e( 'Global Settings', 'woocommerce-etsy-integration' ); ?></a>

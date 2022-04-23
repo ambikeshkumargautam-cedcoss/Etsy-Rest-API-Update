@@ -157,9 +157,9 @@ if ( isset( $_POST['saveShopSections'] ) ) {
 			$ced_h->dir_name = '/admin/template/view/setting-view/';
 			$files_name      = array(
 				'ced-etsy-metakeys-template',
-				// 'ced-etsy-product-upload-settings',
+				'ced-etsy-product-upload-settings',
 				'ced-etsy-order-settings',
-				// 'ced-etsy-shipping-profiles',
+				'ced-etsy-shipping-profiles',
 				'ced-etsy-scheduler-settings',
 			);
 			foreach ( $files_name as $file_name ) {
