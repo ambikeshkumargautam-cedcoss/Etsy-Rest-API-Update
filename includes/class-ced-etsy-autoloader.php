@@ -72,8 +72,7 @@ class CedEtsyAutoloader {
 		}
 		$file = $this->ced_etsy_get_file_name_from_class( $class );
 		$path = '';
-		if (
-			   0 === strpos( strtolower($class), 'ced_pro' ) || 0 === strpos( strtolower($class), 'ced_cat' )) {
+		if ( 0 === strpos( strtolower($class), 'ced_pro' ) || 0 === strpos( strtolower($class), 'ced_cat' )) {
 			$path = $this->include_path . 'admin/ced-builder/product/';
 		}elseif ( 0 === strpos( strtolower($class), 'ced_ord' )) {
 			$path = $this->include_path . 'admin/ced-builder/order/';

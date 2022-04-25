@@ -11,10 +11,7 @@ if ( ! is_array( $saved_etsy_details ) ) {
 	$saved_etsy_details = array();
 }
 
-
-
 $marketPlaceName = 'etsy';
-
 $shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 /*GET COUNTRIES LIST FOR SHIPPING TEMPLATE */
 $saved_etsy_details = get_option( 'ced_etsy_details', array() );
@@ -59,10 +56,7 @@ if ( ! file_exists( CED_ETSY_DIRPATH . 'admin/lib/json/regions.json' ) ) {
 	}
 }
 
-
 if ( isset( $_POST['shipping_settings'] ) ) {
-
-
 	if ( ! isset( $_POST['shipping_settings_submit'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['shipping_settings_submit'] ) ), 'shipping_settings' ) ) {
 		return;
 	}
@@ -111,7 +105,8 @@ if ( isset( $_POST['shipping_settings'] ) ) {
 		if ( isset( $shippingTemplate['results'] ) ) {
 			echo '<div class="notice notice-success" ><p>' . esc_html( __( 'Shipping Template Created', 'woocommerce-etsy-integration' ) ) . '</p></div>';
 		} else {
-			$error = array_keys( $shippingTemplate );
+			// $shippingTemplate = !is_array( $shippingTemplate ) ? array( $shippingTemplate ) : array();
+			$error = @array_keys( $shippingTemplate );
 			echo '<div class="notice notice-error" ><p>' . esc_html( __( ( isset( $error[0] ) ? ucfirst( str_replace( '_', ' ', $error[0] ) ) : 'Shipping Template Not Created.' ), 'woocommerce-etsy-integration' ) ) . '</p></div>';
 		}
 	} else {

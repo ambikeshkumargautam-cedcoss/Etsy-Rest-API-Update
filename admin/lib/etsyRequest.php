@@ -50,11 +50,10 @@ class Ced_Etsy_Request {
 	public function get( $action = '', $shop_name = '', $query_args = array() ) {
 
 		$api_url = $this->base_url . $action;
-
 		if ( ! empty( $query_args ) ) {
 			$api_url = $api_url . '?' . http_build_query( $query_args );
 		}
-		
+
 		$header = array(
 			'Content-Type: application/json',
 			'Accept: application/json',
@@ -62,7 +61,6 @@ class Ced_Etsy_Request {
 		);
 
 		$access_token = $this->get_access_token( $shop_name );
-
 		if ( ! empty( $access_token ) ) {
 			$header[] = 'Authorization: Bearer ' . $access_token;
 		}
