@@ -1,9 +1,5 @@
 <?php
-$file = CED_ETSY_DIRPATH . 'admin/partials/header.php';
-if ( file_exists( $file ) ) {
-	require_once $file;
-}
-
+Cedhandler::ced_header();
 $shop_name =isset($_GET['shop_name']) ? sanitize_text_field( $_GET['shop_name'] ) :'';
 
 if ( isset( $_POST['ced_etsy_product_log_submit'] ) ) {

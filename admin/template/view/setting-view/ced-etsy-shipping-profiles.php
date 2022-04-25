@@ -15,6 +15,10 @@ $action             = "application/shops/{$shop_id}/shipping-profiles";
 do_action( 'ced_etsy_refresh_token', $activeShop );
 $shopShippingTemplates = etsy_request()->get( $action, $activeShop );
 
+echo "<pre>";
+print_r( $shopShippingTemplates );
+die();
+
 if ( isset( $shopShippingTemplates['count'] ) && $shopShippingTemplates['count'] >= 1 ) {
 	$shopShippingTemplates = $shopShippingTemplates['results'];
 	foreach ( $shopShippingTemplates as $key => $value ) {

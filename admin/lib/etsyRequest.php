@@ -54,7 +54,7 @@ class Ced_Etsy_Request {
 		if ( ! empty( $query_args ) ) {
 			$api_url = $api_url . '?' . http_build_query( $query_args );
 		}
-
+		
 		$header = array(
 			'Content-Type: application/json',
 			'Accept: application/json',

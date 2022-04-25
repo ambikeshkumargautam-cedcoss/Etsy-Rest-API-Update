@@ -72,6 +72,30 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 			add_action( 'ced_etsy_auto_submit_shipment', array( $this, 'ced_etsy_auto_submit_shipment' ) );
 			add_action( 'admin_notices', array( $this, 'ced_etsy_admin_notices' ) );
 			add_action( 'admin_init', array( $this, 'ced_etsy_get_token_and_shop_data' ) );
+			add_action( 'ced_etsy_refresh_token', array( $this, 'ced_etsy_refresh_token' ) );
+		}
+
+		public function ced_etsy_refresh_token( $shop_name = '' ) {
+
+			if ( ! $shop_name || get_transient( 'ced_etsy_token_' . $shop_name ) ) {
+				return;
+			}
+			$user_details  = get_option( 'ced_etsy_details', array() );
+			$refresh_token = isset( $user_details[ $shop_name ]['details']['token']['refresh_token'] ) ? $user_details[ $shop_name ]['details']['token']['refresh_token'] : '';
+			$query_args    = array(
+				'grant_type'    => 'refresh_token',
+				'client_id'     => etsy_request()->client_id,
+				'refresh_token' => $refresh_token,
+			);
+			$parameters    = $query_args;
+			$action        = 'public/oauth/token';
+			$response      = etsy_request()->post( $action, $parameters, $shop_name, $query_args );
+			if ( isset( $response['access_token'] ) && ! empty( $response['access_token'] ) ) {
+				$user_details[ $shop_name ]['details']['token'] = $response;
+				update_option( 'ced_etsy_details', $user_details );
+				set_transient( 'ced_etsy_token_' . $shop_name, $response, (int) $response['expires_in'] );
+			}
+
 		}
 
 		public function ced_etsy_get_token_and_shop_data() {
