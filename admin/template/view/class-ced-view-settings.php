@@ -5,6 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 Cedhandler::ced_header();
+
 /**
  ************************************************
  * SAVING VALUE OF THE SELECTED SHIPPING PROFILE
@@ -118,7 +119,6 @@ if ( isset( $_POST['saveShopSections'] ) ) {
 }
 
 ?>
-
 <div class="ced_etsy_heading ">
 	<?php echo esc_html_e( get_etsy_instuctions_html() ); ?>
 	<div class="ced_etsy_child_element">
@@ -159,7 +159,7 @@ if ( isset( $_POST['saveShopSections'] ) ) {
 				'ced-etsy-metakeys-template',
 				'ced-etsy-product-upload-settings',
 				'ced-etsy-order-settings',
-				'ced-etsy-shipping-profiles',
+				// 'ced-etsy-shipping-profiles',
 				'ced-etsy-scheduler-settings',
 			);
 			foreach ( $files_name as $file_name ) {

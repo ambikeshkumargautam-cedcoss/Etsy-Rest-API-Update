@@ -175,6 +175,7 @@ class Woocommmerce_Etsy_Integration {
 			'ced_etsy_submit_shipment',
 			'ced_esty_delete_mapped_profiles',
 			'ced_update_inventory_etsy_to_woocommerce',
+			'ced_etsy_map_shipping_profiles_woo_cat'
 		);
 
 		foreach ($ced_ajaxs as $action_name ) {
@@ -228,10 +229,7 @@ class Woocommmerce_Etsy_Integration {
 		foreach ( $order_status as $key => $status ) {
 			$this->loader->add_filter( 'woocommerce_email_enabled_' . esc_attr( $status ), $plugin_admin, 'ced_etsy_email_restriction', 10, 2 );
 		}
-
 		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'ced_etsy_add_order_metabox' );
-		$this->loader->add_action( 'admin_footer_text', $plugin_admin, 'ced_etsy_admin_footer_text' );
-		$this->loader->add_action( 'wp_ajax_ced_etsy_submit_feedback', $plugin_admin, 'ced_etsy_submit_feedback' );
 
 	}
 

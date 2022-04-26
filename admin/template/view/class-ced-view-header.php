@@ -11,7 +11,7 @@ if ( isset( $_GET['section'] ) ) {
 update_option( 'ced_etsy_active_shop', trim( $activeShop ) );
 ?>
 <div class="ced_etsy_loader">
-	<img src="<?php echo esc_url( CED_ETSY_URL . 'admin/images/loading.gif' ); ?>" width="50px" height="50px" class="ced_etsy_loading_img" >
+	<img src="<?php echo esc_url( CED_ETSY_URL . 'admin/assets/images/loading.gif' ); ?>" width="50px" height="50px" class="ced_etsy_loading_img" >
 </div>
 <div class="success-admin-notices is-dismissible"></div>
 <div class="navigation-wrapper">
@@ -19,12 +19,12 @@ update_option( 'ced_etsy_active_shop', trim( $activeShop ) );
 	<ul class="navigation">
 		<li>
 			<?php $url = admin_url( 'admin.php?page=ced_etsy&section=settings&shop_name=' . $activeShop ); ?>
-			<a href="<?php echo esc_attr( $url ); ?>" class="<?php if ( 'settings' == $section || 'add-shipping-profile' == $section ) {echo 'active'; }?> ">	<?php esc_html_e( 'Global Settings', 'woocommerce-etsy-integration' ); ?>
+			<a href="<?php echo esc_attr( $url ); ?>" class="<?php if ( 'settings' == $section ) {echo 'active'; }?> ">	<?php esc_html_e( 'Global Settings', 'woocommerce-etsy-integration' ); ?>
 			</a>
 		</li>
 		<li>
 			<?php $url = admin_url( 'admin.php?page=ced_etsy&section=shipping-profile&shop_name=' . $activeShop ); ?>
-			<a href="<?php echo esc_attr( $url ); ?>" class="<?php if ( 'shipping-profile' == $section || 'shipping' == $section ) {echo 'active'; }?> ">	<?php esc_html_e( 'Shipping Profile', 'woocommerce-etsy-integration' ); ?>
+			<a href="<?php echo esc_attr( $url ); ?>" class="<?php if ( 'shipping-profile' == $section || 'shipping' == $section || 'add-shipping-profile' == $section ) {echo 'active'; }?> ">	<?php esc_html_e( 'Shipping Profile', 'woocommerce-etsy-integration' ); ?>
 			</a>
 		</li>
 		<li>

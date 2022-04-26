@@ -61,6 +61,7 @@ if ( $isShopInActive ) {
 											}
 											?>
 											<option <?php echo esc_html( $selected ); ?> value="<?php echo esc_html( $key1 ); ?>"><?php echo esc_html( $value1 ); ?></option>
+											<i class="fa-thin fa-pen-to-square"></i>
 											<?php
 										}
 										?>

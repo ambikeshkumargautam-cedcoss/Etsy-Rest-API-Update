@@ -1,4 +1,9 @@
 <?php
+
+use Ced_Order_Import_From_Etsy\Ced_Etsy_Orders;
+use Ced_Product_Upload_To_Etsy\Ced_Etsy_Products;
+use Ced_Product_Import_From_Etsy\Ced_Etsy_Import_Products;
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -45,19 +50,18 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 */
 	public function __construct( $plugin_name, $version ) {
 		$this->ced_etsy_mager   = Ced_Etsy_Manager::get_instance();
-		$this->ced_etsy_order   = Ced_Order_Import_From_Etsy\Ced_Etsy_Orders::get_instance();
-		$this->ced_etsy_product = Ced_Product_Upload_To_Etsy\Ced_Etsy_Products::get_instance();
-		$this->importProduct    = Ced_Product_Import_From_Etsy\Ced_Etsy_Import_Products::get_instance();
+		$this->ced_etsy_order   = Ced_Etsy_Orders::get_instance();
+		$this->ced_etsy_product = Ced_Etsy_Products::get_instance();
+		$this->importProduct    = Ced_Etsy_Import_Products::get_instance();
 		$this->plugin_name      = $plugin_name;
 		add_action( 'manage_edit-shop_order_columns', array( $this, 'ced_etsy_add_table_columns' ) );
 		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'ced_etsy_manage_table_columns' ), 10, 2 );
 		add_action( 'wp_ajax_ced_etsy_auto_upload_categories', array( $this, 'ced_etsy_auto_upload_categories' ) );
 
-		// product webhook action
+		// product webhook action.
 		add_action( 'wp_ajax_ced_etsy_product_webhook', array( $this, 'ced_etsy_product_webhook' ) );
-		add_action( 'wp_ajax_nopriv_ced_etsy_product_webhook', array( $this, 'ced_etsy_product_webhook' ) );
-		
-		// order webhook action
+		add_action( 'wp_ajax_nopriv_ced_etsy_product_webhook', array( $this, 'ced_etsy_product_webhook' ) );	
+		// order webhook action.
 		add_action( 'wp_ajax_ced_etsy_order_webhook', array( $this, 'ced_etsy_order_webhook' ) );
 		add_action( 'wp_ajax_nopriv_ced_etsy_order_webhook', array( $this, 'ced_etsy_order_webhook' ) );
 	}
@@ -896,13 +900,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 
 		}
 		if ( is_array( $products_to_sync[0] ) && ! empty( $products_to_sync[0] ) ) {
-			$fileProducts = CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyProducts.php';
-			if ( file_exists( $fileProducts ) ) {
-				require_once $fileProducts;
-			}
-
-			$etsyOrdersInstance = Class_Ced_Etsy_Products::get_instance();
-			$getOrders          = $etsyOrdersInstance->prepareDataForUpdatingInventory( $products_to_sync[0], $shop_id, true );
+			$get_products = $this->ced_etsy_product->prepareDataForUpdatingInventory( $products_to_sync[0], $shop_id, true );
 			unset( $products_to_sync[0] );
 			$products_to_sync = array_values( $products_to_sync );
 			update_option( 'ced_etsy_chunk_products', $products_to_sync );
@@ -950,9 +948,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 			}
 		}
 		if ( isset( $product_chunk[0] ) && is_array( $product_chunk[0] ) && ! empty( $product_chunk[0] ) ) {
-			foreach ( $product_chunk[0] as $product_id ) {
-				$response = $this->CED_ETSY_Manager->prepareProductHtmlForUpload( $product_id, $shop_name );
-			}
+			$response = $ced_etsy_product->prepareDataForUploading( $product_chunk[0], $shop_name );
 			unset( $product_chunk[0] );
 			$product_chunk = array_values( $product_chunk );
 			update_option( 'ced_etsy_product_upload_chunk_' . $shop_name, $product_chunk );
@@ -1027,15 +1023,6 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 */
 
 	public function ced_etsy_auto_import_schedule_manager() {
-
-		$import_product_file = CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyImportProducts.php';
-		if ( file_exists( $import_product_file ) ) {
-			require_once $import_product_file;
-		}
-
-		// Object product import class ;)
-		$instance_import_product = Class_Ced_Etsy_Import_Product::get_instance();
-
 		$hook      = current_action();
 		$shop_name = str_replace( 'ced_etsy_auto_import_schedule_job_', '', $hook );
 		if ( empty( $shop_name ) ) {
@@ -1071,7 +1058,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 
 		if ( isset( $response['results'][0] ) ) {
 			foreach ( $response['results'] as $key => $value ) {
-				$instance_import_product->get_listing_details_auto_upload( $value, $shop_name, $shop_id );
+				$this->importProduct->get_listing_details_auto_upload( $value, $shop_name, $shop_id );
 			}
 			if ( isset( $response['pagination']['next_offset'] ) && ! empty( $response['pagination']['next_offset'] ) ) {
 				$next_offset = $response['pagination']['next_offset'];
@@ -1096,12 +1083,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 		if ( empty( $shop_id ) ) {
 			$shop_id = get_option( 'ced_etsy_shop_name', '' );
 		}
-		$fileOrders = CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyOrders.php';
-		if ( file_exists( $fileOrders ) ) {
-			require_once $fileOrders;
-		}
-		$etsyOrdersInstance = Class_Ced_Etsy_Orders::get_instance();
-		$getOrders          = $etsyOrdersInstance->getOrders( $shop_id );
+		$getOrders = $this->ced_etsy_order->getOrders( $shop_id );
 		if ( ! empty( $getOrders ) ) {
 			$createOrder = $etsyOrdersInstance->createLocalOrder( $getOrders, $shop_id );
 		}
@@ -1129,14 +1111,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				);
 				die;
 			}
-
-			$fileOrders = CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyOrders.php';
-			if ( file_exists( $fileOrders ) ) {
-				require_once $fileOrders;
-			}
-
-			$etsyOrdersInstance = Class_Ced_Etsy_Orders::get_instance();
-			$getOrders          = $etsyOrdersInstance->getOrders( $shop_id );
+			$getOrders = $this->ced_etsy_order->getOrders( $shop_id );
 			if ( ! empty( $getOrders ) ) {
 				$createOrder = $etsyOrdersInstance->createLocalOrder( $getOrders, $shop_id );
 			}
@@ -1203,7 +1178,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				);
 				die;
 			}
-			$file = CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyCategory.php';
+			$file = CED_ETSY_DIRPATH . 'admin/lib/etsyCategory.php';
 			if ( ! file_exists( $file ) ) {
 				return;
 			}
@@ -1249,7 +1224,6 @@ class Woocommmerce_Etsy_Integration_Admin {
 	public function ced_etsy_process_bulk_action() {
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
 		if ( $check_ajax ) {
-			$CED_ETSY_Manager = $this->CED_ETSY_Manager;
 			$shop_name        = isset( $_POST['shopname'] ) ? sanitize_text_field( wp_unslash( $_POST['shopname'] ) ) : '';
 			$operation        = isset( $_POST['operation_to_be_performed'] ) ? sanitize_text_field( wp_unslash( $_POST['operation_to_be_performed'] ) ) : '';
 			$product_id       = isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
@@ -1281,7 +1255,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 					);
 					die;
 				} else {
-					$get_product_detail = $CED_ETSY_Manager->prepareProductHtmlForUpload( $prodIDs, $shop_name );
+					$get_product_detail = $this->ced_etsy_product->prepareDataForUploading( $prodIDs, $shop_name );
 					if ( isset( $get_product_detail['results'][0]['listing_id'] ) ) {
 						echo json_encode(
 							array(
@@ -1306,7 +1280,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				$prodIDs          = $product_id;
 				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
 				if ( $already_uploaded ) {
-					$get_product_detail = $CED_ETSY_Manager->prepareProductHtmlForUpdate( $prodIDs, $shop_name );
+					$get_product_detail = $this->ced_etsy_product->prepareDataForUpdating( $prodIDs, $shop_name );
 					if ( isset( $get_product_detail['results'][0]['listing_id'] ) ) {
 						echo json_encode(
 							array(
@@ -1340,7 +1314,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				$prodIDs          = $product_id;
 				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
 				if ( $already_uploaded ) {
-					$get_product_detail = $CED_ETSY_Manager->prepareProductHtmlForDelete( $prodIDs, $shop_name );
+					$get_product_detail = $this->ced_etsy_product->prepareDataForDelete( $prodIDs, $shop_name );
 					if ( isset( $get_product_detail['results'] ) ) {
 						echo json_encode(
 							array(
@@ -1375,7 +1349,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				$prodIDs          = $product_id;
 				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
 				if ( $already_uploaded ) {
-					$get_product_detail = $CED_ETSY_Manager->prepareProductHtmlForUpdateInventory( $prodIDs, $shop_name );
+					$get_product_detail = $this->ced_etsy_product->prepareDataForUpdatingInventory( $prodIDs, $shop_name );
 					if ( isset( $get_product_detail['results'] ) ) {
 						echo json_encode(
 							array(
@@ -1412,7 +1386,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				$prodIDs          = $product_id;
 				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
 				if ( $already_uploaded ) {
-					$get_product_detail = $CED_ETSY_Manager->prepareProductHtmlForDeactivate( $prodIDs, $shop_name );
+					$get_product_detail = $this->ced_etsy_product->deactivate_products( $prodIDs, $shop_name );
 					if ( isset( $get_product_detail ) ) {
 						echo json_encode(
 							array(
@@ -1449,7 +1423,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				$prodIDs          = $product_id;
 				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
 				if ( $already_uploaded ) {
-					$get_product_detail = $CED_ETSY_Manager->ced_update_images_on_etsy( $prodIDs, $shop_name );
+					$get_product_detail = $this->ced_etsy_product->ced_update_images_on_etsy( $prodIDs, $shop_name );
 					if ( isset( $get_product_detail ) ) {
 						echo json_encode(
 							array(
@@ -1867,78 +1841,33 @@ class Woocommmerce_Etsy_Integration_Admin {
 		}
 	}
 
-	public function ced_etsy_admin_footer_text( $footer_text ) {
-		global $pagenow;
-		if ( 'plugins.php' == $pagenow ) {
-			return $footer_text . '
-			<div id="ced-etsy-feedback-modal" class="ced-etsy-modal">
-			<div class="ced-etsy-modal-content">
-			<span class="ced-etsy-close">&times;</span>
-
-			<p>
-			<h3>Would you mind sharing with us the reason to deactivate the plugin?</h3>
-			</p>
-			<span id="ced-etsy-feedback-response"></span>
-			<p>
-			<label class="ced_etsy_uninstall_radio">
-			<input type="radio"  name="ced-etsy-feedback" value="1"> I no longer need the plugin
-			</label>
-			</p>
-			<p>
-			<label class="ced_etsy_uninstall_radio">
-			<input type="radio" class="ced_etsy_uninstall_radio" name="ced-etsy-feedback" value="2"> I couldn\'t get the plugin to work
-			</label>
-			</p>
-			<p>
-			<label class="ced_etsy_uninstall_radio">
-			<input type="radio" class="ced_etsy_uninstall_radio" name="ced-etsy-feedback" value="3"> The plugin doesn\'t meet my requirements
-			</label>
-			</p>
-			<p>
-			<label class="ced_etsy_uninstall_radio">
-			<input type="radio" class="ced_etsy_uninstall_radio" name="ced-etsy-feedback" value="4"> Other concerns
-			<br><br>
-			<textarea id="ced-etsy-feedback-other" style="display:none;width:100%"></textarea>
-			</label>
-			</p>
-			<p>
-			<div style="float:left">
-			<input type="button" id="ced-etsy-submit-feedback-button" class="button button-danger" value="Submit & Deactivate" />
-			</div>
-
-			<div style="clear:both"></div>
-			</p>
-			</div>
-			</div>';
-		}
-	}
-
-	public function ced_etsy_submit_feedback() {
+	public function ced_etsy_map_shipping_profiles_woo_cat(){
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
-		if ( ! $check_ajax ) {
-			return;
+		if ($check_ajax) {
+			$sanitized_array = filter_input_array( INPUT_POST, FILTER_SANITIZE_STRING );
+			$woo_cat_id      = isset( $sanitized_array['woo_cat_id'] ) ? $sanitized_array['woo_cat_id']: array();
+			$e_shping_id     = isset( $sanitized_array['e_profile_id'] ) ?$sanitized_array['e_profile_id'] : array();
+			$shop_name       = isset( $sanitized_array['shop_name'] ) ? $sanitized_array['shop_name'] : '';
+			if ( '' != $shop_name && !empty( $woo_cat_id ) && !empty( $e_shping_id ) ) {
+				update_term_meta( $woo_cat_id, 'ced_etsy_shipping_profile_with_woo_cat_'. $shop_name, $e_shping_id );
+				echo json_encode( array(
+					'status'  => 200,
+					'message' => __(
+						'Profile is selected with this Category',
+						'woocommerce-etsy-integration'
+					),
+				));
+				wp_die();
+			}else{
+				echo json_encode( array(
+					'status'  => 200,
+					'message' => __(
+						'Please select woo category with Etsy shipping profile',
+						'woocommerce-etsy-integration'
+					),
+				));
+				wp_die();
+			}
 		}
-
-		$feedback = isset( $_POST['feedback'] ) ? sanitize_text_field( $_POST['feedback'] ) : '';
-		$others   = isset( $_POST['others'] ) ? sanitize_text_field( $_POST['others'] ) : '';
-		$options  = array(
-			1 => 'I no longer need the plugin',
-			2 => 'I couldn\'t get the plugin to work',
-			3 => 'The plugin doesn\'t meet my requirements',
-			4 => 'Other concerns' . ( ( $others ) ? ( ' - ' . $others ) : '' ),
-		);
-		if ( isset( $options[ $feedback ] ) ) {
-
-			$sendString = '';
-			$sendString = get_option( 'admin_email' );
-			$to         = 'shubhamagarwal@cedcommerce.com';
-			$subject    = 'Woocommerce Etsy Integration Deactivated by ' . $sendString;
-			$body       = $options[ $feedback ] . '<br>' . get_site_url();
-			$headers[]  = " 'From:'" . $sendString . ' ';
-			$headers[]  = 'Cc: ratandeepgupta@cedcommerce.com';
-			$headers[]  = 'Content-Type: text/html; charset=utf-8';
-			wp_mail( $to, $subject, $body, $headers );
-		}
-		wp_die();
 	}
 }

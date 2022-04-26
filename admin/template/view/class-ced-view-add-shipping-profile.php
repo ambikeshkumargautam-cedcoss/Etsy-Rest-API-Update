@@ -221,6 +221,7 @@ if ( isset( $_POST['shipping_settings'] ) ) {
 						<tr>
 							<th>
 								<label><?php esc_html_e( 'Origin Postal Code / Zip Code', 'woocommerce-etsy-integration' ); ?></label>
+								<span style="color: red; margin-left:5px; ">*</span>
 							</th>
 							<td>
 								<input placeholder="<?php esc_html_e( 'Enter Origin Postal Code', 'woocommerce-etsy-integration' ); ?>" class="short" type="text" name="ced_etsy_origin_postal_code"></input>

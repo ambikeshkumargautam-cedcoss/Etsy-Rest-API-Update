@@ -7,7 +7,7 @@
  * @package    Woocommerce Etsy Integration
  * @subpackage Woocommerce Etsy Integration/marketplaces/etsy
  */
-
+use Ced_Product_Upload_To_Etsy\Ced_Etsy_Products;
 if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 
 	/**
@@ -60,7 +60,7 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 
 		public function __construct() {
 			
-			$this->etsyProductsInstance = Ced_Product_Upload_To_Etsy\Ced_Etsy_Products::get_instance();
+			$this->etsyProductsInstance = Ced_Etsy_Products::get_instance();
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shipping_configuration' ), 10, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_payment_configuration' ), 11, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shop_section_configuration' ), 12, 2 );
