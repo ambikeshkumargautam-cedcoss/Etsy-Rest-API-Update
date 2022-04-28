@@ -175,7 +175,8 @@ class Woocommmerce_Etsy_Integration {
 			'ced_etsy_submit_shipment',
 			'ced_esty_delete_mapped_profiles',
 			'ced_update_inventory_etsy_to_woocommerce',
-			'ced_etsy_map_shipping_profiles_woo_cat'
+			'ced_etsy_map_shipping_profiles_woo_cat',
+			'ced_etsy_delete_shipping_profile',
 		);
 
 		foreach ($ced_ajaxs as $action_name ) {

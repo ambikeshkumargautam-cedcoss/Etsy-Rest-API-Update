@@ -24,7 +24,7 @@ update_option( 'ced_etsy_active_shop', trim( $activeShop ) );
 		</li>
 		<li>
 			<?php $url = admin_url( 'admin.php?page=ced_etsy&section=shipping-profile&shop_name=' . $activeShop ); ?>
-			<a href="<?php echo esc_attr( $url ); ?>" class="<?php if ( 'shipping-profile' == $section || 'shipping' == $section || 'add-shipping-profile' == $section ) {echo 'active'; }?> ">	<?php esc_html_e( 'Shipping Profile', 'woocommerce-etsy-integration' ); ?>
+			<a href="<?php echo esc_attr( $url ); ?>" class="<?php if ( 'shipping-profile' == $section || 'shipping-profile-edit' == $section || 'add-shipping-profile' == $section ) {echo 'active'; }?> ">	<?php esc_html_e( 'Shipping Profile', 'woocommerce-etsy-integration' ); ?>
 			</a>
 		</li>
 		<li>

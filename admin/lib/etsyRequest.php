@@ -9,6 +9,75 @@ class Ced_Etsy_Request {
 		$this->client_secret = $this->config->client_secret;
 	}
 
+	public function delete( $action ='', $shop_name='', $query_args=array(),$method='DELETE'  ){
+		$api_url = $this->base_url . $action;
+		if ( ! empty( $query_args ) ) {
+			$api_url = $api_url . '?' . http_build_query( $query_args );
+		}
+
+		$header = array(
+			'Content-Type: application/json',
+			'Accept: application/json',
+			'x-api-key: ' . $this->client_id,
+		);
+
+		$access_token = $this->get_access_token( $shop_name );
+		if ( ! empty( $access_token ) ) {
+			$header[] = 'Authorization: Bearer ' . $access_token;
+		}
+		$curl = curl_init();
+		curl_setopt_array(
+			$curl,
+			array(
+				CURLOPT_URL            => $api_url,
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+				CURLOPT_CUSTOMREQUEST  => 'DELETE',
+				CURLOPT_HTTPHEADER     => $header,
+			)
+		);
+
+		$response = curl_exec( $curl );
+		$response = $this->parse_reponse( $response );
+		curl_close( $curl );
+		return $response;
+
+	}
+	public function put( $action = '', $parameters = array(), $shop_name = '', $query_args = array(), $request_type = 'PUT' ){
+		$api_url = $this->base_url . $action;
+		if ( ! empty( $query_args ) ) {
+			$api_url = $api_url . '?' . http_build_query( $query_args );
+		}
+
+		$header = array(
+			'Content-Type: application/json',
+			'Accept: application/json',
+			'x-api-key: ' . $this->client_id,
+		);
+
+		$access_token = $this->get_access_token( $shop_name );
+		// var_dump($access_token);
+		if ( ! empty( $access_token ) && $action != 'public/oauth/token' ) {
+			$header[] = 'Authorization: Bearer ' . $access_token;
+		}
+		$curl = curl_init();
+		curl_setopt_array(
+			$curl,
+			array(
+				CURLOPT_URL            => $api_url,
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+				CURLOPT_CUSTOMREQUEST  => $request_type,
+				CURLOPT_POSTFIELDS     => json_encode( $parameters ),
+				CURLOPT_HTTPHEADER     => $header,
+			)
+		);
+		$response = curl_exec( $curl );
+		$response = $this->parse_reponse( $response );
+		curl_close( $curl );
+		return $response;
+	}
+
 	public function post( $action = '', $parameters = array(), $shop_name = '', $query_args = array(), $request_type = 'POST' ) {
 		$api_url = $this->base_url . $action;
 		if ( ! empty( $query_args ) ) {

@@ -7,9 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
-
 Cedhandler::ced_header();
-
 class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 
 	/** Class constructor */
@@ -24,7 +22,6 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 	}
 
 	public function prepare_items() {
-
 		global $wpdb;
 		$per_page = apply_filters( 'show_etsy_shipping_profile_per_page', 30 );
 		$columns  = $this->get_columns();
@@ -134,22 +131,21 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 	public function column_shipping_profile_name( $item ) {
 		$shop_name       = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 		$title           = '<strong>' . $item['name'] . '</strong>';
-		$url             = admin_url( 'admin.php?page=ced_etsy&profileID=' . $item['id'] . '&section=profile-edit&panel=edit&shop_name=' . $shop_name );
+		$url             = admin_url( 'admin.php?page=ced_etsy&e_prof_id=' . $item['id'] . '&section=shipping-profile-edit&panel=edit&shop_name=' . $shop_name );
 		$actions['edit'] = '<a href=' . $url . '>Edit</a>';
-		$actions['delete'] = '<a href="javascript:void(0)" class="Delete_profiles" data-profileid="' . $item['id'] . '">Delete</a>';
+		$actions['delete'] = '<a href="javascript:void(0)" class="Delete_shipping_profiles" data-e_profile_id="' . $item['id'] . '">Delete</a>';
 		print_r( $title );
 		return $this->row_actions( $actions, true );
 	}
 
 	public function column_woo_categories( $etsy_profile ) {
 		$woo_store_categories = get_terms( 'product_cat', array( 'hide_empty' => false ) );
-		echo '<select class="ced_etsy_shipn_prof" data-e_profile_id="'.esc_attr($etsy_profile['id']).'">';
+		echo '<select class="ced_etsy_shipping_profile_selectWoo ced_etsy_shipn_prof" data-e_profile_id="'.esc_attr($etsy_profile['id']).'" multiple="">';
 		echo "<option value=''>---Select---</option>";
-		$select='';
 		foreach ($woo_store_categories as $cat_term ) {
-			echo "Category ID ". $cat_term->term_id;
-			$updated_value = get_term_meta($cat_term->term_id, 'ced_etsy_shipping_profile_with_woo_cat_'.$shop_name, true );
-			echo "UPdated value :-". $updated_value;
+			$select='';
+			$updated_value = get_term_meta( $cat_term->term_id, 'ced_etsy_shipping_profile_with_woo_cat_'.$shop_name, true );
+			var_dump( $updated_value );
 			if ( $etsy_profile['id'] == $updated_value ) {
 				$select = 'selected';
 			}

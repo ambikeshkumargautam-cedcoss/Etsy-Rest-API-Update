@@ -263,3 +263,10 @@ function ced_etsy_check_woocommerce_active() {
 	}
 	return false;
 }
+
+function get_etsy_shop_id( $shop_name = '' ){
+	$saved_etsy_details = get_option( 'ced_etsy_details', array() );
+	$shopDetails        = $saved_etsy_details[ $shop_name ];
+	$shop_id            = isset( $shopDetails['details']['shop_id'] ) ? $shopDetails['details']['shop_id'] : '';
+	return $shop_id;
+}

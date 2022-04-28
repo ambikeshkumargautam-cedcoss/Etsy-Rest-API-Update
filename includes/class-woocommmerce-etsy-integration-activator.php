@@ -46,17 +46,7 @@ class Woocommmerce_Etsy_Integration_Activator {
 		PRIMARY KEY (id)
 		);";
 		dbDelta( $create_accounts_table );
-
-		// Mail
-		$sendString = get_option( 'admin_email' );
-		$to         = 'shubhamagarwal@cedcommerce.com';
-		$subject    = 'Etsy Integration for WooCommerce Activated by ' . $sendString;
-		$body       = get_site_url();
-		$headers[]  = " 'From:'" . $sendString . ' ';
-		$headers[]  = 'Cc: ratandeepgupta@cedcommerce.com';
-		$headers[]  = 'Content-Type: text/html; charset=utf-8';
-		wp_mail( $to, $subject, $body, $headers );
-
+		
 		// Profile
 		$tableName            = $wpdb->prefix . 'ced_etsy_profiles';
 		$create_profile_table =

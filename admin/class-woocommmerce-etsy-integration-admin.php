@@ -193,8 +193,11 @@ class Woocommmerce_Etsy_Integration_Admin {
 		 */
 
 		wp_enqueue_style( 'ced-boot-css', 'https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css', array(), '2.0.0', 'all' );
-
 		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . '/assets/css/woocommmerce-etsy-integration-admin.css', array(), $this->version, 'all' );
+
+		//SelectWoo Css
+		wp_register_style( 'selectWoo', plugin_dir_url( __FILE__ ) . 'assets/css/selectWoo.min.css', array(), '1.0.0', 'all' );
+		wp_enqueue_style( 'selectWoo' );
 
 		if ( 'plugins.php' == $pagenow ) {
 			wp_enqueue_style( 'ced-etsy-uninstall-css', plugin_dir_url( __FILE__ ) . 'assets/css/etsy-integration-for-woocommerce-uninstall.css', array(), $this->version, 'all' );
@@ -252,10 +255,18 @@ class Woocommmerce_Etsy_Integration_Admin {
 		wp_localize_script( 'woocommerce_admin', 'woocommerce_admin', $params );
 
 		wp_register_script( 'jquery-tiptip', WC()->plugin_url() . '/assets/js/jquery-tiptip/jquery.tipTip' . $suffix . '.js', array( 'jquery' ), WC_VERSION, true );
+
+		wp_register_script( 'selectWoo', plugin_dir_url( __FILE__ ) . 'assets/js/selectWoo.min.js', array( 'jquery' ), $this->version, true );
+		wp_enqueue_script( 'selectWoo');
 		wp_enqueue_script( 'woocommerce_admin' );
 
 		$shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
+
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'assets/js/woocommmerce-etsy-integration-admin.js', array( 'jquery' ), $this->version, false );
+
+		// SelectWoo
+		// wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'assets/js/selectWoo.min.js', array( 'jquery' ), $this->version, false );
+
 		$ajax_nonce     = wp_create_nonce( 'ced-etsy-ajax-seurity-string' );
 		$localize_array = array(
 			'ajax_url'   => admin_url( 'admin-ajax.php' ),
@@ -1863,6 +1874,30 @@ class Woocommmerce_Etsy_Integration_Admin {
 					'status'  => 200,
 					'message' => __(
 						'Please select woo category with Etsy shipping profile',
+						'woocommerce-etsy-integration'
+					),
+				));
+				wp_die();
+			}
+		}
+	}
+
+	public function ced_etsy_delete_shipping_profile(){
+		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
+		if ($check_ajax) {
+			$sanitized_array = filter_input_array( INPUT_POST, FILTER_SANITIZE_STRING );
+			$e_shiping_id     = isset( $sanitized_array['e_profile_id'] ) ?$sanitized_array['e_profile_id'] : array();
+			$shop_name       = isset( $sanitized_array['shop_name'] ) ? $sanitized_array['shop_name'] : '';
+			if ( '' != $shop_name && !empty( $e_shiping_id ) ) {
+				$shop_id = get_etsy_shop_id( $shop_name );
+				$action = 'application/shops/'.$shop_id.'/shipping-profiles/'.$e_shiping_id;
+				// Refresh token if isn't.
+				do_action( 'ced_etsy_refresh_token', $shop_name );
+				$is_deleted = etsy_request()->delete($action, $shop_name, array(), 'DELETE');
+				echo json_encode( array(
+					'status'  => 200,
+					'message' => __(
+						'Profile is Deleted!',
 						'woocommerce-etsy-integration'
 					),
 				));
