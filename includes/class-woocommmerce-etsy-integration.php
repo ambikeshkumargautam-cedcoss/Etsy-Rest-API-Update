@@ -142,8 +142,8 @@ class Woocommmerce_Etsy_Integration {
 	 * @since    1.0.0
 	 */
 	private function define_admin_hooks() {
-		$plugin_admin = new Woocommmerce_Etsy_Integration_Admin( $this->get_plugin_name(), $this->get_version() );
 
+		$plugin_admin = new Woocommmerce_Etsy_Integration_Admin( $this->get_plugin_name(), $this->get_version() );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
 
@@ -152,36 +152,42 @@ class Woocommmerce_Etsy_Integration {
 		 * ADD MENUS AND SUBMENUS
 		 **************************
 		 */
-
 		$this->loader->add_action( 'admin_menu', $plugin_admin, 'ced_etsy_add_menus', 23 );
 		$this->loader->add_filter( 'ced_add_marketplace_menus_array', $plugin_admin, 'ced_etsy_add_marketplace_menus_to_array', 13 );
 		$this->loader->add_filter( 'ced_marketplaces_logged_array', $plugin_admin, 'ced_etsy_marketplace_to_be_logged' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_authorize_account', $plugin_admin, 'ced_etsy_authorize_account' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_fetch_next_level_category', $plugin_admin, 'ced_etsy_fetch_next_level_category' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_map_categories_to_store', $plugin_admin, 'ced_etsy_map_categories_to_store' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_process_bulk_action', $plugin_admin, 'ced_etsy_process_bulk_action' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_import_products_bulk_action', $plugin_admin, 'ced_etsy_import_products_bulk_action' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_profiles_on_pop_up', $plugin_admin, 'ced_etsy_profiles_on_pop_up' );
-		$this->loader->add_filter( 'wp_ajax_save_etsy_profile_through_popup', $plugin_admin, 'save_etsy_profile_through_popup' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_preview_product_detail', $plugin_admin, 'ced_etsy_preview_product_detail' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_get_orders', $plugin_admin, 'ced_etsy_get_orders' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_category_refresh', $plugin_admin, 'ced_etsy_category_refresh' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_search_product_name', $plugin_admin, 'ced_etsy_search_product_name' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_get_product_metakeys', $plugin_admin, 'ced_etsy_get_product_metakeys' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_process_metakeys', $plugin_admin, 'ced_etsy_process_metakeys' );
 		$this->loader->add_filter( 'cron_schedules', $plugin_admin, 'my_etsy_cron_schedules' );
-		$this->loader->add_action( 'wp_ajax_ced_etsy_fetch_next_level_category_add_profile', $plugin_admin, 'ced_etsy_fetch_next_level_category_add_profile' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_change_account_status', $plugin_admin, 'ced_etsy_change_account_status' );
-		$this->loader->add_filter( 'wp_ajax_ced_etsy_submit_shipment', $plugin_admin, 'ced_etsy_submit_shipment' );
-		$this->loader->add_filter( 'wp_ajax_ced_esty_delete_mapped_profiles', $plugin_admin, 'ced_esty_delete_mapped_profiles' );
-		$this->loader->add_filter( 'wp_ajax_ced_update_inventory_etsy_to_woocommerce', $plugin_admin, 'ced_update_inventory_etsy_to_woocommerce' );
+
+		$ced_ajaxs = array(
+			'ced_etsy_authorize_account',
+			'ced_etsy_fetch_next_level_category',
+			'ced_etsy_map_categories_to_store',
+			'ced_etsy_process_bulk_action',
+			'ced_etsy_import_products_bulk_action',
+			'ced_etsy_profiles_on_pop_up',
+			'save_etsy_profile_through_popup',
+			'ced_etsy_preview_product_detail',
+			'ced_etsy_get_orders',
+			'ced_etsy_search_product_name',
+			'ced_etsy_get_product_metakeys',
+			'ced_etsy_process_metakeys',
+			'ced_etsy_fetch_next_level_category_add_profile',
+			'ced_etsy_change_account_status',
+			'ced_etsy_submit_shipment',
+			'ced_esty_delete_mapped_profiles',
+			'ced_update_inventory_etsy_to_woocommerce',
+			'ced_etsy_map_shipping_profiles_woo_cat',
+			'ced_etsy_delete_shipping_profile',
+		);
+
+		foreach ($ced_ajaxs as $action_name ) {
+			$this->loader->add_filter( 'wp_ajax_'.$action_name, $plugin_admin, $action_name );	
+		}
 
 		/**
 		 *********************************************
 		 * ADD CUSTOM FIELDS ON THE PRODUC EDIT PAGE
 		 *********************************************
 		 */
-
 		// AT THE VARIATION LEVEL CUSTOMIZATION
 		$this->loader->add_action( 'woocommerce_product_after_variable_attributes', $plugin_admin, 'ced_etsy_render_product_fields', 10, 3 );
 		// RENDER CUSTOM FIELD ON THE SIMPLE PRODUCT LEVEL
@@ -224,10 +230,7 @@ class Woocommmerce_Etsy_Integration {
 		foreach ( $order_status as $key => $status ) {
 			$this->loader->add_filter( 'woocommerce_email_enabled_' . esc_attr( $status ), $plugin_admin, 'ced_etsy_email_restriction', 10, 2 );
 		}
-
 		$this->loader->add_action( 'add_meta_boxes', $plugin_admin, 'ced_etsy_add_order_metabox' );
-		$this->loader->add_action( 'admin_footer_text', $plugin_admin, 'ced_etsy_admin_footer_text' );
-		$this->loader->add_action( 'wp_ajax_ced_etsy_submit_feedback', $plugin_admin, 'ced_etsy_submit_feedback' );
 
 	}
 

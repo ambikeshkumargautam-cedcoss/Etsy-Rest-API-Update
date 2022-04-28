@@ -64,7 +64,7 @@ function display_support_html() {
 	<div class="ced_contact_menu_wrap">
 		<input type="checkbox" href="#" class="ced_menu_open" name="menu-open" id="menu-open" />
 		<label class="ced_menu_button" for="menu-open">
-			<img src="<?php echo esc_url( CED_ETSY_URL . 'admin/images/icon.png' ); ?>" alt="" title="Click to Chat">
+			<img src="<?php echo esc_url( CED_ETSY_URL . 'admin/assets/images/icon.png' ); ?>" alt="" title="Click to Chat">
 		</label>
 		<a href="https://join.skype.com/UHRP45eJN8qQ" class="ced_menu_content ced_skype" target="_blank"> <i class="fa fa-skype" aria-hidden="true"></i> </a>
 		<a href="https://chat.whatsapp.com/BcJ2QnysUVmB1S2wmwBSnE" class="ced_menu_content ced_whatsapp" target="_blank"> <i class="fa fa-whatsapp" aria-hidden="true"></i> </a>
@@ -95,11 +95,11 @@ function ced_etsy_getOauthClientObject( $shop_name = '' ) {
 		$_SESSION['OAUTH_ACCESS_TOKEN'] = $ced_etsy_access_token;
 	}
 
-	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/http.php' ) ) {
-		require_once CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/http.php';
+	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/vendor/http.php' ) ) {
+		require_once CED_ETSY_DIRPATH . 'admin/lib/vendor/http.php';
 	}
-	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/oauth_client.php' ) ) {
-		require_once CED_ETSY_DIRPATH . 'admin/lib/etsy/vendor/oauth_client.php';
+	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/vendor/oauth_client.php' ) ) {
+		require_once CED_ETSY_DIRPATH . 'admin/lib/vendor/oauth_client.php';
 	}
 
 	$client                = new oauth_client_class();
@@ -236,7 +236,7 @@ function ced_etsy_cedcommerce_logo() {
 }
 
 function etsy_request() {
-	require_once CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyRequest.php';
+	require_once CED_ETSY_DIRPATH . 'admin/lib/etsyRequest.php';
 	$request = new Ced_Etsy_Request();
 	return $request;
 }
@@ -262,4 +262,11 @@ function ced_etsy_check_woocommerce_active() {
 		return true;
 	}
 	return false;
+}
+
+function get_etsy_shop_id( $shop_name = '' ){
+	$saved_etsy_details = get_option( 'ced_etsy_details', array() );
+	$shopDetails        = $saved_etsy_details[ $shop_name ];
+	$shop_id            = isset( $shopDetails['details']['shop_id'] ) ? $shopDetails['details']['shop_id'] : '';
+	return $shop_id;
 }

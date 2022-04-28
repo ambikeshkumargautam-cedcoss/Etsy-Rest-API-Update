@@ -14,7 +14,6 @@ $action             = "application/shops/{$shop_id}/shipping-profiles";
 // $action = "application/shops/{$shop_id}/listings/1187758391/images";
 do_action( 'ced_etsy_refresh_token', $activeShop );
 $shopShippingTemplates = etsy_request()->get( $action, $activeShop );
-
 if ( isset( $shopShippingTemplates['count'] ) && $shopShippingTemplates['count'] >= 1 ) {
 	$shopShippingTemplates = $shopShippingTemplates['results'];
 	foreach ( $shopShippingTemplates as $key => $value ) {
@@ -31,9 +30,6 @@ if ( $isShopInActive ) {
 	echo '<div class="notice notice-error"><p>Shop is not Active.Please Activate your Shop in order to save Shipping Template</p></div>';
 
 }
-
-
-
 ?>
 
 <div class="ced_etsy_heading">
@@ -65,6 +61,7 @@ if ( $isShopInActive ) {
 											}
 											?>
 											<option <?php echo esc_html( $selected ); ?> value="<?php echo esc_html( $key1 ); ?>"><?php echo esc_html( $value1 ); ?></option>
+											<i class="fa-thin fa-pen-to-square"></i>
 											<?php
 										}
 										?>
@@ -84,7 +81,7 @@ if ( $isShopInActive ) {
 					?>
 							<td>
 								<?php
-								$url = admin_url( 'admin.php?page=ced_etsy&section=add-shipping-profile-view&shop_name=' . $activeShop );
+								$url = admin_url( 'admin.php?page=ced_etsy&section=add-shipping-profile&shop_name=' . $activeShop );
 								?>
 								<a href="<?php echo esc_attr( $url ); ?>" class="button-primary " >Add New</a>
 							</td>

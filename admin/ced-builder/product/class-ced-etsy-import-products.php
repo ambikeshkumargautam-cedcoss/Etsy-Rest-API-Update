@@ -1,6 +1,5 @@
 <?php
 namespace Ced_Product_Import_From_Etsy;
-
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;

@@ -54,7 +54,7 @@ jQuery( document ).ready(
 								$.post(
 									ajaxurl,
 									{
-										action: 'ced_etsy_submit_feedback',
+										// action: 'ced_etsy_submit_feedback',
 										feedback: $( 'input[name="ced-etsy-feedback"]:checked' ).val(),
 										others: $( '#ced-etsy-feedback-other' ).val(),
 										ajax_nonce: ajaxNonce,

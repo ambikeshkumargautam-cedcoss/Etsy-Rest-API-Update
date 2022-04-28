@@ -1007,5 +1007,57 @@
 
 			}
 		);
+		$(document).on( 'change', '.ced_etsy_shipn_prof', function(e){
+			e.preventDefault();
+			let e_prof_id = $( this ).data('e_profile_id');	
+			let woo_cat_id = $(this).val();
+			$.ajax({
+				url : ajaxUrl,
+				data : {
+					ajax_nonce   : ajaxNonce,
+					action       : 'ced_etsy_map_shipping_profiles_woo_cat',
+					e_profile_id : e_prof_id,
+					woo_cat_id   : woo_cat_id,
+					shop_name    : shop_name,
+				},
+				type : 'POST',
+				success : function(response){
+					 parsed_response = jQuery.parseJSON( response );
+					  var classes     = classes = 'notice notice-success';
+					if ( parsed_response.status == 400 ) {
+						classes = 'notice notice-error';
+					}
+					$( '.ced_etsy_loader' ).hide();
+					var html = '<div class="' + classes + '"><p>' + parsed_response.message + '</p></div>';
+					$( '.ced_etsy_error' ).html( html );
+					window.setTimeout( function() {window.location.reload();},1000 );
+				}
+			});
+		});
 
+		$(document).on('click','.Delete_shipping_profiles', function(e){
+			e.preventDefault();
+			let e_prof_id = $(this).data('e_profile_id');
+			$.ajax({
+				url : ajaxUrl,
+				data : {
+					ajax_nonce   : ajaxNonce,
+					action       : 'ced_etsy_delete_shipping_profile',
+					shop_name    : shop_name,
+					e_profile_id : e_prof_id,
+				},
+				type : 'POST',
+				success : function( $response ){
+					 parsed_response = jQuery.parseJSON( response );
+					  var classes     = classes = 'notice notice-success';
+					if ( parsed_response.status == 400 ) {
+						classes = 'notice notice-error';
+					}
+					$( '.ced_etsy_loader' ).hide();
+					var html = '<div class="' + classes + '"><p>' + parsed_response.message + '</p></div>';
+					$( '.ced_etsy_error' ).html( html );
+					window.setTimeout( function() {window.location.reload();},1000 );
+				}
+			});
+		});
 })( jQuery );
