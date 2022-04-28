@@ -162,9 +162,9 @@ class Ced_Etsy_Profile_Table extends WP_List_Table {
 				$woo_category_ids[] = $value;
 			}
 			$checked = '';
-			if ( isset( $woo_category_ids[0] ) && in_array( $woo_category_ids[0], $ced_etsy_auto_upload_categories ) ) {
-				$checked = 'checked';
-			}
+			// if ( isset( $woo_category_ids[0] ) && in_array( $woo_category_ids[0], $ced_etsy_auto_upload_categories ) ) {
+			// 	$checked = 'checked';
+			// }
 
 				echo '<label class="switch"><input type="checkbox" value="' . json_encode( $woo_category_ids ) . '" id="ced_etsy_auto_upload_categories" ' . esc_attr( $checked ) . ' data-shop-name="' . esc_attr( $shop_name ) . '"><span class="slider round"></span>
 			</label>';
