@@ -131,7 +131,7 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 	public function column_shipping_profile_name( $item ) {
 		$shop_name       = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 		$title           = '<strong>' . $item['name'] . '</strong>';
-		$url             = admin_url( 'admin.php?page=ced_etsy&e_prof_id=' . $item['id'] . '&section=shipping-profile-edit&panel=edit&shop_name=' . $shop_name );
+		$url             = admin_url( 'admin.php?page=ced_etsy&e_prof_id=' . $item['id'] . '&section=shipping-edit&panel=edit&shop_name=' . $shop_name );
 		$actions['edit'] = '<a href=' . $url . '>Edit</a>';
 		$actions['delete'] = '<a href="javascript:void(0)" class="Delete_shipping_profiles" data-e_profile_id="' . $item['id'] . '">Delete</a>';
 		print_r( $title );

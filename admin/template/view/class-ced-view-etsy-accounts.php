@@ -323,7 +323,6 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 			wp_redirect( $redirectURL );
 
 		} elseif ( isset( $_GET['section'] ) ) {
-			echo $this->current_action();
 			require_once CED_ETSY_DIRPATH . 'admin/template/view/class-ced-view-' . $this->current_action() . '.php';
 		}
 	}
