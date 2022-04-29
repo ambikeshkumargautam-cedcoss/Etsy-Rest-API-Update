@@ -1,6 +1,5 @@
 <?php
-namespace Ced_Category_Import;
-
+namespace Etsy\Product\ProductCategory;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;

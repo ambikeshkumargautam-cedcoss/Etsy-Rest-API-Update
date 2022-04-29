@@ -1,5 +1,5 @@
 <?php
-namespace Ced_Product_Import_From_Etsy;
+namespace Etsy\Product\ProductImport;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;

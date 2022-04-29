@@ -1,8 +1,7 @@
 <?php
-namespace Ced_Product_Upload_To_Etsy;
-
-if ( ! class_exists( 'Class_Ced_Etsy_Products' ) ) {
-	class Ced_Etsy_Products {
+namespace Etsy\Product\ProductUpload;
+if ( ! class_exists( 'Class_Ced_Product_Upload' ) ) {
+	class Ced_Product_Upload {
 
 		/**
 		 * The ID of this plugin.

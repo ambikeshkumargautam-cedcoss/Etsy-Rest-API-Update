@@ -45,14 +45,13 @@ class CedEtsyEtsyHeader{
 						continue;
 					}
 						$view .= '<li>
-							<a href="'.$this->section_url( $section, $this->shop_name ).'" class="'.$this->check_active( $this->section, $section ).'">'.$name.'</a>
+							<a href="'.$this->section_url( $section, $this->shop_name ).'" class="'.$this->check_active( $this->section, $section ).'">'.ucfirst( $name ).'</a>
 						</li>';
 				}
 				$view .= '
 			</ul>
 		</div>
 		</div>';
-
 		return $view;
 	}
 	public function check_active($current_section, $view_sec ){

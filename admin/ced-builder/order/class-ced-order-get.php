@@ -1,5 +1,5 @@
 <?php
-namespace Ced_Order_Import_From_Etsy;
+namespace Etsy\Order\GetOrders;
 class Ced_Etsy_Orders {
 
 	public static $_instance;
