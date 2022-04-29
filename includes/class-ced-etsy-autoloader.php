@@ -37,9 +37,12 @@ class CedEtsyAutoloader {
 	 */
 	private function ced_etsy_get_file_name_from_class( $class ) {
 		if ( strpos( $class, '\\' ) !== false ) {
-			$ced_name = strstr( $class , '\\' );
-			$s        = 'class-' . strtolower( str_replace( '\\', '', $ced_name ) ) . '.php';
-			$s        = str_replace( '_', '-'  , $s );
+			//Explode namespace and class into array by slash.
+			$ced_name   = end( explode('\\', $class ) );
+			// Create file name with help of class name.
+			$s          = 'class-' . strtolower( str_replace( '\\', '', $ced_name ) ) . '.php';
+			// convert everything in lower case.
+			$s          = str_replace( '_', '-'  , $s );
 		} else {
 			$s = 'class-' . strtolower( str_replace( '_', '-', $class ) ) . '.php';
 		}
@@ -67,18 +70,18 @@ class CedEtsyAutoloader {
 	 * @param string $class Class name.
 	 */
 	public function autoload( $class ) {
-		if ( 0 !== strpos( $class, 'Ced_' ) ) {
+		if ( 0 !== strpos( $class, 'Cedcommerce' ) ) {
 			return;
 		}
 		$file = $this->ced_etsy_get_file_name_from_class( $class );
 		$path = '';
-		if ( 0 === strpos( strtolower($class), 'ced_pro' ) || 0 === strpos( strtolower($class), 'ced_cat' )) {
+		if ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_pro' ) || 0 === strpos( strtolower($class), 'ced_cat' )) {
 			$path = $this->include_path . 'admin/ced-builder/product/';
-		}elseif ( 0 === strpos( strtolower($class), 'ced_ord' )) {
+		}elseif ( 0 === strpos( strtolower(  end( explode('\\', $class ) ) ), 'ced_ord' )) {
 			$path = $this->include_path . 'admin/ced-builder/order/';
-		} elseif ( 0 === strpos( strtolower($class), 'ced_etsy_m' ) ) {
+		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_etsy_m' ) ) {
 			$path = $this->include_path . 'admin/lib/';
-		} elseif ( 0 === strpos( strtolower($class), 'woocommmerce_etsy_integration_admin' ) ) {
+		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'woocommmerce_etsy_integration_admin' ) ) {
 			$path = $this->include_path . 'admin/';
 		}
 		if ( empty( $path ) || ! $this->ced_load_file( $path . $file ) ) {

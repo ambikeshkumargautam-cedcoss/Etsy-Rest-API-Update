@@ -1,9 +1,8 @@
 <?php
-
-use Ced_Order_Import_From_Etsy\Ced_Etsy_Orders;
-use Ced_Product_Upload_To_Etsy\Ced_Etsy_Products;
-use Ced_Product_Import_From_Etsy\Ced_Etsy_Import_Products;
-
+use Cedcommerce\EtsyManager\Ced_Etsy_Manager as Etsy_Manager;
+use Cedcommerce\Order\GetOrders\Ced_Order_Get as EtsyGetOrdes;
+use Cedcommerce\Product\ProductUpload\Ced_Product_Upload as EtsyUploadProducts;
+use Cedcommerce\Product\ProductImport\Ced_Product_Import as EtsyImportProducts;
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -49,10 +48,10 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @param      string $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
-		$this->ced_etsy_mager   = Ced_Etsy_Manager::get_instance();
-		$this->ced_etsy_order   = Ced_Etsy_Orders::get_instance();
-		$this->ced_etsy_product = Ced_Etsy_Products::get_instance();
-		$this->importProduct    = Ced_Etsy_Import_Products::get_instance();
+		$this->ced_etsy_mager   = Etsy_Manager::get_instance();
+		$this->ced_etsy_order   = EtsyGetOrdes::get_instance();
+		$this->ced_etsy_product = EtsyUploadProducts::get_instance();
+		$this->importProduct    = EtsyImportProducts::get_instance();
 		$this->plugin_name      = $plugin_name;
 		add_action( 'manage_edit-shop_order_columns', array( $this, 'ced_etsy_add_table_columns' ) );
 		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'ced_etsy_manage_table_columns' ), 10, 2 );
@@ -753,7 +752,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 			$product_id = isset( $_POST['prodId'] ) ? sanitize_text_field( wp_unslash( $_POST['prodId'] ) ) : '';
 			$shopid     = isset( $_POST['shopid'] ) ? sanitize_text_field( wp_unslash( $_POST['shopid'] ) ) : '';
 			if ( isset( $product_id ) && ! empty( $product_id ) ) {
-				$etsyProductsInstance = Class_Ced_Etsy_Products::get_instance();
+				$etsyProductsInstance = Class_Ced_Product_Upload::get_instance();
 				$previewData          = $etsyProductsInstance->getFormattedData( $product_id, $shopid, true );
 				$previewData          = $previewData['data'];
 				$image_gallery_id     = array();
@@ -1197,7 +1196,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 			$etsyCategoryInstance = Class_Ced_Etsy_Category::get_instance();
 			$fetchedCategories    = $etsyCategoryInstance->getEtsyCategories( $shop_name );
 			if ( isset( $fetchedCategories['results'] ) && ! empty( $fetchedCategories['results'] ) ) {
-				$categories = $this->CED_ETSY_Manager->StoreCategories( $fetchedCategories );
+				$categories = $this->Ced_Etsy_Manager->StoreCategories( $fetchedCategories );
 				echo json_encode( array( 'status' => 200 ) );
 				wp_die();
 			} else {

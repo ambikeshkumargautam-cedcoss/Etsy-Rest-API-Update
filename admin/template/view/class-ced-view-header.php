@@ -1,57 +1,94 @@
 <?php
+namespace Cedcommerce\View\header;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-$activeShop = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-if ( isset( $_GET['section'] ) ) {
+/**
+ * 
+ */
+class CedEtsyEtsyHeader{
 
-	$section = isset( $_GET['section'] ) ? sanitize_text_field( wp_unslash( $_GET['section'] ) ) : '';
+	public $shop_name;
+	public $section;
+	public $not_show;
+	public function __construct($shop_name = '')
+	{
+		$this->shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
+		if ( isset( $_GET['section'] ) ) {
+
+			$this->section = isset( $_GET['section'] ) ? sanitize_text_field( wp_unslash( $_GET['section'] ) ) : '';
+		}
+		update_option( 'ced_etsy_active_shop', trim( $this->shop_name ) );
+		print_r( $this->show_loading_image());
+		print_r( $this->header_wrap_view( $this->section, $this->shop_name ) );
+		esc_attr( display_support_html() );
+	}
+
+	public function show_loading_image(){
+		return '<div class="ced_etsy_loader">
+		<img src="'.esc_url( CED_ETSY_URL . 'admin/assets/images/loading.gif' ).'" width="50px" height="50px" class="ced_etsy_loading_img" >
+		</div>';
+	}
+
+	public function header_wrap_view( $curnt_section='', $curnt_shopname=''){
+		$view .= '<div class="success-admin-notices is-dismissible">
+		</div><div class="navigation-wrapper">'.
+			ced_etsy_cedcommerce_logo()
+			.'
+			<ul class="navigation">
+			';
+				$header_sections = $this->header_sections();
+				$this->not_show = array('shipping-add', 'shipping-edit', 'profile-edit');
+				foreach ($header_sections as $section => $name ) {
+					if (in_array($section, $this->not_show )) {
+						continue;
+					}
+						$view .= '<li>
+							<a href="'.$this->section_url( $section, $this->shop_name ).'" class="'.$this->check_active( $this->section, $section ).'">'.ucfirst( $name ).'</a>
+						</li>';
+				}
+				$view .= '
+			</ul>
+		</div>
+		</div>';
+		return $view;
+	}
+	public function check_active($current_section, $view_sec ){
+		
+		// if ( in_array( $current_section, $this->not_show ) ) {
+		// 	return 'active';
+		// }
+
+		if ( $current_section === $view_sec ) {
+			return 'active';
+		}else{
+			return '';
+		}
+	}
+	public function section_url( $section='', $shop_name='' ){
+		if (empty( $section ) || empty( $shop_name ) ) {
+			$section   = $this->section;
+			$shop_name = $this->shop_name;
+		}
+		return admin_url( 'admin.php?page=ced_etsy&section='.$section.'&shop_name=' . $shop_name );
+	}
+	public function header_sections(){
+		return array(
+			'settings'         => 'Global Settings',
+			'shipping'         => 'Shipping Profile',
+			'shipping-edit'    => 'Edit Shippign Profile',
+			'shipping-add'     => 'Add Shipping Profile',
+			'category'         => 'Category Mapping',
+			'profiles'         => 'Profile',
+			'profile-edit'     => 'Profile Edit',
+			'products'         => 'Products',
+			'orders'           => 'Orders',
+			'product-importer' => 'Importer',
+			'etsy-logs'        => 'Logs'
+		);
+	}
 }
-update_option( 'ced_etsy_active_shop', trim( $activeShop ) );
+
+$header = new CedEtsyEtsyHeader();
 ?>
-<div class="ced_etsy_loader">
-	<img src="<?php echo esc_url( CED_ETSY_URL . 'admin/assets/images/loading.gif' ); ?>" width="50px" height="50px" class="ced_etsy_loading_img" >
-</div>
-<div class="success-admin-notices is-dismissible"></div>
-<div class="navigation-wrapper">
-	<?php esc_attr( ced_etsy_cedcommerce_logo() ); ?>
-	<ul class="navigation">
-		<li>
-			<?php $url = admin_url( 'admin.php?page=ced_etsy&section=settings&shop_name=' . $activeShop ); ?>
-			<a href="<?php echo esc_attr( $url ); ?>" class="<?php if ( 'settings' == $section ) {echo 'active'; }?> ">	<?php esc_html_e( 'Global Settings', 'woocommerce-etsy-integration' ); ?>
-			</a>
-		</li>
-		<li>
-			<?php $url = admin_url( 'admin.php?page=ced_etsy&section=shipping-profile&shop_name=' . $activeShop ); ?>
-			<a href="<?php echo esc_attr( $url ); ?>" class="<?php if ( 'shipping-profile' == $section || 'shipping-profile-edit' == $section || 'add-shipping-profile' == $section ) {echo 'active'; }?> ">	<?php esc_html_e( 'Shipping Profile', 'woocommerce-etsy-integration' ); ?>
-			</a>
-		</li>
-		<li>
-			<?php $url = admin_url( 'admin.php?page=ced_etsy&section=category-mapping&shop_name=' . $activeShop ); ?>
-			<a class="<?php if ( 'category-mapping' == $section ) { echo 'active'; } ?> " href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Category Mapping', 'woocommerce-etsy-integration' ); ?>
-			</a>
-		</li>
-		<li>
-			<?php $url = admin_url( 'admin.php?page=ced_etsy&section=profiles&shop_name=' . $activeShop ); ?>
-			<a class=" <?php if ( 'profiles' == $section || 'profile-edit' == $section ) { echo 'active'; } ?>" href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Profile', 'woocommerce-etsy-integration' ); ?></a>
-	   </li>
-		<li> <?php $url = admin_url( 'admin.php?page=ced_etsy&section=products&shop_name=' . $activeShop ); ?>
-			<a class=" <?php if ( 'products' == $section ) { echo 'active'; } ?>" href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Products', 'woocommerce-etsy-integration' ); ?></a>
-		</li>
-		<li> <?php $url = admin_url( 'admin.php?page=ced_etsy&section=orders&shop_name=' . $activeShop ); ?>
-			<a class="<?php if ( 'orders' == $section ) { echo 'active'; } ?>" href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Orders', 'woocommerce-etsy-integration' ); ?></a>
-		</li>
-		<li><?php $url = admin_url( 'admin.php?page=ced_etsy&section=product-importer&shop_name=' . $activeShop ); ?>
-			<a class=" <?php if ( 'product-importer' == $section ) { echo 'active'; } ?>" href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Importer', 'woocommerce-etsy-integration' ); ?></a>
-		</li>
-		<li><?php $url = admin_url( 'admin.php?page=ced_etsy&section=etsy-logs&shop_name=' . $activeShop ); ?>
-				<a class="<?php if ( 'etsy-logs' == $section ) { echo 'active'; } ?>
-					" href="<?php echo esc_attr( $url ); ?>"><?php esc_html_e( 'Logs', 'woocommerce-etsy-integration' ); ?></a>
-		</li>
-	</ul>
-	<?php
-		$active = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-	?>
-</div>
-<?php esc_attr( display_support_html() ); ?>

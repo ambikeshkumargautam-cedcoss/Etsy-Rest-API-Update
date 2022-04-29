@@ -23,7 +23,7 @@ class EtsyListProducts extends WP_List_Table {
 	public function prepare_items() {
 
 		global $wpdb;
-		$per_page  = apply_filters( 'ced_etsy_products_per_page', 20 );
+		$per_page  = apply_filters( 'Ced_Product_Upload_per_page', 20 );
 		$post_type = 'product';
 		$columns   = $this->get_columns();
 		$hidden    = array();
@@ -544,5 +544,5 @@ class EtsyListProducts extends WP_List_Table {
 	}
 }
 
-	$ced_etsy_products_obj = new etsyListProducts();
-	$ced_etsy_products_obj->prepare_items();
+	$Ced_Product_Upload_obj = new etsyListProducts();
+	$Ced_Product_Upload_obj->prepare_items();

@@ -25,7 +25,7 @@ class EtsyListImportedProducts extends WP_List_Table {
 
 		global $wpdb;
 		$shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-		$per_page  = apply_filters( 'ced_etsy_products_import_per_page', 10 );
+		$per_page  = apply_filters( 'Ced_Product_Upload_import_per_page', 10 );
 		$columns   = $this->get_columns();
 		$hidden    = array();
 		$sortable  = $this->get_sortable_columns();

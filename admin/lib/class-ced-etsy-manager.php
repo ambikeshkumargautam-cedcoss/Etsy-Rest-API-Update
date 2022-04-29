@@ -1,4 +1,5 @@
 <?php
+namespace Cedcommerce\EtsyManager;
 /**
  * Main class for handling reqests.
  *
@@ -7,9 +8,8 @@
  * @package    Woocommerce Etsy Integration
  * @subpackage Woocommerce Etsy Integration/marketplaces/etsy
  */
-use Ced_Product_Upload_To_Etsy\Ced_Etsy_Products;
-if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
-
+use Cedcommerce\Product\ProductUpload\Ced_Product_Upload as ProductUpload;
+if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 	/**
 	 * Single product related functionality.
 	 *
@@ -19,7 +19,7 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 	 * @package    Woocommerce Etsy Integration
 	 * @subpackage Woocommerce Etsy Integration/marketplaces/etsy
 	 */
-	class CED_ETSY_Manager {
+	class Ced_Etsy_Manager {
 
 		/**
 		 * The Instace of CED_ETSY_etsy_Manager.
@@ -59,8 +59,7 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 		 */
 
 		public function __construct() {
-			
-			$this->etsyProductsInstance = Ced_Etsy_Products::get_instance();
+			$this->etsyProductsInstance = ProductUpload::get_instance();
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shipping_configuration' ), 10, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_payment_configuration' ), 11, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shop_section_configuration' ), 12, 2 );
@@ -342,23 +341,6 @@ if ( ! class_exists( 'CED_ETSY_Manager' ) ) {
 				$response        = $this->etsyProductsInstance->prepareDataForUpdatingInventory( $product_ids, '', true );
 				$inventory_log[] = $response;
 			}
-		}
-
-
-
-		/**
-		 * Etsy Loading dependencies
-		 *
-		 * @since    1.0.0
-		 */
-		public function loadDependency() {
-
-			$fileProducts = CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyProducts.php';
-			if ( file_exists( $fileProducts ) ) {
-				require_once $fileProducts;
-			}
-
-			$this->etsyProductsInstance = Class_Ced_Etsy_Products::get_instance();
 		}
 
 		/**
