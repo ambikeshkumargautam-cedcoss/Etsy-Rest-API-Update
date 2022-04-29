@@ -1,5 +1,5 @@
 <?php
-namespace Etsy\EtsyManager;
+namespace Cedcommerce\EtsyManager;
 /**
  * Main class for handling reqests.
  *
@@ -8,7 +8,7 @@ namespace Etsy\EtsyManager;
  * @package    Woocommerce Etsy Integration
  * @subpackage Woocommerce Etsy Integration/marketplaces/etsy
  */
-use Etsy\Product\ProductUpload as ProductUpload;
+use Cedcommerce\Product\ProductUpload\Ced_Product_Upload as ProductUpload;
 if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 	/**
 	 * Single product related functionality.
@@ -59,8 +59,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		 */
 
 		public function __construct() {
-			
-			$this->etsyProductsInstance = Ced_Product_Upload::get_instance();
+			$this->etsyProductsInstance = ProductUpload::get_instance();
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shipping_configuration' ), 10, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_payment_configuration' ), 11, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shop_section_configuration' ), 12, 2 );

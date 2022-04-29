@@ -1,6 +1,6 @@
 <?php
-namespace Etsy\Order\GetOrders;
-class Ced_Etsy_Orders {
+namespace Cedcommerce\Order\GetOrders;
+class Ced_Order_Get {
 
 	public static $_instance;
 	/**

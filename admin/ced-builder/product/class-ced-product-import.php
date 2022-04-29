@@ -1,5 +1,5 @@
 <?php
-namespace Etsy\Product\ProductImport;
+namespace Cedcommerce\Product\ProductImport;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! class_exists( 'Ced_Etsy_Import_Products' ) ) {
 
-	class Ced_Etsy_Import_Products {
+	class Ced_Product_Import {
 
 
 		public static $_instance;

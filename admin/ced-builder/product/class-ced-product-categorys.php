@@ -1,5 +1,5 @@
 <?php
-namespace Etsy\Product\ProductCategory;
+namespace Cedcommerce\Product\ProductCategory;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;

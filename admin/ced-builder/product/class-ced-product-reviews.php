@@ -1,5 +1,5 @@
 <?php
-namespace Etsy\Product\ProductReview;
+namespace Cedcommerce\Product\ProductReview;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
