@@ -113,7 +113,7 @@ class Ced_Etsy_Profile_Table extends WP_List_Table {
 	public function column_profile_name( $item ) {
 		$shop_name       = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 		$title           = '<strong>' . $item['profile_name'] . '</strong>';
-		$url             = admin_url( 'admin.php?page=ced_etsy&profileID=' . $item['id'] . '&section=profile-edit&panel=edit&shop_name=' . $shop_name );
+		$url             = admin_url( 'admin.php?page=ced_etsy&profileID=' . $item['id'] . '&section=profiles&panel=edit&shop_name=' . $shop_name );
 		$actions['edit'] = '<a href=' . $url . '>Edit</a>';
 		// $actions['delete'] = '<a href="javascript:void(0)" class="Delete_profiles" data-profileid="' . $item['id'] . '">Delete</a>';
 		print_r( $title );
@@ -319,7 +319,7 @@ class Ced_Etsy_Profile_Table extends WP_List_Table {
 				wp_redirect( $redirectURL );
 			}
 		} elseif ( isset( $_GET['panel'] ) && 'edit' == $_GET['panel'] ) {
-			require_once CED_ETSY_DIRPATH . 'admin/partials/class-ced-view-profile-edit.php';
+			require_once CED_ETSY_DIRPATH . 'admin/template/view/class-ced-view-profile-edit.php';
 		}
 	}
 }

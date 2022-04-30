@@ -296,7 +296,6 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 						delete_term_meta( $value, 'ced_etsy_mapped_category_' . $shop_id );
 					}
 				}
-
 				foreach ( $profileIds as $id ) {
 					$wpdb->delete( $tableName, array( 'id' => $id ) );
 				}
@@ -304,7 +303,7 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 				wp_redirect( $redirectURL );
 			}
 		} elseif ( isset( $_GET['panel'] ) && 'edit' == $_GET['panel'] ) {
-			require_once CED_ETSY_DIRPATH . 'admin/partials/class-ced-view-profile-edit.php';
+			require_once CED_ETSY_DIRPATH . 'admin/template/view/class-ced-view-profile-edit.php';
 		}
 	}
 }

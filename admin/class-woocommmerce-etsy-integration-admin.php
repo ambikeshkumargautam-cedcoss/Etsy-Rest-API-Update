@@ -1673,7 +1673,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 		$tabs['etsy_inventory'] = array(
 			'label'  => __( 'Etsy', 'woocommerce-etsy-integration' ),
 			'target' => 'etsy_inventory_options',
-			'class'  => array( 'show_if_simple' ),
+			'class'  => array( 'show_if_simple', 'show_if_variable'),
 		);
 		return $tabs;
 	}

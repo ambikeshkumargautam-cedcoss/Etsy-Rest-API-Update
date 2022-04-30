@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * 
  */
-class CedEtsyEtsyHeader{
+class CedEtsyHeader{
 
 	public $shop_name;
 	public $section;
@@ -55,11 +55,6 @@ class CedEtsyEtsyHeader{
 		return $view;
 	}
 	public function check_active($current_section, $view_sec ){
-		
-		// if ( in_array( $current_section, $this->not_show ) ) {
-		// 	return 'active';
-		// }
-
 		if ( $current_section === $view_sec ) {
 			return 'active';
 		}else{
@@ -90,5 +85,5 @@ class CedEtsyEtsyHeader{
 	}
 }
 
-$header = new CedEtsyEtsyHeader();
+$header = new CedEtsyHeader();
 ?>

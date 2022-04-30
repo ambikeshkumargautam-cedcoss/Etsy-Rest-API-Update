@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-Cedhandler::ced_header();
+// Cedhandler::ced_header();
 require_once CED_ETSY_DIRPATH . 'admin/template/product-fields.php';
 $profileID = isset( $_GET['profileID'] ) ? sanitize_text_field( wp_unslash( $_GET['profileID'] ) ) : '';
 
