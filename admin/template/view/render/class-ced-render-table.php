@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-namespace Cedcommerce\View\Render\Table;
+namespace Cedcommerce\View\Render;
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -30,7 +30,7 @@ class Ced_Render_Table{
 	}
 
 	public function table_open($class){
-		return '';
+		return '<table class="'.$class.'">';
 	}
 
 	public function table_label($name){
@@ -44,21 +44,29 @@ class Ced_Render_Table{
 	public function table_textarea($name, $placeholder){
 			return '<textarea name="'.$name.'" placeholder="'.$placeholder.'"></textarea>';
 	}
-
-	public function table_head(){
-
+	public function td( $in_params='' ){
+		return '<td>' . $in_params . '</td>';
+	}
+	public function th( $in_params='' ){
+		return '<th>' . $in_params . '</th>';
+	}
+	public function tr( $in_params=''){
+		return '<tr>' . $in_params . '</tr>';
 	}
 	
-	public function table_body(){
-
+	public function table_body( $in_params='' ){
+		return '<tbody>' . $in_params . '</tbody>';
 	}
 
 	public function table_button($type, $text){
-		
 		return '<input type="'.$type.'" value="'.$text.'">';
 	}
 
 	public function table_close(){
-		return '';
+		return '</table>';
+	}
+
+	public function label( $class='', $in='' ){
+		return '<label class="'.$class.'">'. $in . '</label>';
 	}
 }
