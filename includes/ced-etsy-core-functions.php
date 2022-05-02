@@ -30,7 +30,11 @@ function etsy_write_logs( $log, $folder, $end = true ) {
 
 	}
 }
-
+/**
+ * Undocumented function
+ *
+ * @return void
+ */
 function log_head() {
 	$user         = wp_get_current_user();
 	$user_name    = $user->data->display_name;
@@ -43,19 +47,7 @@ function log_head() {
 }
 
 function checkLicenseValidationEtsy() {
-
 	return true;
-
-	$etsy_license        = get_option( 'ced_etsy_license', false );
-	$etsy_license_key    = get_option( 'ced_etsy_license_key', false );
-	$etsy_license_module = get_option( 'ced_etsy_license_module', false );
-	$license_valid       = apply_filters( 'ced_etsy_license_check', false );
-
-	if ( $license_valid ) {
-		return true;
-	} else {
-		return false;
-	}
 }
 
 function display_support_html() {
@@ -269,4 +261,8 @@ function get_etsy_shop_id( $shop_name = '' ){
 	$shopDetails        = $saved_etsy_details[ $shop_name ];
 	$shop_id            = isset( $shopDetails['details']['shop_id'] ) ? $shopDetails['details']['shop_id'] : '';
 	return $shop_id;
+}
+
+function ced_filter_input(){
+	return filter_input_array( INPUT_POST, FILTER_SANITIZE_STRING );
 }

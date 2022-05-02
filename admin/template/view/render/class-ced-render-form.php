@@ -1,9 +1,9 @@
 <?php
+namespace Cedcommerce\view\render;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-namespace Cedcommerce\View\Render;
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -25,7 +25,7 @@ namespace Cedcommerce\View\Render;
  */
 class Ced_Render_Form{
 	public function __construct(){
-		$this->submit = isset( $_REQUEST[] ) ? $_REQUEST[] : '';
+		
 	}
 	public function ced_nonce($my_action, $nonce_field ) {
 		return wp_nonce_field( $my_action, $nonce_field );
@@ -37,17 +37,14 @@ class Ced_Render_Form{
 	    return '<label for="'.$name.'">'.$name.'</label> : ';
 	}
 
-    public function form_input($type='', ,$class='', $name='', $placeholder=''){
+    public function form_input($type='', $class='', $name='', $placeholder=''){
 		return '<input type="'.$type.'" name="'.$name.'" class="'.$class.'" id="'.$id.'" placeholder="'.$placeholder.'"">';
 	}
 	public function form_textarea($name = '', $placeholder='' ){
 			return '<textarea name="'.$name.'" placeholder="'.$placeholder.'"></textarea>';
 	}
-	public function form_button($type='', $text='', $class='', $id='' ){
-		return '<input type="'.$type.'" value="'.$text.'">';
-	}
-	public function form_btn_tag( $id=""  ,$type="" ,$name="" ,$class="", $text='' ){
-		return '<button id="'.$id.'" class="'.$class.'" type="'.$type.'" name="'.$name.'">'. esc_html_e( $text, 'woocommerce-etsy-integration' ).'</button>';
+	public function button( $id="",$class="" ,$type="" ,$name="", $in_text='' ){
+		return '<button id="'.$id.'" class="'.$class.'" type="'.$type.'" name="'.$name.'">'. $in_text.'</button>';
 	}
 	public function form_close(){
 		return '</form>';

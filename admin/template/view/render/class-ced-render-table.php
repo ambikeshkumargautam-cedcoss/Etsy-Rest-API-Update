@@ -1,9 +1,9 @@
 <?php
+namespace Cedcommerce\view\render;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-namespace Cedcommerce\View\Render;
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -37,7 +37,7 @@ class Ced_Render_Table{
 	    return '<label for="'.$name.'">'.$name.'</label> : ';
 	}
 
-    public function table_input($type, ,$class, $name, $placeholder){
+    public function table_input($type, $class, $name, $placeholder){
 		return '<input type="'.$type.'" name="'.$name.'" class="'.$class.'" id="'.$id.'" placeholder="'.$placeholder.'"">';
 	}
 
