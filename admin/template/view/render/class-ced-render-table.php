@@ -66,7 +66,24 @@ class Ced_Render_Table{
 		return '</table>';
 	}
 
-	public function label( $class='', $in='' ){
-		return '<label class="'.$class.'">'. $in . '</label>';
+	public function label( $class='', $in='',$desc='' ){
+		return '<label class="'.$class.'">'. $in . '</label></br>'.( $desc );
+	}
+
+	public function select( $name='', $option_array='', $selected='', $class='', $id='' ){
+		$to_return .= '<select name="'.$name.'">';
+		$retrun .= '<option value="">---Not mapped---</option>';
+		foreach ( $option_array as $opt_key => $opt_value ) {
+			if ($opt_key === $selected ) {
+				$selected = 'selected';
+			}
+			$to_return .= '<option value="'. esc_attr( $opt_key ) . '"'. esc_attr($selected).'>' . esc_attr( $opt_value ) . '</option>';
+		}
+		$to_return .= '</select>';
+		return $to_return;
+	}
+
+	public function check_box( $name = '', $is_checked = '', $class='' ){
+		return '<label class="'.$class.'"><input type="checkbox" name="'.$name.'"  '.$is_checked.'><span class="slider round"></span></label>';
 	}
 }
