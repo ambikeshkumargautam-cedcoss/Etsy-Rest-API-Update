@@ -1,40 +1,35 @@
 <?php
-// If this file is called directly, abort.
+/**
+ * Class Ced View Settings.
+ *
+ * @package Settings view
+ * Class Ced View Settings is under the Cedcommerce\View\Settings.
+ */
+
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 /**
- * The admin-specific functionality of the plugin.
+ * The Settings specific class..
  *
- * @link       https://cedcommerce.com
- * @since      1.0.0
- *
- * @package    Woocommmerce_Etsy_Integration
- * @subpackage Woocommmerce_Etsy_Integration/admin
- */
-
-/**
- * The admin-specific functionality of the plugin.
- *
- * Defines the plugin name, version, and two examples hooks for how to
- * enqueue the admin-specific stylesheet and JavaScript.
+ * Ced_View_Settings class is rending fields which are required to show on the settings tab.
  *
  * @package    Woocommmerce_Etsy_Integration
- * @subpackage Woocommmerce_Etsy_Integration/admin
+ * @subpackage Woocommmerce_Etsy_Integration/View/Settings
  */
-class Ced_View_Settings{
+class Ced_View_Settings {
 	/**
-	 * The ID of this plugin.
+	 * The Current shop name which currently active now.
 	 *
-	 * @since    1.0.0
-	 * @var      string    $plugin_name    The ID of this plugin.
+	 * @since    2.1.3
+	 * @var      string    $plugin_name   The shop Name.
 	 */
 	public $shop_name;
 	/**
-	 * The ID of this plugin.
+	 * Previously saved values in DB.
 	 *
 	 * @since    1.0.0
-	 * @var      string    $plugin_name    The ID of this plugin.
+	 * @var      string    $pre_saved_values    The PresavedValues is pre-saved values in DB.
 	 */
 	private $pre_saved_values;
 	/**
@@ -48,18 +43,22 @@ class Ced_View_Settings{
 	 * The ID of this plugin.
 	 *
 	 * @since    1.0.0
-	 * @var      string    $plugin_name    The ID of this plugin.
+	 * @var      string    $tabs    The ID of this plugin.
 	 */
-	private $tabs = array( 'order_imoprt_settings'   => 'Order Import Settings', 'scheduler_setting_view' =>  'Schedulers' );
+	private $tabs = array( 
+		'order_imoprt_settings'  => 'Order Import Settings',
+		'scheduler_setting_view' => 'Schedulers',
+	);
+
 	/**
-	 * The ID of this plugin.
-	 *
-	 * @since    1.0.0
-	 * @var      string    $plugin_name    The ID of this plugin.
+	 * Instializing all the required variations and functions.
+	 * 
+	 * @since    2.1.3
+	 *    string    $plugin_name    The name of the plugin.
 	 */
 	public function __construct( $shop_name='' ) {
 		/**
-		 * The ID of this plugin.
+		 * Show header on the top of tabs.
 		 *
 		 * @since    1.0.0
 		 * @var      string    $plugin_name    The ID of this plugin.
@@ -84,7 +83,7 @@ class Ced_View_Settings{
 
 				echo '<ul class="ced_etsy_instruction_list" type="disc">';
 				foreach ( $instructions as $instruction ) {
-					print_r( "<li>$instruction</li>" );
+					print_r( "<li> $instruction</li>" );
 				}
 				echo '</ul>';
 
@@ -92,69 +91,68 @@ class Ced_View_Settings{
 			</div>
 		</div>
 		<?php
-		// delete_option('ced_etsy_global_settings');
 		$this->shop_name = $shop_name;
-		if (empty( $this->shop_name )) {
+		if ( empty( $this->shop_name ) ) {
 			$this->shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 		}
-		if ($this->shop_name) {
-			$this->pre_saved_values = get_option('ced_etsy_global_settings', array());
-			$this->pre_saved_values = isset( $this->pre_saved_values[$this->shop_name] ) ? $this->pre_saved_values[$this->shop_name] : array();
+		if ( $this->shop_name ) {
+			$this->pre_saved_values = get_option( 'ced_etsy_global_settings', array() );
+			$this->pre_saved_values = isset( $this->pre_saved_values[ $this->shop_name ] ) ? $this->pre_saved_values[ $this->shop_name ] : array();
 		}
 		/**
-		 * The ID of this plugin.
-		 *
-		 * @since    1.0.0
-		 * @var      string    $plugin_name    The ID of this plugin.
+		 * Get submit form here.
 		 */
-		if (isset( $_POST['global_settings'])) {
+
+		if ( isset( $_POST['global_settings'] ) ) {
 			if ( ! isset( $_POST['global_settings_submit'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['global_settings_submit'] ) ), 'global_settings' ) ) {
 				return;
 			}
 			/**
-			 * The ID of this plugin.
+			 * Save Settings in DB.
 			 *
-			 * @since    1.0.0
-			 * @var      string    $plugin_name    The ID of this plugin.
+			 * @since    2.1.3
 			 */
 			$this->ced_etsy_save_settings();
 		}
 	}
 
 	/**
-	 * Webhook while updating the product in Woocommerce.
+	 * Schedule events for automate the scheduling of import and export.
 	 *
-	 * @since    2.0.8
+	 * @since    2.1.3
+	 * @var      string    $scheduler_name    The Scheduler hook name .
+	 * @var      string    $times_stamp    The given times stamp.
 	 */
-	public function ced_schedule_events( $scheduler_name='', $times_stamp='' ){
+	public function ced_schedule_events( $scheduler_name = '', $times_stamp = '' ) {
 		wp_schedule_event( time(), $times_stamp, $scheduler_name . $this->shop_name );
 		update_option( $scheduler_name . $this->shop_name, $this->shop_name );
 	}
 
 	/**
-	 * Webhook while updating the product in Woocommerce.
+	 * Clear Schedule events for automate the scheduling of import and export.
 	 *
-	 * @since    2.0.8
+	 * @since    2.1.3
+	 * @var      string    $hook_name    The Scheduler hook name.
 	 */
 	public function ced_clear_scheduled_hook( $hook_name = '' ) {
 		wp_clear_scheduled_hook( $hook_name . $this->shop_name );
 	}
 
 	/**
-	 * Webhook while updating the product in Woocommerce.
+	 * Save setting values in Db.
 	 *
-	 * @since    2.0.8
+	 * @since    2.1.3
 	 */
-	public function ced_etsy_save_settings(){
+	public function ced_etsy_save_settings() {
 
-		$sanitized_array = ced_filter_input();
+		$sanitized_array          = ced_filter_input();
 		$ced_etsy_global_settings = isset( $sanitized_array['ced_etsy_global_settings'] ) ? $sanitized_array['ced_etsy_global_settings'] : array();
-		if (isset( $sanitized_array['ced_etsy_global_settings'] ) ) {
-			foreach ($sanitized_array['ced_etsy_global_settings'] as $scheduler => $scheduler_value ) {
-				// Un-schedule the events
+		if ( isset( $sanitized_array['ced_etsy_global_settings'] ) ) {
+			foreach ( $sanitized_array['ced_etsy_global_settings'] as $scheduler => $scheduler_value ) {
+				// Un-schedule the events.
 				$this->ced_clear_scheduled_hook( $scheduler );
-				// scheduling evens which want
-				if (in_array( $scheduler, $this->schedulers )) {
+				// scheduling evens.
+				if ( in_array( $scheduler, $this->schedulers ) ) {
 					if ( isset( $this->schedulers[$scheduler] ) && 'on' === $this->schedulers[$scheduler] ) {
 						$this->ced_schedule_events( $scheduler, 'ced_etsy_15min' );
 					}
@@ -164,7 +162,7 @@ class Ced_View_Settings{
 
 		$marketplace_name           = isset( $_POST['marketplaceName'] ) ? sanitize_text_field( wp_unslash( $_POST['marketplaceName'] ) ) : 'etsy';
 		$offer_settings_information = array();
-		$array_to_save = array();
+		$array_to_save              = array();
 		if ( isset( $sanitized_array['ced_etsy_required_common'] ) ) {
 			foreach ( ( $sanitized_array['ced_etsy_required_common'] ) as $key ) {
 				isset( $sanitized_array[ $key ][0] ) ? $array_to_save['default'] = $sanitized_array[ $key ][0] : $array_to_save['default'] = '';
@@ -178,18 +176,18 @@ class Ced_View_Settings{
 			}
 		}
 		/**
-		 * Webhook while updating the product in Woocommerce.
+		 * Getting older settings values merging with new settings values.
 		 *
 		 * @since    2.0.8
 		 */
-		$settings = get_option( 'ced_etsy_global_settings', array() );
+		$settings                     = get_option( 'ced_etsy_global_settings', array() );
 		$settings[ $this->shop_name ] = array_merge( $ced_etsy_global_settings, $offer_settings_information );
 		update_option( 'ced_etsy_global_settings', $settings );
 
 	}
 
 	/**
-	 * Webhook while updating the product in Woocommerce.
+	 * Showing setting values in form.
 	 *
 	 * @since    2.0.8
 	 */
@@ -199,7 +197,7 @@ class Ced_View_Settings{
 		$ced_h->ced_require( 'ced-etsy-metakeys-template' );		
 		$ced_h->dir_name = '/admin/template/view/render/';
 		$ced_h->ced_require( 'class-ced-render-form' );
-		// Rending forms. 
+		// Rending forms.
 		$form  = new \Cedcommerce\view\render\Ced_Render_Form();
 		echo $form->form_open('POST', '');
 		$form->ced_nonce( 'global_settings', 'global_settings_submit' );
@@ -211,11 +209,11 @@ class Ced_View_Settings{
 		echo $form->form_close();
 	}
 	/**
-	 * Webhook while updating the product in Woocommerce.
+	 * Show settings tabs using array.
 	 *
-	 * @since    2.0.8
+	 * @since    2.1.3
 	 */
-	private function ced_etsy_show_setting_tabs($tab_name='', $tab_key='' ){
+	private function ced_etsy_show_setting_tabs( $tab_name = '', $tab_key = '' ){
 		?>
 		<div class="ced_etsy_heading">
 			<?php echo esc_html_e( get_etsy_instuctions_html( $tab_name ) ); ?>
@@ -231,7 +229,7 @@ class Ced_View_Settings{
 		<?php
 	}
 	/**
-	 * Webhook while updating the product in Woocommerce.
+	 * Reder Table into forms.
 	 *
 	 * @since    2.0.8
 	 */
@@ -270,11 +268,11 @@ class Ced_View_Settings{
 	}
 
 	/**
-	 * Webhook while updating the product in Woocommerce.
+	 * All the Required settings tabs ans sub-tabs.
 	 *
 	 * @since    2.0.8
 	 */
-	public function ced_etsy_all_settings_fields(){
+	public function ced_etsy_all_settings_fields() {
 		return array(
 			'order_imoprt_settings' => array(
 				array(
@@ -341,11 +339,11 @@ class Ced_View_Settings{
 	}
 
 	/**
-	 * Webhook while updating the product in Woocommerce.
+	 * Product export setting view.
 	 *
 	 * @since    2.0.8
 	 */
-	public function product_export_setting(){
+	public function product_export_setting() {
 		?>
 		<div class="ced_etsy_heading">
 			<?php echo esc_html_e( get_etsy_instuctions_html( 'Product Export Settings' ) ); ?>
