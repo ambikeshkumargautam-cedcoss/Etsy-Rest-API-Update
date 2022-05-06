@@ -32,25 +32,23 @@ class CedEtsyHeader{
 	}
 
 	public function header_wrap_view( $curnt_section='', $curnt_shopname=''){
-		$view .= '<div class="success-admin-notices is-dismissible">
-		</div><div class="navigation-wrapper">'.
-			ced_etsy_cedcommerce_logo()
-			.'
-			<ul class="navigation">
-			';
-				$header_sections = $this->header_sections();
-				$this->not_show = array('shipping-add', 'shipping-edit', 'profile-edit');
-				foreach ($header_sections as $section => $name ) {
-					if (in_array($section, $this->not_show )) {
-						continue;
+		$view .= '<div class="success-admin-notices is-dismissible"></div>
+			<div class="navigation-wrapper">';
+			$view .= ced_etsy_cedcommerce_logo();
+			$view .= '<ul class="navigation">
+				';
+					$header_sections = $this->header_sections();
+					$this->not_show = array('shipping-add', 'shipping-edit', 'profile-edit');
+					foreach ($header_sections as $section => $name ) {
+						if (in_array($section, $this->not_show )) {
+							continue;
+						}
+							$view .= '<li>
+								<a href="'.$this->section_url( $section, $this->shop_name ).'" class="'.$this->check_active( $this->section, $section ).'">'.ucfirst( $name ).'</a>
+							</li>';
 					}
-						$view .= '<li>
-							<a href="'.$this->section_url( $section, $this->shop_name ).'" class="'.$this->check_active( $this->section, $section ).'">'.ucfirst( $name ).'</a>
-						</li>';
-				}
-				$view .= '
-			</ul>
-		</div>
+					$view .= '
+				</ul>
 		</div>';
 		return $view;
 	}

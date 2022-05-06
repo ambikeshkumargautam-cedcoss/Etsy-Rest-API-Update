@@ -222,9 +222,7 @@ function etsy_get_product_id_by_shopname_and_listing_id( $shop_name = '', $listi
 }
 
 function ced_etsy_cedcommerce_logo() {
-	?>
-	<a href="https://cedcommerce.com" target="_blank"><img src="<?php echo esc_url( CED_ETSY_URL . 'admin/assets/images/ced-logo.png' ); ?> "></a>
-	<?php
+	return '<a href="https://cedcommerce.com" target="_blank"><img src="'. esc_url( CED_ETSY_URL . 'admin/assets/images/ced-logo.png' ) .'"></a>';
 }
 
 function etsy_request() {

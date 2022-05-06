@@ -1,5 +1,5 @@
 <?php
-use Cedcommerce\EtsyManager\Ced_Etsy_Manager as Etsy_Manager;
+use Cedcommerce\EtsyManager\Ced_Etsy_Manager as EtsyManager;
 use Cedcommerce\Order\GetOrders\Ced_Order_Get as EtsyGetOrdes;
 use Cedcommerce\Product\ProductUpload\Ced_Product_Upload as EtsyUploadProducts;
 use Cedcommerce\Product\ProductImport\Ced_Product_Import as EtsyImportProducts;
@@ -48,7 +48,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @param      string $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
-		$this->ced_etsy_mager   = Etsy_Manager::get_instance();
+		$this->ced_etsy_mager   = EtsyManager::get_instance();
 		$this->ced_etsy_order   = EtsyGetOrdes::get_instance();
 		$this->ced_etsy_product = EtsyUploadProducts::get_instance();
 		$this->importProduct    = EtsyImportProducts::get_instance();
