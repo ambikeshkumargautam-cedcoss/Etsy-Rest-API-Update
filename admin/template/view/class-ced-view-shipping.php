@@ -37,9 +37,7 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 			$offset = 0;
 		}
 
-		$this->items = self::get_profiles( $per_page, $current_page );
 		$count = self::get_count();
-
 		// Set the pagination
 		$this->set_pagination_args(
 			array(
@@ -50,14 +48,14 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 		);
 
 		if ( ! $this->current_action() ) {
-			$this->items = self::get_profiles( $per_page, $current_page );
+			$this->items = self::get_shipping_profiles( $per_page, $current_page );
 			$this->renderHTML();
 		} else {
 			$this->process_bulk_action();
 		}
 	}
 
-	public function get_profiles( $per_page = 10, $page_number = 1 ) {
+	public function get_shipping_profiles( $per_page = 10, $page_number = 1 ) {
 
 		$shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 		if (empty($shop_name) || null == $shop_name || '' == $shop_name ) {
@@ -65,10 +63,7 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 		}
 		$all_shipping_profiles = array();
 		/*GET COUNTRIES LIST FOR SHIPPING TEMPLATE */
-		$saved_etsy_details = get_option( 'ced_etsy_details', array() );
-		$shopDetails        = $saved_etsy_details[ $shop_name ];
-		$user_id            = isset( $shopDetails['details']['user_id'] ) ? $shopDetails['details']['user_id'] : '';
-		$shop_id            = isset( $shopDetails['details']['shop_id'] ) ? $shopDetails['details']['shop_id'] : '';
+		$shop_id            = get_etsy_shop_id( $shop_name );
 		$shippingTemplates  = array();
 		$action             = "application/shops/{$shop_id}/shipping-profiles";
 		// Refresh token if isn't.

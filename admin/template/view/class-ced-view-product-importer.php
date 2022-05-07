@@ -85,11 +85,6 @@ class EtsyListImportedProducts extends WP_List_Table {
 
 		$product_to_show    = array();
 		$shop_name          = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-		$saved_etsy_details = get_option( 'ced_etsy_details', true );
-		$shopDetails        = $saved_etsy_details[ $shop_name ];
-		$shop_id            = $shopDetails['details']['shop_id'];
-		$client             = ced_etsy_getOauthClientObject( $shop_name );
-
 		if ( empty( $offset ) ) {
 			$offset = 0;
 		}
@@ -98,22 +93,22 @@ class EtsyListImportedProducts extends WP_List_Table {
 			'limit'    => $per_page,
 			'language' => $language,
 		);
-		$success  = $client->CallAPI( 'https://openapi.etsy.com/v2/shops/' . $shop_id . '/listings/' . $args, 'GET', $params, array( 'FailOnAccessError' => true ), $listings_details );
-		$response = json_decode( json_encode( $listings_details ), true );
-
+		
+		$shop_id            = get_etsy_shop_id( $shop_name );
+		$shippingTemplates  = array();
+		$action             = "application/shops/{$shop_id}/listings/inactive";
+		// Refresh token if isn't.
+		do_action( 'ced_etsy_refresh_token', $shop_name );
+		$response = etsy_request()->get( $action, $shop_name );
 		if ( empty( $response['count'] ) ) {
 			return;
 		}
 
-			// Update total Avaiable Items
+		// Update total Avaiable Items
 		update_option( 'ced_etsy_total_import_product_' . $shop_name, $response['count'] );
 		if ( isset( $response['results'][0] ) ) {
 			foreach ( $response['results'] as $key => $value ) {
-
-				$images = $client->CallAPI( 'https://openapi.etsy.com/v2/listings/' . $value['listing_id'] . '/images', 'GET', $params, array( 'FailOnAccessError' => true ), $images_details );
-
 				$image_details = json_decode( json_encode( $images_details ), true );
-
 				$products_to_list['name']       = $value['title'];
 				$products_to_list['price']      = $value['price'];
 				$products_to_list['stock']      = $value['quantity'];

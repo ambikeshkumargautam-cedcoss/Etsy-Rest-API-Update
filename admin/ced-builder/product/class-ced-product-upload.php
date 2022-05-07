@@ -167,6 +167,11 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 					}
 				} elseif ( 'simple' == $pro_type ) {
 					$preparedData = $this->getFormattedData( $pr_id, $shop_name );
+					
+					echo "<pre>";
+					print_r( $preparedData );
+					die();
+
 					if (isset($preparedData['msg'])) {
 						$this->uploadResponse = $preparedData['msg'];
 						continue;
@@ -177,7 +182,8 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 						$this->uploadResponse = $error;
 						return $this->uploadResponse;
 					}
-					
+					print_r( $this->data );
+					die();
 					$this->data = $preparedData;
 					self::doupload( $pr_id, $shop_name );
 					$response = $this->uploadResponse;
@@ -1435,7 +1441,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 */
 
 		private function get_custom_field_value_and_profile_field_value( $product_id = '', $shop_name = '', $calling_from = '' ) {
-
 			if ( empty( $product_id ) ) {
 				return;
 			}
@@ -1654,6 +1659,10 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			if ( ! empty( $occasion ) ) {
 				$arguements['occasion'] = $occasion;
 			}
+
+			echo "<pre>";
+			print_r( $arguements );
+			die('Arguements');
 			return $arguements;
 		}
 

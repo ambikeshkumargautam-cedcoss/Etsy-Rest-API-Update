@@ -27,7 +27,6 @@ class Ced_Etsy_Account_Table extends WP_List_Table {
 
 	public function prepare_items() {
 		global $wpdb;
-
 		$per_page = apply_filters( 'ced_etsy_account_list_per_page', 10 );
 		$columns  = $this->get_columns();
 		$hidden   = array();

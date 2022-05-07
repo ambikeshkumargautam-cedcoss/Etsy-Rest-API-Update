@@ -66,36 +66,18 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 			if ( empty( $active_shop ) ) {
 				$active_shop = get_option( 'ced_etsy_shop_name', '' );
 			}
-			$saved_etsy_details      = get_option( 'ced_etsy_details', array() );
-			$saved_shop_etsy_details = isset( $saved_etsy_details[ $active_shop ] ) ? $saved_etsy_details[ $active_shop ] : '';
-			$ced_etsy_user_name      = $saved_shop_etsy_details['details']['user_name'];
-			$user_id                 = $saved_shop_etsy_details['details']['user_id'];
-			$user_id                 = $saved_shop_etsy_details['details']['shop_id'];
-			$sections                = array();
-
-			$shop_id = isset( $saved_shop_etsy_details['details']['shop_id'] ) ? $saved_shop_etsy_details['details']['shop_id'] : '';
-			if ( ! empty( $shop_id ) && isset( $saved_shop_etsy_details['access_token'] ) ) {
-				$client  = ced_etsy_getOauthClientObject( $active_shop );
-				$success = $client->CallAPI( "https://openapi.etsy.com/v2/shops/{$shop_id}/sections", 'GET', array( 'shop_id' => $shop_id ), array( 'FailOnAccessError' => true ), $shopSections );
-
-				$shopSections = json_decode( json_encode( $shopSections ), true );
-
+			$shop_id            = get_etsy_shop_id( $active_shop );
+			$sections           = array();
+			if ( ! empty( $shop_id ) ) {
+				$action             = "application/shops/{$shop_id}/sections";
+				// Refresh token if isn't.
+				do_action( 'ced_etsy_refresh_token', $active_shop );
+				$shopSections = etsy_request()->get( $action, $active_shop );
 				if ( isset( $shopSections['count'] ) && $shopSections['count'] >= 1 ) {
 					$shopSections = $shopSections['results'];
 					foreach ( $shopSections as $key => $value ) {
 						$sections[ $value['shop_section_id'] ] = $value['title'];
 					}
-				}
-
-				$saved_shop_etsy_details['shop_sections'] = $sections;
-				$saved_etsy_details[ $active_shop ]       = $saved_shop_etsy_details;
-				update_option( 'ced_etsy_details', $saved_etsy_details );
-			}
-			$shipping_templates    = array();
-			$shopShippingTemplates = get_option( 'ced_etsy_shipping_templates', array() );
-			if ( isset( $shopShippingTemplates[ $active_shop ] ) && count( $shopShippingTemplates[ $active_shop ] ) >= 1 ) {
-				foreach ( $shopShippingTemplates[ $active_shop ] as $key => $value ) {
-					$shipping_templates[ $key ] = $value;
 				}
 			}
 			$required_fields = array(
@@ -325,20 +307,6 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 							'active' => 'Active',
 						),
 						'is_required' => false,
-						'class'       => 'wc_input_price',
-					),
-				),
-				array(
-					'type'   => '_select',
-					'id'     => '_ced_etsy_shipping_profile',
-					'fields' => array(
-						'id'          => '_ced_etsy_shipping_profile',
-						'label'       => __( 'Shipping Profile', 'woocommerce-etsy-integration' ),
-						'desc_tip'    => true,
-						'description' => __( 'Shipping profile to be used for products while uploading on etsy.', 'woocommerce-etsy-integration' ),
-						'type'        => 'select',
-						'options'     => $shipping_templates,
-						'is_required' => true,
 						'class'       => 'wc_input_price',
 					),
 				),
