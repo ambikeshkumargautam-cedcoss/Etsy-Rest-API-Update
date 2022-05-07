@@ -193,7 +193,7 @@ class Ced_View_Settings {
 	 */
 	public function settings_view( $shop_name = '' ) {
 		$ced_h           = new Cedhandler();
-		$ced_h->dir_name = '/admin/template/view/setting-view/';
+		$ced_h->dir_name = '/admin/template/view/';
 		$ced_h->ced_require( 'ced-etsy-metakeys-template' );		
 		$ced_h->dir_name = '/admin/template/view/render/';
 		$ced_h->ced_require( 'class-ced-render-form' );
