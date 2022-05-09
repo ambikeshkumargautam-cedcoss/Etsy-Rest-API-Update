@@ -31,7 +31,9 @@
 	 var ajaxUrl   = ced_etsy_admin_obj.ajax_url;
 	 var ajaxNonce = ced_etsy_admin_obj.ajax_nonce;
 	 var shop_name = ced_etsy_admin_obj.shop_name;
+	 var selected_btn = 'unchecked';
 	 var parsed_response;
+	 var parent = false;
 
 	$( document ).on(
 		'change',
@@ -1007,8 +1009,20 @@
 
 			}
 		);
+
+		// $(document).on('click', '.select2-selection__choice__remove', function(e){
+		// 	e.preventDefault();
+		// 	// selected_btn = 'checked';
+		// 	// console.log('Ambikesh adfasdf ');
+		// });
+
 		$(document).on( 'change', '.ced_etsy_shipn_prof', function(e){
 			e.preventDefault();
+
+			// console.log('Somethnigadfasdfa ');
+			// let is_remove = $(this).next().child().hasClass('selection__choice__remove');
+			// console.log( $(this).next().children().hasClass('selection__choice__remove') );
+			
 			let e_prof_id = $( this ).data('e_profile_id');	
 			let woo_cat_id = $(this).val();
 			$.ajax({
@@ -1027,10 +1041,10 @@
 					if ( parsed_response.status == 400 ) {
 						classes = 'notice notice-error';
 					}
-					$( '.ced_etsy_loader' ).hide();
-					var html = '<div class="' + classes + '"><p>' + parsed_response.message + '</p></div>';
-					$( '.ced_etsy_error' ).html( html );
-					window.setTimeout( function() {window.location.reload();},1000 );
+					// $( '.ced_etsy_loader' ).hide();
+					// var html = '<div class="' + classes + '"><p>' + parsed_response.message + '</p></div>';
+					// $( '.ced_etsy_error' ).html( html );
+					// window.setTimeout( function() {window.location.reload();},1000 );
 				}
 			});
 		});

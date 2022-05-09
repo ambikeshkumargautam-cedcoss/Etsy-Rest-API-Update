@@ -1854,9 +1854,6 @@ class Woocommmerce_Etsy_Integration_Admin {
 	public function ced_etsy_map_shipping_profiles_woo_cat(){
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
 		if ($check_ajax) {
-			// ini_set('display_errors', '1' );
-			// ini_set('display_startup_errors', '1' );
-			// error_reporting( E_ALL );
 			$sanitized_array = filter_input_array( INPUT_POST, FILTER_SANITIZE_STRING );
 			$woo_cat_id      = isset( $sanitized_array['woo_cat_id'] ) ? $sanitized_array['woo_cat_id']: '';
 			$e_shiping_id    = isset( $sanitized_array['e_profile_id'] ) ?$sanitized_array['e_profile_id'] : '';
@@ -1867,22 +1864,15 @@ class Woocommmerce_Etsy_Integration_Admin {
 				}else{
 					$cat_id = $woo_cat_id;
 				}
-				// print_r( $cat_id );
-				$shipping_profiles = get_term_meta( $cat_id, 'ced_etsy_shipping_profile_with_woo_cat_'.$shop_name, true );
-				$shipping_profiles = !empty( $shipping_profiles ) ? $shipping_profiles : array();
-				$shipping_profiles[$e_shiping_id][] = $cat_id;
-				update_term_meta( $cat_id, 'ced_etsy_shipping_profile_with_woo_cat_'. $shop_name, $shipping_profiles );
-
-				echo "<pre>";
-				print_r( $shipping_profiles );
-				// echo json_encode( array(
-				// 	'status'  => 200,
-				// 	'message' => __(
-				// 		'Profile is selected with this Category',
-				// 		'woocommerce-etsy-integration'
-				// 	),
-				// ));
-				// wp_die();
+				update_term_meta( $cat_id, 'ced_etsy_shipping_profile_with_woo_cat_'. $shop_name. '_'. $e_shiping_id, $e_shiping_id );
+				echo json_encode( array(
+					'status'  => 200,
+					'message' => __(
+						'Profile is selected with this Category',
+						'woocommerce-etsy-integration'
+					),
+				));
+				wp_die();
 			}else{
 				echo json_encode( array(
 					'status'  => 200,

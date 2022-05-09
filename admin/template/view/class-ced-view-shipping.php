@@ -139,8 +139,8 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 		echo '<select class="ced_etsy_shipping_profile_selectWoo ced_etsy_shipn_prof" data-e_profile_id="'.esc_attr($etsy_profile['id']).'" multiple="">';
 		echo "<option value=''>---Select---</option>";
 		$select='';
-		foreach ($woo_store_categories as $cat_term ) {
-			$updated_value = get_term_meta( $cat_term->term_id, 'ced_etsy_shipping_profile_with_woo_cat_'.$shop_name.$etsy_profile['id'], true );
+		foreach ( $woo_store_categories as $cat_term ) {
+			$updated_value = get_term_meta( $cat_term->term_id, 'ced_etsy_shipping_profile_with_woo_cat_'.$shop_name.'_'.$etsy_profile['id'], true );
 			if ( $etsy_profile['id'] == $updated_value ) {
 				$select = 'selected';
 			}
