@@ -1041,10 +1041,10 @@
 					if ( parsed_response.status == 400 ) {
 						classes = 'notice notice-error';
 					}
-					// $( '.ced_etsy_loader' ).hide();
-					// var html = '<div class="' + classes + '"><p>' + parsed_response.message + '</p></div>';
-					// $( '.ced_etsy_error' ).html( html );
-					// window.setTimeout( function() {window.location.reload();},1000 );
+					$( '.ced_etsy_loader' ).hide();
+					var html = '<div class="' + classes + '"><p>' + parsed_response.message + '</p></div>';
+					$( '.ced_etsy_error' ).html( html );
+					window.setTimeout( function() {window.location.reload();},1000 );
 				}
 			});
 		});

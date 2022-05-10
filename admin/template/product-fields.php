@@ -80,6 +80,9 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 					}
 				}
 			}
+
+			$shipping_templates = array();
+
 			$required_fields = array(
 				array(
 					'type'   => '_hidden',
@@ -290,6 +293,20 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 						'type'        => 'select',
 						'options'     => $sections,
 						'is_required' => false,
+						'class'       => 'wc_input_price',
+					),
+				),
+				array(
+					'type'   => '_select',
+					'id'     => '_ced_etsy_shipping_profile',
+					'fields' => array(
+						'id'          => '_ced_etsy_shipping_profile',
+						'label'       => __( 'Shipping Profile', 'woocommerce-etsy-integration' ),
+						'desc_tip'    => true,
+						'description' => __( 'Shipping profile to be used for products while uploading on etsy.', 'woocommerce-etsy-integration' ),
+						'type'        => 'select',
+						'options'     => $shipping_templates,
+						'is_required' => true,
 						'class'       => 'wc_input_price',
 					),
 				),

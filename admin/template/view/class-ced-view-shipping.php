@@ -72,14 +72,18 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 		if (empty($shopShippingTemplates) || null == $shopShippingTemplates || '' === $shopShippingTemplates || !isset( $shopShippingTemplates ) ) {
 			return array();
 		}
+		$shipping_templates = array();
 		if ( isset( $shopShippingTemplates['count'] ) && $shopShippingTemplates['count'] >= 1 ) {
 			$shopShippingTemplates = $shopShippingTemplates['results'];
 			foreach ( $shopShippingTemplates as $key => $value ) {
 				$shippingTemplates['id']   = $value['shipping_profile_id'];
 				$shippingTemplates['name'] = $value['title'];
 				$all_shipping_profiles[]   = $shippingTemplates;
+				$shipping_templates[$shippingTemplates['id']] = $shippingTemplates['name'];
 			}
 		}
+
+		update_option( 'ced_etsy_shipping_templates_'.$shop_name , $shipping_templates );
 		if (isset( $all_shipping_profiles )) {
 			update_option( 'ced_etsy_all_shipping_profiles_'.$shop_name, $all_shipping_profiles );
 			return $all_shipping_profiles;
@@ -134,16 +138,21 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 	}
 
 	public function column_woo_categories( $etsy_profile ) {
-		$woo_store_categories = get_terms( 'product_cat'/*array( 'hide_empty' => false )*/ );
 		$shop_name       = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
+		$woo_store_categories = get_terms( 'product_cat'/*array( 'hide_empty' => false )*/ );
+		$alreay_selected_cats = get_option( 'ced_etsy_already_selected_profile_at_cat_'.$shop_name, array() );
 		echo '<select class="ced_etsy_shipping_profile_selectWoo ced_etsy_shipn_prof" data-e_profile_id="'.esc_attr($etsy_profile['id']).'" multiple="">';
 		echo "<option value=''>---Select---</option>";
 		$select='';
 		foreach ( $woo_store_categories as $cat_term ) {
+			// if ( isset( $alreay_selected_cats ) && in_array( $cat_term->term_id, $alreay_selected_cats)) {
+			// 	continue;
+			// }
 			$updated_value = get_term_meta( $cat_term->term_id, 'ced_etsy_shipping_profile_with_woo_cat_'.$shop_name.'_'.$etsy_profile['id'], true );
 			if ( $etsy_profile['id'] == $updated_value ) {
 				$select = 'selected';
 			}
+
 			echo '<option value="'. esc_attr( $cat_term->term_id ).'"'.$select.'>'.$cat_term->name.'</option>';
 		}
 		echo '</select>';
