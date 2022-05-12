@@ -61,9 +61,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		}
 
 		public function __construct( $shop_name = '' ) {
-			// ini_set('display_errors', '1');
-			// ini_set('display_statup_errors', '1');
-			// error_reporting( E_ALL );
 			$this->shop_name                  = $shop_name;
 			$this->renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', array() );
 			$this->saved_etsy_details         = get_option( 'ced_etsy_details', array() );
@@ -151,11 +148,11 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 					$this->data = $preparedData;
 					self::doupload( $pr_id, $shop_name );
 					$response = $this->uploadResponse;
-					if ( isset( $response['results'] ) ) {
-						$this->l_id = isset( $response['results'][0]['listing_id'] ) ? $response['results'][0]['listing_id'] : '';
-						update_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, $response['results'][0]['listing_id'] );
-						update_post_meta( $pr_id, '_ced_etsy_url_' . $shop_name, $response['results'][0]['url'] );
-						$this->ced_update_uploaded_images( $pr_id, $shop_name );
+					if ( isset( $response['listing_id'] ) ) {
+						$this->l_id = isset( $response['listing_id'] ) ? $response['listing_id'] : '';
+						update_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, $this->l_id );
+						update_post_meta( $pr_id, '_ced_etsy_url_' . $shop_name, $response['url'] );
+						// $this->ced_update_uploaded_images( $pr_id, $shop_name );
 						$var_response = $this->update_variation_sku_to_etsy( $this->l_id, $pr_id, $shop_name );
 						if ( ! isset( $var_response['results'] ) ) {
 							$this->prepareDataForDelete( array( $pr_id ), $shop_name );
@@ -182,13 +179,12 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 					}
 					self::doupload( $pr_id, $shop_name );
 					$response = $this->uploadResponse;
-					if ( isset( $response['results'] ) ) {
-						$this->l_id = isset( $response['results'][0]['listing_id'] ) ? $response['results'][0]['listing_id'] : '';
-						update_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, $response['results'][0]['listing_id'] );
-						update_post_meta( $pr_id, '_ced_etsy_url_' . $shop_name, $response['results'][0]['url'] );
-						$this->update_sku_to_etsy( $this->l_id, $pr_id, $shop_name );
-						$this->ced_etsy_upload_attributes( $this->l_id, $pr_id, $shop_name );
-						$this->ced_update_uploaded_images( $pr_id, $shop_name );
+					if ( isset( $response['listing_id'] ) ) {
+						update_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, $response['listing_id'] );
+						update_post_meta( $pr_id, '_ced_etsy_url_' . $shop_name, $response['url'] );
+						// $this->update_sku_to_etsy( $this->l_id, $pr_id, $shop_name );
+						// $this->ced_etsy_upload_attributes( $this->l_id, $pr_id, $shop_name );
+						// $this->ced_update_uploaded_images( $pr_id, $shop_name );
 					}
 				}
 			}
@@ -985,20 +981,19 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		  */
 
 		public function prepareDataForDelete( $proIDs = array(), $shop_name ) {
-			
 			if ( ! is_array( $proIDs ) ) {
 				$proIDs = array( $proIDs );
 			}
-
 			$message = array();
 			foreach ( $proIDs as $key => $value ) {
-				$client     = ced_etsy_getOauthClientObject( $shop_name );
 				$listing_id = get_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name, true );
-				$params     = array( 'listing_id' => $listing_id );
-				$success    = $client->CallAPI( "https://openapi.etsy.com/v2/listings/{$listing_id}", 'DELETE', $params, array( 'FailOnAccessError' => true ), $inventory_details );
-				$response   = json_decode( json_encode( $inventory_details ), true );
-				delete_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name );
-				delete_post_meta( $value, '_ced_etsy_url_' . $shop_name );
+				do_action( 'ced_etsy_refresh_token', $shop_name );
+				$action        = "application/listings/{$listing_id}";
+				$response      =  etsy_request()->delete( $action, $shop_name );
+				if ( !isset( $response['error'] ) ) {
+					delete_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name );
+					delete_post_meta( $value, '_ced_etsy_url_' . $shop_name );
+				}
 				return $response;
 			}
 		}
@@ -1180,8 +1175,8 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			$arguements = array(
 				'title'                => trim( ucwords( strtolower( strtoupper( $productTitle ) ) ) ),
 				'description'          => strip_tags( $productDescription ),
-				'shipping_template_id' => doubleval( $shipping_t_id ),
-				'shop_section_id'      => (int) $shop_section_id,
+				'shipping_profile_id'  => doubleval( 171887176577 ),
+				'shop_section_id'      => (int) 37380807,
 				'taxonomy_id'          => (int) $category_id,
 				'who_made'             => ! empty( $who_made ) ? $who_made : 'i_did',
 				'is_supply'            => (bool) $is_supply,
@@ -1192,10 +1187,13 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 				'state'                => $listing_type,
 				'processing_min'       => ! empty( $processing_min ) ? (int) $processing_min : 1,
 				'processing_max'       => ! empty( $processing_max ) ? (int) $processing_max : 3,
-				'materials'            => ! empty( $materials ) ? (int) $materials : 3,
+				'materials'            => ! empty( $materials ) ? (int) $materials : '',
 				'tags'                 => ! empty( $tags ) ? (int) $tags : '',
-				'recipient'            => ! empty( $recipient ) ? (int) $recipient : 3,
-				'occasion'             => ! empty( $occasion ) ? (int) $occasion : 3,
+				'recipient'            => ! empty( $recipient ) ? (int) $recipient : '',
+				'occasion'             => ! empty( $occasion ) ? (int) $occasion : '',
+				'listing_type'         => 'physical',
+				'language'             => 'en',
+				'image_ids'            => array( 3842639609, 3849518812 ),
 			);
 			return $arguements;
 		}
@@ -1274,15 +1272,67 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 */
 
 		private function update_variation_sku_to_etsy( $listing_id, $productId, $shop_name, $is_sync = false ) {
+			// $client                                = ced_etsy_getOauthClientObject( $shop_name );
+			// $taxonomy_id                           = (int) $this->fetchMetaValueOfProduct( $productId, '_umb_etsy_category' );
+			// $shop_id                               = get_etsy_shop_id( $shop_name );
+			// do_action( 'ced_etsy_refresh_token', $shop_name );
+			// $action                                = "application/shops/{$shop_id}/listings/{$listing_id}/properties";
+			// echo "URL :-"."application/shops/{$shop_id}/listings/{$listing_id}/properties";
+			// $listing_properties                    = etsy_request()->get( $action, $shop_name );
+			// echo "<pre>";
+			// print_r( $listing_properties );
+			// $params                                = array( 'taxonomy_id' => $taxonomy_id );
+			// $success                               = $client->CallAPI( "https://openapi.etsy.com/v2/taxonomy/seller/{$taxonomy_id}/properties", 'GET', $params, array( 'FailOnAccessError' => true ), $variation_category_attribute );
+			// return;
 
-			$client                                = ced_etsy_getOauthClientObject( $shop_name );
-			$taxonomy_id                           = (int) $this->fetchMetaValueOfProduct( $productId, '_umb_etsy_category' );
-			$params                                = array( 'taxonomy_id' => $taxonomy_id );
-			$success                               = $client->CallAPI( "https://openapi.etsy.com/v2/taxonomy/seller/{$taxonomy_id}/properties", 'GET', $params, array( 'FailOnAccessError' => true ), $variation_category_attribute );
-			$variation_category_attribute          = json_decode( json_encode( $variation_category_attribute ), true );
-			$variation_category_attribute_property = $variation_category_attribute['results'];
+			// $variation_category_attribute          = json_decode( json_encode( $variation_category_attribute ), true );
+			// $variation_category_attribute_property = $variation_category_attribute['results'];
+
+			// Update Listing Propertiese.
+
+			// $shop_id = get_etsy_shop_id( $shop_name );
+			// $action = "application/shops/{$shop_id}/listings/{$listing_id}/properties/514";
+			// $params = array(
+			// 	'property_id' => '514',
+			// 	'property_name' => 'Check Variation',
+
+			// );
+
+			// ini_set('display_errors','1');
+			// ini_set('display_startup_errors','1');
+			// error_reporting( E_ALL );
+
+
+
+			$variation_category_attribute_property = array(
+			   array(
+		            'property_id' => '513',
+		            'name' => 'Custom1',
+		            'display_name' => 'Custom Property',
+		            'is_required' => 0,
+		            'supports_attributes' => 0,
+		            'supports_variations' => 1,
+		            'is_multivalued' => 0,
+		            'scales' => array(),
+		            'possible_values' => array(),
+		            'selected_values' => array(),
+
+		        ),
+				array(
+			            'property_id' => '514',
+       		            'name' => 'Custom1',
+       		            'display_name' => 'Custom Property',
+       		            'is_required' => 0,
+       		            'supports_attributes' => 0,
+       		            'supports_variations' => 1,
+       		            'is_multivalued' => 0,
+       		            'scales' => array(),
+       		            'possible_values' => array(),
+       		            'selected_values' => array(),
+
+			    ),
+        	);
 			$_product                              = wc_get_product( $productId );
-
 			$variations                 = $_product->get_available_variations();
 			$variationProductAttributes = $_product->get_variation_attributes();
 			$extra_price                = $variations['0']['display_regular_price'];
@@ -1307,7 +1357,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			}
 			$parent_sku  = get_post_meta( $productId, '_sku', true );
 			$combo_count = count( $possible_combinations );
-
+			$var_ids     = array();
 			foreach ( $variations as $variation ) {
 				$product_id          = $variation['variation_id'];
 				$var_product         = wc_get_product( $product_id );
@@ -1378,8 +1428,10 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 							$final_etsy_product_property_value = array();
 							$var_att_array                    .= $variation_key_value . '~';
 							$setPropertyIds[]                  = (int) $property_id;
+							$var_ids[]                         = isset( $variation['variation_id'] ) ? $variation['variation_id'] : ''; 
 							$final_etsy_product_property_value = array(
 								'property_id'   => (int) $variation_category_attribute_property_value['property_id'],
+								'value_ids'     => array(),
 								'property_name' => ucwords( str_replace( array( 'attribute_pa_', 'attribute_' ), array( '', '' ), $property_name ) ),
 								'values'        => array( ucwords( strtolower( $variation_key_value ) ) ),
 							);
@@ -1481,6 +1533,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 							'property_values' => array(
 								array(
 									'property_id'   => (int) $property_id_one,
+									'value_ids'   => array(),
 									'property_name' => $property_name_one,
 									'values'        => array(
 										isset( $property_values_remaining[0] ) ? ucwords( strtolower( $property_values_remaining[0] ) ) : '',
@@ -1488,6 +1541,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 								),
 								array(
 									'property_id'   => (int) $property_id_two,
+									'value_ids'   => array(),
 									'property_name' => $property_name_two,
 									'values'        => array(
 										isset( $property_values_remaining[1] ) ? ucwords( strtolower( $property_values_remaining[1] ) ) : '',
@@ -1509,6 +1563,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 							'sku'             => '',
 							'property_values' => array(
 								array(
+									'value_ids'   => array(),
 									'property_id'   => (int) $property_id_one,
 									'property_name' => $property_name_one,
 									'values'        => array(
@@ -1534,17 +1589,29 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 				$setPropertyIds = implode( ',', $setPropertyIds );
 			}
 
-			$client = ced_etsy_getOauthClientObject( $shop_name );
+			// echo "<pre>";
+			// print_r( $final_attribute_variation_final );
+
 			$params = array(
-				'products'             => json_encode( $final_attribute_variation_final ),
+				'products'             => array( $final_attribute_variation_final ),
 				'price_on_property'    => array( $setPropertyIds ),
 				'quantity_on_property' => array( $setPropertyIds ),
 				'sku_on_property'      => array( $setPropertyIds ),
 				'listing_id'           => $listing_id,
 			);
+			// print_r( json_encode( array('products'=> $final_attribute_variation_final) ) );
+			// Update Liting Offerings.
+			$action   = "application/listings/{$listing_id}/inventory";
+			// echo "URL :-". $action . "<br>";
+			// die($action);
+			do_action( 'ced_etsy_refresh_token', $shop_name );
+			$response = etsy_request()->put( $action, array('products'=> $final_attribute_variation_final), $shop_name );
 
-			$success  = $client->CallAPI( "https://openapi.etsy.com/v2/listings/{$listing_id}/inventory", 'PUT', $params, array( 'FailOnAccessError' => true ), $inventory_details );
-			$response = json_decode( json_encode( $inventory_details ), true );
+			echo "<pre> Response :---------------";
+			print_r( $response);
+
+			die('Updateing Invenvotory');
+
 			if ( ! isset( $response['results'] ) ) {
 
 				$saved_etsy_details      = get_option( 'ced_etsy_details', array() );
@@ -1816,92 +1883,28 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 */
 
 		private function doupload( $product_id, $shop_name ) {
+			do_action( 'ced_etsy_refresh_token', $shop_name );
+			$shop_id  = get_etsy_shop_id( $shop_name );
+			$response = etsy_request()->post( "application/shops/{$shop_id}/listings", $this->data, $shop_name );
+			/**
+			 * ************************************************
+			 *  Update post meta after uploading the Products. 
+			 * ************************************************
+			 * 
+			 * @since 2.0.8
+			 */
+			if ( isset( $response['listing_id'] ) ) {
+				update_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, $response['listing_id'] );
+				update_post_meta( $product_id, '_ced_etsy_url_' . $shop_name, $response['url'] );
+			}
 
-			$language = isset( $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] ) ? $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] : 'en';
-
-			// if ( isset( $language ) && 'en' === $language ) {
-
-			// 	$client   = ced_etsy_getOauthClientObject( $shop_name );
-			// 	$params   = $this->data;
-			// 	$success  = $client->CallAPI( 'https://openapi.etsy.com/v2/listings', 'POST', $params, array( 'FailOnAccessError' => true ), $listings_details );
-			// 	$response = json_decode( json_encode( $listings_details ), true );
-				
-			// 	/**
-			// 	 * ************************************************
-			// 	 *  Update post meta after uploading the Products. 
-			// 	 * ************************************************
-			// 	 * 
-			// 	 * @since 2.0.8
-			// 	 */
-			// 	if ( isset( $response['result'][0]['listing_id'] ) ) {
-			// 		update_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, $response['results'][0]['listing_id'] );
-			// 	}
-
-			// 	$error = array();
-			// 	if ( isset( $client->error ) && ! empty( $client->error ) ) {
-			// 		$error['msg']         = ucwords( $client->error );
-			// 		$this->uploadResponse = $error;
-
-			// 	} elseif ( ! isset( $response['count'] ) ) {
-			// 		foreach ( $response as $key => $value ) {
-			// 			$error['msg'] = isset( $key ) ? ucwords( str_replace( '_', ' ', $key ) ) : '';
-			// 		}
-			// 		$this->uploadResponse = $error;
-			// 	} else {
-			// 		$this->uploadResponse = $response;
-			// 	}
-			// } else {
-
-				// $client                    = ced_etsy_getOauthClientObject( $shop_name );
-
-				$language                  = ! empty( $language ) ? $language : 'en';
-				$this->data['is_supply']   = boolval( $this->data['is_supply'] );
-				$this->data['non_taxable'] = boolval( $this->data['non_taxable'] );
-				if ( isset( $this->data['materials'] ) && ! empty( $this->data['materials'] ) ) {
-					$this->data['materials'] = array( $this->data['materials'] );
-				}
-				if ( isset( $this->data['tags'] ) && ! empty( $this->data['tags'] ) ) {
-					$this->data['tags'] = array( $this->data['tags'] );
-				}
-				$params                  = array(
-					'data'   => $this->data,
-					'params' => array( 'language' => $language ),
-				);
-
-				print_r( $this->data );
-				die();
-				// $requestBody             = array(
-				// 	'action'                 => 'createListing',
-				// 	'ced_etsy_keystring'     => $ced_etsy_keystring,
-				// 	'ced_etsy_shared_string' => $ced_etsy_shared_string,
-				// 	'saved_etsy_details'     => json_encode( $this->saved_etsy_details ),
-				// 	'data'                   => json_encode( $params ),
-				// 	'active_shop'            => $shop_name,
-				// );
-				do_action( 'ced_etsy_refresh_token', $shop_name );
-				$shop_id = get_etsy_shop_id( $shop_name );
-				$response = etsy_request()->post( 'application/shops/{$shop_id}/listings', $this->data, $shop_name );
-				print_r( $result );
-				$result                  = !is_array( $result ) ? json_decode( $result, true ) : $result;
-				/**
-				 * ************************************************
-				 *  Update post meta after uploading the Products. 
-				 * ************************************************
-				 * 
-				 * @since 2.0.8
-				 */
-				if ( isset( $result['result'][0]['listing_id'] ) ) {
-					update_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, $result['results'][0]['listing_id'] );
-				}
-
-				if ( isset( $result['exception'] ) ) {
-					$error                = array();
-					$error['msg']         = isset( $result['exception']['last_response'] ) ? $result['exception']['last_response'] : 'some error occured';
-					$this->uploadResponse = $error;
-				} else {
-					$this->uploadResponse = $result;
-				}
-			// }
+			if ( isset( $response['error'] ) ) {
+				$error                = array();
+				$error['msg']         = isset( $response['error'] ) ? $response['error'] : 'some error occured';
+				$this->uploadResponse = $error;
+			} else {
+				$this->uploadResponse = $response;
+			}
 		}
 
 

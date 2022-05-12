@@ -1266,11 +1266,11 @@ class Woocommmerce_Etsy_Integration_Admin {
 					die;
 				} else {
 					$get_product_detail = $this->ced_etsy_product->prepareDataForUploading( $prodIDs, $shop_name );
-					if ( isset( $get_product_detail['results'][0]['listing_id'] ) ) {
+					if ( isset( $get_product_detail['listing_id'] ) ) {
 						echo json_encode(
 							array(
 								'status'  => 200,
-								'message' => $get_product_detail['results'][0]['title'] . ' Uploaded Successfully',
+								'message' => $get_product_detail['title'] . ' Uploaded Successfully',
 								'prodid'  => $prodIDs,
 							)
 						);
@@ -1325,7 +1325,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
 				if ( $already_uploaded ) {
 					$get_product_detail = $this->ced_etsy_product->prepareDataForDelete( $prodIDs, $shop_name );
-					if ( isset( $get_product_detail['results'] ) ) {
+					if ( !isset($get_product_detail['error'] ) ) {
 						echo json_encode(
 							array(
 								'status'  => 200,
@@ -1338,7 +1338,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 						echo json_encode(
 							array(
 								'status'  => 400,
-								'message' => isset( $get_product_detail['msg'] ) ? $get_product_detail['msg'] : json_encode( $get_product_detail ),
+								'message' => isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail ),
 							)
 						);
 						die;

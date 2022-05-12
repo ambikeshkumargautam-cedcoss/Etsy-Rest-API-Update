@@ -45,6 +45,7 @@ class Ced_Etsy_Request {
 	}
 	public function put( $action = '', $parameters = array(), $shop_name = '', $query_args = array(), $request_type = 'PUT' ){
 		$api_url = $this->base_url . $action;
+		echo "URL :-". $api_url . "<br>";
 		if ( ! empty( $query_args ) ) {
 			$api_url = $api_url . '?' . http_build_query( $query_args );
 		}
@@ -56,7 +57,7 @@ class Ced_Etsy_Request {
 		);
 
 		$access_token = $this->get_access_token( $shop_name );
-		// var_dump($access_token);
+		var_dump($access_token);
 		if ( ! empty( $access_token ) && $action != 'public/oauth/token' ) {
 			$header[] = 'Authorization: Bearer ' . $access_token;
 		}
@@ -67,12 +68,13 @@ class Ced_Etsy_Request {
 				CURLOPT_URL            => $api_url,
 				CURLOPT_RETURNTRANSFER => true,
 				CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
-				CURLOPT_CUSTOMREQUEST  => $request_type,
-				CURLOPT_POSTFIELDS     => json_encode( $parameters ),
+				CURLOPT_CUSTOMREQUEST  => $parameters,
+				CURLOPT_POSTFIELDS     => $curl_params,
 				CURLOPT_HTTPHEADER     => $header,
 			)
 		);
 		$response = curl_exec( $curl );
+		var_dump( $response );
 		$response = $this->parse_reponse( $response );
 		curl_close( $curl );
 		return $response;

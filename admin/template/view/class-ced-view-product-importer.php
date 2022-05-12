@@ -80,7 +80,7 @@ class EtsyListImportedProducts extends WP_List_Table {
 			$status_sorting = isset( $_GET['status_sorting'] ) ? sanitize_text_field( wp_unslash( $_GET['status_sorting'] ) ) : '';
 			$args           = $status_sorting;
 		} else {
-			$args = 'active';
+			$args = 'darft';
 		}
 
 		$product_to_show    = array();
@@ -89,26 +89,25 @@ class EtsyListImportedProducts extends WP_List_Table {
 			$offset = 0;
 		}
 		$params   = array(
+			'state'    => $args,
 			'offset'   => $offset,
 			'limit'    => $per_page,
-			'language' => $language,
 		);
 		
 		$shop_id            = get_etsy_shop_id( $shop_name );
 		$shippingTemplates  = array();
-		$action             = "application/shops/{$shop_id}/listings/inactive";
+		$action             = "application/shops/{$shop_id}/listings";
 		// Refresh token if isn't.
 		do_action( 'ced_etsy_refresh_token', $shop_name );
-		$response = etsy_request()->get( $action, $shop_name );
+		$response = etsy_request()->get( $action, $shop_name, $params );
 		if ( empty( $response['count'] ) ) {
-			return;
+			return array();
 		}
 
 		// Update total Avaiable Items
 		update_option( 'ced_etsy_total_import_product_' . $shop_name, $response['count'] );
 		if ( isset( $response['results'][0] ) ) {
 			foreach ( $response['results'] as $key => $value ) {
-				$image_details = json_decode( json_encode( $images_details ), true );
 				$products_to_list['name']       = $value['title'];
 				$products_to_list['price']      = $value['price'];
 				$products_to_list['stock']      = $value['quantity'];
@@ -116,10 +115,12 @@ class EtsyListImportedProducts extends WP_List_Table {
 				$products_to_list['url']        = $value['url'];
 				$products_to_list['listing_id'] = $value['listing_id'];
 				$products_to_list['shop_name']  = $shop_name;
+				$listing_id                     = $value['listing_id'];
+				$action_images                  = "application/listings/{$listing_id}/images";
+				$image_details                  =  etsy_request()->get( $action_images, $shop_name );
 				$products_to_list['image']      = isset( $image_details['results'][0]['url_170x135'] ) ? $image_details['results'][0]['url_170x135'] : '';
 				$product_to_show[]              = $products_to_list;
-
-				$if_product_exists = etsy_get_product_id_by_shopname_and_listing_id( $shop_name, $value['listing_id'] );
+				$if_product_exists              = etsy_get_product_id_by_shopname_and_listing_id( $shop_name, $value['listing_id'] );
 				if ( ! empty( $if_product_exists ) ) {
 					$count[] = isset( $if_product_exists ) ? $if_product_exists : '';
 						// Cout imported Items
@@ -165,7 +166,7 @@ class EtsyListImportedProducts extends WP_List_Table {
 		$if_product_exists = etsy_get_product_id_by_shopname_and_listing_id( $item['shop_name'], $item['listing_id'] );
 		if ( ! empty( $if_product_exists ) ) {
 			update_option( 'ced_product_is_availabe_in_woo_' . $item['listing_id'], $item['listing_id'] );
-			$image_path = CED_ETSY_URL . 'admin/images/check.png';
+			$image_path = CED_ETSY_URL . 'admin/assets/images/check.png';
 			return sprintf( '<img class="check_image" src="' . $image_path . '" alt="Done">' );
 		} else {
 			return sprintf(
@@ -186,7 +187,7 @@ class EtsyListImportedProducts extends WP_List_Table {
 		} elseif ( isset( $item['image'] ) && ! empty( $item['image'] ) ) {
 			echo '<a><img src="' . esc_url( $item['image'] ) . '" height="50" width="50" ></a>';
 		} else {
-			$image_path = CED_ETSY_URL . 'admin/images/etsy.png';
+			$image_path = CED_ETSY_URL . 'admin/assets/images/etsy.png';
 			return sprintf( '<img height="35" width="60" src="' . $image_path . '" alt="Done">' );
 		}
 
@@ -226,7 +227,7 @@ class EtsyListImportedProducts extends WP_List_Table {
 	}
 
 	public function column_view_url( $item ) {
-		$etsy_icon = CED_ETSY_URL . 'admin/images/etsy.png';
+		$etsy_icon = CED_ETSY_URL . 'admin/assets/images/etsy.png';
 			echo '<a href="' . esc_url( $item['url'] ) . '" target="_blank"><img src="' . esc_url( $etsy_icon ) . '" height="35" width="60"></a>';
 	}
 

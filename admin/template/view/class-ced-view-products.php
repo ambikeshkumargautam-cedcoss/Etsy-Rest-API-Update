@@ -278,7 +278,7 @@ class EtsyListProducts extends WP_List_Table {
 
 		}
 		if ( ! empty( $profile_id ) ) {
-			$edit_profile_url = admin_url( 'admin.php?page=ced_etsy&profileID=' . $profile_id . '&section=profiles-view&panel=edit&shop_name=' . $shop_name );
+			$edit_profile_url = admin_url( 'admin.php?page=ced_etsy&profileID=' . $profile_id . '&section=profiles&panel=edit&shop_name=' . $shop_name );
 			$actions['edit']  = '<a href="' . $edit_profile_url . '">' . __( 'Edit', 'woocommerce-etsy-integration' ) . '</a>';
 			return $this->row_actions( $actions, true );
 		}
@@ -342,7 +342,7 @@ class EtsyListProducts extends WP_List_Table {
 		$listingId = get_post_meta( $item['id'], '_ced_etsy_listing_id_' . $shop_name, true );
 		$view_url  = get_post_meta( $item['id'], '_ced_etsy_url_' . $shop_name, true );
 		if ( ! empty( $listingId ) ) {
-			$etsy_icon = CED_ETSY_URL . 'admin/images/etsy.png';
+			$etsy_icon = CED_ETSY_URL . 'admin/assets/images/etsy.png';
 			echo '<a href="' . esc_url( $view_url ) . '"  class="' . esc_attr( $item['id'] ) . '" target="#"><img src="' . esc_url( $etsy_icon ) . '" height="35" width="60"></a>';
 			$last_updated = get_post_meta( $item['id'], 'ced_etsy_last_updated' . $shop_name, true );
 			if ( ! empty( $last_updated ) ) {
