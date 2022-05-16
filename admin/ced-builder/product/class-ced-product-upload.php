@@ -688,7 +688,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 */
 
 		public function prepareDataForUpdating( $proIDs = array(), $shop_name ) {
-
 			if ( ! is_array( $proIDs ) ) {
 				$proIDs = array( $proIDs );
 			}
@@ -703,48 +702,24 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 
 				$this->is_downloadable   = false;
 				$this->downloadable_data = array();
+				$arguements = $this->ced_etsy_get_formatted_data( $product_id, $shop_name );				
+				$shop_id = get_etsy_shop_id( $shop_name );
+				$action = "application/shops/{$shop_id}/listings/{$listing_id}";
+				do_action( 'ced_etsy_refresh_token', $shop_name );
+				$result = etsy_request()->put( $action, $arguements, $shop_name );
+				if ( isset( $result['exception'] ) ) {
+					$error        = array();
+					$error['msg'] = isset( $result['exception']['last_response'] ) ? $result['exception']['last_response'] : 'some error occured';
+					return $error;
+				} else {
 
-				$arguements = $this->get_custom_field_value_and_profile_field_value( $product_id, $shop_name, 'prepareDataForUpdating' );
-				$language   = isset( $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] ) ? $this->renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] : 'en';
-				$language   = ! empty( $language ) ? $language : 'en';
-
-				if ( ! empty( $arguements ) ) {
-					$saved_shop_etsy_details = $this->saved_etsy_details[ $shop_name ];
-					$ced_etsy_keystring      = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
-					$ced_etsy_shared_string  = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
-					$data                    = array(
-						'params' => array(
-							'listing_id' => (int) $listing_id,
-							'language'   => $language,
-						),
-						'data'   => $arguements,
-					);
-					$requestBody             = array(
-						'action'                 => 'updateListing',
-						'ced_etsy_keystring'     => $ced_etsy_keystring,
-						'ced_etsy_shared_string' => $ced_etsy_shared_string,
-						'saved_etsy_details'     => json_encode( $this->saved_etsy_details ),
-						'data'                   => json_encode( $data ),
-						'active_shop'            => $shop_name,
-					);
-
-					$result = $this->ced_etsy_post_request( $requestBody );
-					$result = !is_array( $result ) ? json_decode( $result, true ) : $result;
-					if ( isset( $result['exception'] ) ) {
-						$error        = array();
-						$error['msg'] = isset( $result['exception']['last_response'] ) ? $result['exception']['last_response'] : 'some error occured';
-						return $error;
-					} else {
-
-						if ( $this->is_downloadable ) {
-							$digital_response = $this->prepare_files( $product_id, $shop_name, $listing_id );
-						}
-
-						$this->ced_etsy_upload_attributes( $listing_id, $product_id, $shop_name );
+					if ( $this->is_downloadable ) {
+						$digital_response = $this->prepare_files( $product_id, $shop_name, $listing_id );
 					}
-					return $result;
 
+					$this->ced_etsy_upload_attributes( $listing_id, $product_id, $shop_name );
 				}
+				return $result;
 			}
 			return $this->uploadResponse;
 		}
@@ -1431,7 +1406,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 							$var_ids[]                         = isset( $variation['variation_id'] ) ? $variation['variation_id'] : ''; 
 							$final_etsy_product_property_value = array(
 								'property_id'   => (int) $variation_category_attribute_property_value['property_id'],
-								'value_ids'     => array(),
+								'value_ids'     => array( 513, 514 ),
 								'property_name' => ucwords( str_replace( array( 'attribute_pa_', 'attribute_' ), array( '', '' ), $property_name ) ),
 								'values'        => array( ucwords( strtolower( $variation_key_value ) ) ),
 							);
@@ -1533,7 +1508,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 							'property_values' => array(
 								array(
 									'property_id'   => (int) $property_id_one,
-									'value_ids'   => array(),
+									'value_ids'   => array( 513, 514 ),
 									'property_name' => $property_name_one,
 									'values'        => array(
 										isset( $property_values_remaining[0] ) ? ucwords( strtolower( $property_values_remaining[0] ) ) : '',
@@ -1563,7 +1538,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 							'sku'             => '',
 							'property_values' => array(
 								array(
-									'value_ids'   => array(),
+									'value_ids'   => array( 513, 514 ),
 									'property_id'   => (int) $property_id_one,
 									'property_name' => $property_name_one,
 									'values'        => array(
@@ -1604,8 +1579,9 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			$action   = "application/listings/{$listing_id}/inventory";
 			// echo "URL :-". $action . "<br>";
 			// die($action);
+			// print_r( json_encode( array( 'products'=> $final_attribute_variation_final ) ) );
 			do_action( 'ced_etsy_refresh_token', $shop_name );
-			$response = etsy_request()->put( $action, array('products'=> $final_attribute_variation_final), $shop_name );
+			$response = etsy_request()->put( $action, array( 'products'=> $final_attribute_variation_final ), $shop_name );
 
 			echo "<pre> Response :---------------";
 			print_r( $response);

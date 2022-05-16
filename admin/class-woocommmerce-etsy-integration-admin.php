@@ -1291,7 +1291,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
 				if ( $already_uploaded ) {
 					$get_product_detail = $this->ced_etsy_product->prepareDataForUpdating( $prodIDs, $shop_name );
-					if ( isset( $get_product_detail['results'][0]['listing_id'] ) ) {
+					if ( isset( $get_product_detail['listing_id'] ) ) {
 						echo json_encode(
 							array(
 								'status'  => 200,

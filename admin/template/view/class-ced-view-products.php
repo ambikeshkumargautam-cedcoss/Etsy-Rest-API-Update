@@ -523,7 +523,7 @@ class EtsyListProducts extends WP_List_Table {
 					$this->search_box( 'Search Products', 'search_id', 'search_product' );
 					submit_button( __( 'Filter', 'ced-etsy' ), 'action', 'filter_button', false, array() );
 					if ( $this->show_reset ) {
-						echo '<span class="ced_reset"><a href="' . esc_url( admin_url( 'admin.php?page=ced_etsy&section=products-view&shop_name=' . $shop_name ) ) . '" class="button">X</a></span>';
+						echo '<span class="ced_reset"><a href="' . esc_url( admin_url( 'admin.php?page=ced_etsy&section=products&shop_name=' . $shop_name ) ) . '" class="button">X</a></span>';
 					}
 					echo '</div>';
 					echo '</form>';
