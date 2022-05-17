@@ -3,7 +3,6 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-
 class Cedhandler {
 
 	// Directory name
@@ -37,6 +36,8 @@ class Cedhandler {
 
 	public static function ced_header() {
 		require_once CED_ETSY_DIRPATH . 'admin/template/view/class-ced-view-header.php';
+		// $header = new Cedcommerce\Template\View\CedEtsyHeader;
+		// $header = new CedEtsyHeader();
 	}
 
 	public static function show_notice_top( $shop_name = '' ) {

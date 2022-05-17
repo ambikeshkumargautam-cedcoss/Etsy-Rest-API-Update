@@ -1,4 +1,7 @@
 <?php
+namespace Cedcommerce\Template\View;
+use WP_List_Table;
+
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
@@ -11,8 +14,7 @@ if ( ! class_exists( 'WP_List_Table' ) ) {
 if ( ! session_id() ) {
 	session_start();
 }
-
-class Ced_Etsy_Account_Table extends WP_List_Table {
+class Ced_View_Etsy_Accounts extends WP_List_Table {
 
 	/** Class constructor */
 	public function __construct() {
@@ -386,6 +388,5 @@ if ( isset( $_POST['ced_etsy_authorise_account_button'] ) && 'Authorize' == $_PO
 	exit;
 }
 
-
-$ced_etsy_account_obj = new Ced_Etsy_Account_Table();
-$ced_etsy_account_obj->prepare_items();
+// $ced_etsy_account_obj = new Ced_View_Etsy_Accounts();
+// $ced_etsy_account_obj->prepare_items();

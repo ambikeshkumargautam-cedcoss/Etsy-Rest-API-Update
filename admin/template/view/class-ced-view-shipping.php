@@ -1,4 +1,6 @@
 <?php
+// namespace Cedcommerce\Template\View;
+// use WP_List_Table;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;

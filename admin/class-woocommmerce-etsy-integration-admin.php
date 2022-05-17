@@ -415,12 +415,8 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @since    1.0.0
 	 */
 	public function ced_etsy_accounts_page() {
-		$fileAccounts = CED_ETSY_DIRPATH . 'admin/template/view/class-ced-view-etsy-accounts.php';
-		if ( file_exists( $fileAccounts ) ) {
-			echo "<div class='cedcommerce-etsy-wrap'>";
-			require_once $fileAccounts;
-			echo '</div>';
-		}
+		$account = new Cedcommerce\Template\View\Ced_View_Etsy_Accounts;
+		$account->prepare_items();
 	}
 
 

@@ -1,5 +1,5 @@
 <?php
-namespace Cedcommerce\View\header;
+// namespace Cedcommerce\Template\View;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
@@ -82,6 +82,5 @@ class CedEtsyHeader{
 		);
 	}
 }
-
 $header = new CedEtsyHeader();
 ?>

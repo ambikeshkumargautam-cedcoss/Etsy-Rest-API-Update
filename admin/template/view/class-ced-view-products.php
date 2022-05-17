@@ -1,10 +1,11 @@
 <?php
+// namespace Cedcommerce\Template\View;
+// use WP_List_Table;
+// use Cedcommerce\Template\View\CedEtsyHeader;
+// $header = new CedEtsyHeader;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
-}
-if ( ! class_exists( 'WP_List_Table' ) ) {
-	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }
 Cedhandler::ced_header();
 class EtsyListProducts extends WP_List_Table {
@@ -23,7 +24,7 @@ class EtsyListProducts extends WP_List_Table {
 	public function prepare_items() {
 
 		global $wpdb;
-		$per_page  = apply_filters( 'Ced_Product_Upload_per_page', 20 );
+		$per_page  = apply_filters( 'Ced_Product_Upload_per_page', 5 );
 		$post_type = 'product';
 		$columns   = $this->get_columns();
 		$hidden    = array();

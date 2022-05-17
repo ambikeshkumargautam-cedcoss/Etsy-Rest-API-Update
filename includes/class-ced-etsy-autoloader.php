@@ -25,7 +25,7 @@ class CedEtsyAutoloader {
 			spl_autoload_register( '__autoload' );
 		}
 		spl_autoload_register( array( $this, 'autoload' ) );
-		$this->include_path = CED_ETSY_DIRPATH;
+		$this->include_path = CED_ETSY_DIRPATH .'admin/';
 
 	}
 
@@ -75,17 +75,17 @@ class CedEtsyAutoloader {
 		}
 		$file = $this->ced_etsy_get_file_name_from_class( $class );
 		$path = '';
-		if ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_pro' ) || 0 === strpos( strtolower($class), 'ced_cat' )) {
-			$path = $this->include_path . 'admin/ced-builder/product/';
+		if ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_pro' ) || 0 === strpos( strtolower($class), 'ced_cat' )){
+			$path = $this->include_path . 'ced-builder/product/';
 		}elseif ( 0 === strpos( strtolower(  end( explode('\\', $class ) ) ), 'ced_ord' )) {
-			$path = $this->include_path . 'admin/ced-builder/order/';
+			$path = $this->include_path . 'ced-builder/order/';
 		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_etsy_m' ) ) {
-			$path = $this->include_path . 'admin/lib/';
+			$path = $this->include_path . 'lib/';
+		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_view' ) ) {
+			$path = $this->include_path . 'template/view/';
 		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'woocommmerce_etsy_integration_admin' ) ) {
-			$path = $this->include_path . 'admin/';
+			$path = $this->include_path;
 		}
-
-		// die($path.$file);
 		if ( empty( $path ) || ! $this->ced_load_file( $path . $file ) ) {
 			$this->ced_load_file( $this->include_path . $file );
 		}
