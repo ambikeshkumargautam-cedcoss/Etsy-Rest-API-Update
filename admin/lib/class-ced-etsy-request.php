@@ -1,12 +1,15 @@
 <?php
 
 class Ced_Etsy_Request {
+	
+	public $client_id;
+	public $base_url;
+	public $client_secret;
 
 	function __construct() {
-		$this->loadDependency();
-		$this->base_url      = $this->config->base_url;
-		$this->client_id     = $this->config->client_id;
-		$this->client_secret = $this->config->client_secret;
+		$this->client_id     = 'b2pa8bczfrwnuccpevnql8eh';
+		$this->client_secret = 'hznh7z8xkb';
+		$this->base_url      = 'https://api.etsy.com/v3/';
 	}
 
 	public function delete( $action ='', $shop_name='', $query_args=array(),$method='DELETE'  ){
@@ -158,16 +161,6 @@ class Ced_Etsy_Request {
 
 	public function parse_reponse( $response ) {
 		return json_decode( $response, true );
-	}
-
-	public function loadDependency() {
-
-		$fileProducts = CED_ETSY_DIRPATH . 'admin/lib/etsyConfig.php';
-		if ( file_exists( $fileProducts ) ) {
-			require_once $fileProducts;
-		}
-
-		$this->config = new Ced_Etsy_Config();
 	}
 
 	public function get_access_token( $shop_name ) {

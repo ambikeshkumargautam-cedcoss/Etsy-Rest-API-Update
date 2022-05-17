@@ -8,7 +8,7 @@ namespace Cedcommerce\EtsyManager;
  * @package    Woocommerce Etsy Integration
  * @subpackage Woocommerce Etsy Integration/marketplaces/etsy
  */
-use Cedcommerce\Product\ProductUpload\Ced_Product_Upload as ProductUpload;
+use Cedcommerce\Product\Ced_Product_Upload as ProductUpload;
 if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 	/**
 	 * Single product related functionality.
@@ -30,6 +30,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		private static $_instance;
 		private static $authorization_obj;
 		private static $client_obj;
+		public $etsy_product_upload;
 		/**
 		 * CED_ETSY_etsy_Manager Instance.
 		 *
@@ -59,7 +60,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		 */
 
 		public function __construct() {
-			$this->etsyProductsInstance = ProductUpload::get_instance();
+			$this->etsy_product_upload = ProductUpload::get_instance();
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shipping_configuration' ), 10, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_payment_configuration' ), 11, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shop_section_configuration' ), 12, 2 );
@@ -319,7 +320,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 				 *   CALLING FUNCTION TO UDPATE THE INVENTORY
 				 * *******************************************
 				 */
-				$this->etsyProductsInstance->prepareDataForUpdatingInventory( array( $product_id ), $shop_name, $is_sync );
+				$this->etsy_product_upload->prepareDataForUpdatingInventory( array( $product_id ), $shop_name, $is_sync );
 			}
 		}
 
@@ -338,7 +339,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 				}
 			}
 			if ( is_array( $product_ids ) && ! empty( $product_ids ) ) {
-				$response        = $this->etsyProductsInstance->prepareDataForUpdatingInventory( $product_ids, '', true );
+				$response        = $this->etsy_product_upload->prepareDataForUpdatingInventory( $product_ids, '', true );
 				$inventory_log[] = $response;
 			}
 		}

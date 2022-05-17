@@ -1,5 +1,5 @@
 <?php
-namespace Cedcommerce\Product\ProductUpload;
+namespace Cedcommerce\Product;
 if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 	class Ced_Product_Upload {
 

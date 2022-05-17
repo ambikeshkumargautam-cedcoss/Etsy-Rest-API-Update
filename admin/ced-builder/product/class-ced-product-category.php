@@ -1,5 +1,5 @@
 <?php
-namespace Cedcommerce\Product\ProductCategory;
+namespace Cedcommerce\Product;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 if ( ! class_exists( 'Class_Ced_Etsy_Category' ) ) {
 
-	class Class_Ced_Etsy_Category {
+	class Ced_Product_Category{
 
 
 		public static $_instance;
@@ -33,9 +33,8 @@ if ( ! class_exists( 'Class_Ced_Etsy_Category' ) ) {
 		 * @since    1.0.0
 		 */
 		public function getEtsyCategories( $shop_name = '' ) {
-			$client     = ced_etsy_getOauthClientObject( $shop_name );
-			$success    = $client->CallAPI( 'https://openapi.etsy.com/v2/taxonomy/seller/get', 'GET', array(), array( 'FailOnAccessError' => true ), $categories );
-			$categories = json_decode( json_encode( $categories ), true );
+			do_action( 'ced_etsy_refresh_token', $shop_name );
+			$categories = etsy_request()->get( "application/seller-taxonomy/nodes", $shop_name );
 			return $categories;
 		}
 	}

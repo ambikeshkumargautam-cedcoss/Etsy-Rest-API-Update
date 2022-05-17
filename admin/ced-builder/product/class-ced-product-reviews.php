@@ -1,5 +1,5 @@
 <?php
-namespace Cedcommerce\Product\ProductReview;
+namespace Cedcommerce\Product;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;

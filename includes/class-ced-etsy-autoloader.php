@@ -84,6 +84,8 @@ class CedEtsyAutoloader {
 		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'woocommmerce_etsy_integration_admin' ) ) {
 			$path = $this->include_path . 'admin/';
 		}
+
+		// die($path.$file);
 		if ( empty( $path ) || ! $this->ced_load_file( $path . $file ) ) {
 			$this->ced_load_file( $this->include_path . $file );
 		}

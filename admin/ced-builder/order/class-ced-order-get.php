@@ -1,5 +1,5 @@
 <?php
-namespace Cedcommerce\Order\GetOrders;
+namespace Cedcommerce\Order;
 class Ced_Order_Get {
 
 	public static $_instance;

@@ -352,14 +352,15 @@
 			'#ced_etsy_category_refresh_button',
 			function()
 			{
-				$( '.ced_etsy_loader' ).show();
+				// $( '.ced_etsy_loader' ).show();
+				// debugger;
 				$.ajax(
 					{
 						url : ajaxUrl,
 						data : {
 							ajax_nonce : ajaxNonce,
-							action : 'ced_etsy_category_refresh',
-							shop_name:shop_name
+							action     : 'ced_etsy_category_refresh',
+							shop_name  : shop_name
 						},
 						type : 'POST',
 						success: function(response)

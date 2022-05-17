@@ -1,8 +1,8 @@
 <?php
 use Cedcommerce\EtsyManager\Ced_Etsy_Manager as EtsyManager;
-use Cedcommerce\Order\GetOrders\Ced_Order_Get as EtsyGetOrdes;
-use Cedcommerce\Product\ProductUpload\Ced_Product_Upload as EtsyUploadProducts;
-use Cedcommerce\Product\ProductImport\Ced_Product_Import as EtsyImportProducts;
+use Cedcommerce\Order\Ced_Order_Get as EtsyGetOrdes;
+use Cedcommerce\Product\Ced_Product_Import as EtsyImportProducts;
+use Cedcommerce\Product\Ced_Product_Category as EtsyCategory;
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -48,11 +48,14 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @param      string $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
-		$this->ced_etsy_mager   = EtsyManager::get_instance();
+		
+		$this->etsy_manager     = EtsyManager::get_instance();
 		$this->ced_etsy_order   = EtsyGetOrdes::get_instance();
-		$this->ced_etsy_product = EtsyUploadProducts::get_instance();
-		$this->importProduct    = EtsyImportProducts::get_instance();
+		$this->ced_etsy_product = $this->etsy_manager->{'etsy_product_upload'};
+		$this->import_product   = EtsyImportProducts::get_instance();
+		$this->etsy_cat_obj     = EtsyCategory::get_instance();
 		$this->plugin_name      = $plugin_name;
+
 		add_action( 'manage_edit-shop_order_columns', array( $this, 'ced_etsy_add_table_columns' ) );
 		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'ced_etsy_manage_table_columns' ), 10, 2 );
 		add_action( 'wp_ajax_ced_etsy_auto_upload_categories', array( $this, 'ced_etsy_auto_upload_categories' ) );
@@ -733,7 +736,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				}
 			}
 			update_option( 'ced_woo_etsy_mapped_categories_name_' . $etsy_store_id, $alreadyMappedCategoriesName );
-			$this->ced_etsy_mager->ced_etsy_createAutoProfiles( $etsyMappedCategories, $etsyMappedCategoriesName, $etsy_store_id );
+			$this->etsy_manager->ced_etsy_createAutoProfiles( $etsyMappedCategories, $etsyMappedCategoriesName, $etsy_store_id );
 			wp_die();
 		}
 	}
@@ -1068,7 +1071,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 
 		if ( isset( $response['results'][0] ) ) {
 			foreach ( $response['results'] as $key => $value ) {
-				$this->importProduct->get_listing_details_auto_upload( $value, $shop_name, $shop_id );
+				$this->import_product->get_listing_details_auto_upload( $value, $shop_name, $shop_id );
 			}
 			if ( isset( $response['pagination']['next_offset'] ) && ! empty( $response['pagination']['next_offset'] ) ) {
 				$next_offset = $response['pagination']['next_offset'];
@@ -1188,13 +1191,8 @@ class Woocommmerce_Etsy_Integration_Admin {
 				);
 				die;
 			}
-			$file = CED_ETSY_DIRPATH . 'admin/lib/etsyCategory.php';
-			if ( ! file_exists( $file ) ) {
-				return;
-			}
-			require_once $file;
-			$etsyCategoryInstance = Class_Ced_Etsy_Category::get_instance();
-			$fetchedCategories    = $etsyCategoryInstance->getEtsyCategories( $shop_name );
+
+			$fetchedCategories    = $this->etsy_cat_obj->getEtsyCategories( $shop_name );
 			if ( isset( $fetchedCategories['results'] ) && ! empty( $fetchedCategories['results'] ) ) {
 				$categories = $this->Ced_Etsy_Manager->StoreCategories( $fetchedCategories );
 				echo json_encode( array( 'status' => 200 ) );
@@ -1479,13 +1477,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
 		if ( $check_ajax ) {
-
-			$import_product_file = CED_ETSY_DIRPATH . 'admin/etsy/lib/etsyImportProducts.php';
-			if ( file_exists( $import_product_file ) ) {
-				require_once $import_product_file;
-			}
 			$sanitized_array         = filter_input_array( INPUT_POST, FILTER_SANITIZE_STRING );
-			$instance_import_product = Class_Ced_Etsy_Import_Product::get_instance();
 			$operation               = isset( $sanitized_array['operation_to_be_performed'] ) ? $sanitized_array['operation_to_be_performed'] : '';
 			$listing_ids             = isset( $sanitized_array['listing_id'] ) ? $sanitized_array['listing_id'] : '';
 			$shop_name               = isset( $sanitized_array['shop_name'] ) ? $sanitized_array['shop_name'] : '';
@@ -1502,7 +1494,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 						)
 					);
 				} else {
-					$response = $instance_import_product->ced_etsy_import_products( $listing_id, $shop_name );
+					$response = $this->import_product->ced_etsy_import_products( $listing_id, $shop_name );
 					echo json_encode(
 						array(
 							'status'  => 200,
@@ -1746,7 +1738,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 
 	public function ced_esty_render_fields_for_variation( $product_id = '', $simple_product = '' ) {
 
-		$file_name = CED_ETSY_DIRPATH . 'admin/partials/product-fields.php';
+		$file_name = CED_ETSY_DIRPATH . 'admin/template/product-fields.php';
 		if ( file_exists( $file_name ) ) {
 			require $file_name;
 		}
@@ -1759,8 +1751,15 @@ class Woocommmerce_Etsy_Integration_Admin {
 
 				$label          = isset( $value['fields']['label'] ) ? $value['fields']['label'] : '';
 				$field_id       = isset( $value['fields']['id'] ) ? $value['fields']['id'] : '';
+				$allow_fields   = array( '_etsy_language' );
 				$id             = 'ced_etsy_data[' . $product_id . '][' . $field_id . ']';
 				$selected_value = get_post_meta( $product_id, $field_id, true );
+				
+				// Allowed fiels.
+				if ( in_array( $field_id, $allow_fields ) ) {
+					continue;
+				}
+
 				if ( '_select' == $value['type'] ) {
 					$option_array     = array();
 					$option_array[''] = '--select--';
