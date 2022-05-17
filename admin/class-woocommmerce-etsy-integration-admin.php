@@ -1303,7 +1303,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 						echo json_encode(
 							array(
 								'status'  => 400,
-								'message' => isset( $get_product_detail['msg'] ) ? $get_product_detail['msg'] : json_encode( $get_product_detail ),
+								'message' => isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail ),
 							)
 						);
 						die;

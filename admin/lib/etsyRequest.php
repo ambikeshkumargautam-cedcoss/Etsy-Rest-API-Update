@@ -136,7 +136,7 @@ class Ced_Etsy_Request {
 		if ( ! empty( $access_token ) ) {
 			$header[] = 'Authorization: Bearer ' . $access_token;
 		}
-
+		
 		$curl = curl_init();
 		curl_setopt_array(
 			$curl,

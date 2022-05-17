@@ -421,7 +421,7 @@ class EtsyListProducts extends WP_List_Table {
 		$actions = array(
 			'upload_product'   => 'Upload Products',
 			'update_product'   => 'Update Products',
-			'update_inventory' => 'Update Inventory',
+			// 'update_inventory' => 'Update Inventory',
 			'update_image'     => 'Update Images',
 			'remove_product'   => 'Remove Product',
 		);
