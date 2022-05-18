@@ -34,14 +34,14 @@ class Ced_View_Settings {
 	 */
 	private $pre_saved_values;
 	/**
-	 * The ID of this plugin.
+	 * Cron jobs option want to increase.
 	 *
 	 * @since    1.0.0
 	 * @var      string    $plugin_name    The ID of this plugin.
 	 */
 	private $schedulers = array( 'ced_etsy_auto_import_schedule_job_', 'ced_etsy_inventory_scheduler_job_', 'ced_etsy_order_scheduler_job_' );
 	/**
-	 * The ID of this plugin.
+	 * Setting tabs.
 	 *
 	 * @since    1.0.0
 	 * @var      string    $tabs    The ID of this plugin.
@@ -55,7 +55,7 @@ class Ced_View_Settings {
 	 * Instializing all the required variations and functions.
 	 * 
 	 * @since    2.1.3
-	 *    string    $plugin_name    The name of the plugin.
+	 *    string    $shop_name    The Etsy shop name.
 	 */
 	public function __construct( $shop_name='' ) {
 		/**
@@ -195,11 +195,9 @@ class Ced_View_Settings {
 	public function settings_view( $shop_name = '' ) {
 		$ced_h           = new Cedhandler();
 		$ced_h->dir_name = '/admin/template/view/';
-		$ced_h->ced_require( 'ced-etsy-metakeys-template' );		
-		$ced_h->dir_name = '/admin/template/view/render/';
-		$ced_h->ced_require( 'class-ced-render-form' );
+		$ced_h->ced_require( 'ced-etsy-metakeys-template' );
 		// Rending forms.
-		$form  = new \Cedcommerce\view\render\Ced_Render_Form();
+		$form  = new \Cedcommerce\Template\View\Render\Ced_Render_Form();
 		echo $form->form_open('POST', '');
 		$form->ced_nonce( 'global_settings', 'global_settings_submit' );
 		$this->product_export_setting();
@@ -237,9 +235,9 @@ class Ced_View_Settings {
 	private function ced_etsy_render_table( $table_array = array() ){
 		$ced_h           = new Cedhandler();
 		$stored_value    = isset( $this->pre_saved_values[ $this->shop_name ] ) ? $this->pre_saved_values[ $this->shop_name ] : $this->pre_saved_values;
-		$ced_h->dir_name = '/admin/template/view/render/';
-		$ced_h->ced_require('class-ced-render-table');
-		$table = new \Cedcommerce\view\render\Ced_Render_Table();
+		// $ced_h->dir_name = '/admin/template/view/render/';
+		// $ced_h->ced_require('class-ced-render-table');
+		$table = new \Cedcommerce\Template\View\Render\Ced_Render_Table();
 		echo $table->table_open( 'wp-list-table fixed widefat ced_etsy_schedule_wrap' );
 		$table_array = isset( $table_array ) ? $table_array : array();
 		$prep_tr = '';

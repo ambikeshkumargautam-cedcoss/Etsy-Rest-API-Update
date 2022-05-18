@@ -1,5 +1,5 @@
 <?php
-namespace Cedcommerce\Template\render;
+namespace Cedcommerce\Template\View\Render;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
