@@ -83,6 +83,8 @@ class CedEtsyAutoloader {
 			$path = $this->include_path . 'lib/';
 		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_view' ) ) {
 			$path = $this->include_path . 'template/view/';
+		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_rend' ) ) {
+			$path = $this->include_path . 'template/view/render/';
 		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'woocommmerce_etsy_integration_admin' ) ) {
 			$path = $this->include_path;
 		}
