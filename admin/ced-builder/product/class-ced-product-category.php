@@ -1,13 +1,23 @@
 <?php
+/**
+ * Product Category Class.
+ *
+ * @version 2.1.1
+ * @package category-fetch-for-woocommerce-categories.
+ */
+
 namespace Cedcommerce\Product;
+
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 
 if ( ! class_exists( 'Class_Ced_Etsy_Category' ) ) {
-
-	class Ced_Product_Category{
+	/**
+	 * Get Etsy Category.
+	 */
+	class Ced_Product_Category {
 
 
 		public static $_instance;
