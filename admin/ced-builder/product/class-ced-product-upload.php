@@ -191,8 +191,8 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			return $this->uploadResponse;
 		}
 
-		public function ced_update_listing_id_url( $product_id='', $listing_id_url = array ){
-			foreach ($listing_id_url as $meta_key => $meta_value ) {
+		public function ced_update_listing_id_url( $product_id='', $listing_id_url = array() ){
+			foreach( $listing_id_url as $meta_key => $meta_value ) {
 				update_post_meta( $product_id , $meta_key. $this->shop_name, $meta_value );
 			}
 		}

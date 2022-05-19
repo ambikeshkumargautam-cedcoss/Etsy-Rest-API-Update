@@ -15,7 +15,7 @@ class CedEtsyAutoloader {
 	 *
 	 * @var string
 	 */
-	private $include_path = '';
+	private $include_once = '';
 
 	/**
 	 * The Constructor.
@@ -25,7 +25,7 @@ class CedEtsyAutoloader {
 			spl_autoload_register( '__autoload' );
 		}
 		spl_autoload_register( array( $this, 'autoload' ) );
-		$this->include_path = CED_ETSY_DIRPATH .'admin/';
+		$this->include_once = CED_ETSY_DIRPATH .'admin/';
 
 	}
 
@@ -76,20 +76,20 @@ class CedEtsyAutoloader {
 		$file = $this->ced_etsy_get_file_name_from_class( $class );
 		$path = '';
 		if ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_pro' ) || 0 === strpos( strtolower($class), 'ced_cat' )){
-			$path = $this->include_path . 'ced-builder/product/';
+			$path = $this->include_once . 'ced-builder/product/';
 		}elseif ( 0 === strpos( strtolower(  end( explode('\\', $class ) ) ), 'ced_ord' )) {
-			$path = $this->include_path . 'ced-builder/order/';
+			$path = $this->include_once . 'ced-builder/order/';
 		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_etsy_m' ) ) {
-			$path = $this->include_path . 'lib/';
+			$path = $this->include_once . 'lib/';
 		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_view' ) ) {
-			$path = $this->include_path . 'template/view/';
+			$path = $this->include_once . 'template/view/';
 		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_rend' ) ) {
-			$path = $this->include_path . 'template/view/render/';
+			$path = $this->include_once . 'template/view/render/';
 		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'woocommmerce_etsy_integration_admin' ) ) {
-			$path = $this->include_path;
+			$path = $this->include_once;
 		}
 		if ( empty( $path ) || ! $this->ced_load_file( $path . $file ) ) {
-			$this->ced_load_file( $this->include_path . $file );
+			$this->ced_load_file( $this->include_once . $file );
 		}
 	}
 
