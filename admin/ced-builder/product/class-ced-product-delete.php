@@ -38,7 +38,7 @@ class Ced_Product_Delete {
     /**
      * Ced_Product_Delete constructor.
      */
-    public function __construct( $product_id = '' ) {
+    public function __construct( $shop_name = '', $product_id = '' ) {
         $this->listing_id = get_post_meta( $product_id, '_ced_etsy_listing_id_'.$this->shop_name, true );
     }
 
@@ -69,19 +69,29 @@ class Ced_Product_Delete {
      * @return array
      */
     public function ced_etsy_delete_product( $product_ids = array(), $shop_name = '' ) {
+        if (!is_array( $product_ids ) ) {
+            $product_ids = array( $product_ids );
+        }
+
         foreach( $product_ids as $product_id ) {
             if( empty( $product_id ) ) {
                 continue;
             }
             $listing_id = get_post_meta( $product_id, '_ced_etsy_listing_id_'.$shop_name , true );
+            // $listing_id = 1236576305;
             if ($listing_id) {
+                // die($listing_id.$shop_name);
                 do_action( 'ced_etsy_refresh_token', $shop_name );
-                $this->response  =  etsy_request()->delete( "application/listings/{$listing_id}", $shop_name );
-                if ( !isset( $this->response['error'] ) ) {
-                    delete_post_meta( $value, '_ced_etsy_listing_id_' . $shop_name );
-                    delete_post_meta( $value, '_ced_etsy_url_' . $shop_name );
+                $action    = "application/listings/{$listing_id}";
+                $response  =  etsy_request()->delete( $action , $shop_name );
+                if (empty( $response ) || null == $response ) {
+                    $response = array();
                 }
-                return $this->response;
+                if ( !isset( $response['error'] ) ) {
+                    delete_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name );
+                    delete_post_meta( $product_id, '_ced_etsy_url_' . $shop_name );
+                }
+                return $response;
             }
         }
     }

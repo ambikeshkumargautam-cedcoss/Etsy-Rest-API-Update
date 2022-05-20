@@ -25,6 +25,7 @@ class Ced_Etsy_Request {
 		);
 
 		$access_token = $this->get_access_token( $shop_name );
+		// var_dump( $access_token );
 		if ( ! empty( $access_token ) ) {
 			$header[] = 'Authorization: Bearer ' . $access_token;
 		}

@@ -71,6 +71,14 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 		// Refresh token if isn't.
 		do_action( 'ced_etsy_refresh_token', $shop_name );
 		$shopShippingTemplates = etsy_request()->get( $action, $shop_name );
+		/**
+		 * Check if the shop has any shipping templates and that is less than Etsy's profiles.
+		 * @var $shopShippingTemplates \Ced\Etsy_Shop\Helper\Data.
+		 */
+		if( count($shopShippingTemplates ) < count( get_option('ced_etsy_shipping_templates_'.$shop_name, 0 ) ) ){
+			$profiles = get_option('ced_etsy_all_shipping_profiles_'. $shop_name, array() );
+			return $profiles;
+		}
 		if (empty($shopShippingTemplates) || null == $shopShippingTemplates || '' === $shopShippingTemplates || !isset( $shopShippingTemplates ) ) {
 			return array();
 		}

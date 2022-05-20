@@ -70,7 +70,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 			add_action( 'updated_post_meta', array( $this, 'ced_relatime_sync_inventory_to_etsy' ), 12, 4 );
 			add_filter( 'woocommerce_order_number', array( $this, 'ced_modify_woo_order_number' ), 20, 2 );
 			add_action( 'ced_etsy_auto_submit_shipment', array( $this, 'ced_etsy_auto_submit_shipment' ) );
-			add_action( 'admin_notices', array( $this, 'ced_etsy_admin_notices' ) );
+			// add_action( 'admin_notices', array( $this, 'ced_etsy_admin_notices' ) );
 			add_action( 'admin_init', array( $this, 'ced_etsy_get_token_and_shop_data' ) );
 			add_action( 'ced_etsy_refresh_token', array( $this, 'ced_etsy_refresh_token' ) );
 		}
@@ -383,8 +383,8 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		 * @since    1.0.0
 		 */
 		public function ced_etsy_get_categories() {
-			$fetchedCategories    = $etsyCategoryInstance->getEtsyCategories();
-			$categories           = $this->StoreCategories( $fetchedCategories );
+			$fetchedCategories    = $etsyCategoryInstance->get_etsy_categories();
+			$categories           = $this->ced_etsy_store_categories( $fetchedCategories );
 
 		}
 
@@ -396,7 +396,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		public function ced_etsy_createAutoProfiles( $etsyMappedCategories = array(), $etsyMappedCategoriesName = array(), $etsyStoreId = '' ) {
 			global $wpdb;
 
-			$wooStoreCategories          = get_terms( 'product_cat' );
+			$wooced_etsy_store_categories          = get_terms( 'product_cat' );
 			$alreadyMappedCategories     = get_option( 'ced_woo_etsy_mapped_categories_' . $etsyStoreId, array() );
 			$alreadyMappedCategoriesName = get_option( 'ced_woo_etsy_mapped_categories_name_' . $etsyStoreId, array() );
 

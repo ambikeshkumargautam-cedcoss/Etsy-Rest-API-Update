@@ -21,6 +21,9 @@ class Ced_Product_Payload {
     * @var int
     */
     public $listing_id;
+    public $ced_global_settings;
+    public $isProfileAssignedToProduct;
+    public $profile_data;
 
     /**
      * Product Type variable
@@ -34,6 +37,8 @@ class Ced_Product_Payload {
      * @var string
      */
     public $shop_name;
+
+    public $product;
 
 
     /**
@@ -51,9 +56,16 @@ class Ced_Product_Payload {
      *
      */
 
-    public function __construct() {
+    public function __construct( $shop_name = '', $product_id= '' , $listing_id = '' ) {
        $this->ced_global_settings = get_option( 'ced_etsy_global_settings', array() );
        $this->saved_etsy_details  = get_option( 'ced_etsy_details', array() );
+       $this->shop_name           = $shop_name;
+       $this->product_id          = $product_id;
+       $this->listing_id          = $listing_id;
+       if ( $this->shop_name ) {
+           $this->ced_global_settings = isset( $this->ced_global_settings[$this->shop_name] ) ? $this->ced_global_settings[$this->shop_name] : $this->ced_global_settings;
+           $this->saved_etsy_details  = isset( $this->saved_etsy_details[$this->shop_name] ) ? $this->saved_etsy_details[$this->shop_name] : $this->saved_etsy_details;
+       }
     }
 
     /**
@@ -70,13 +82,7 @@ class Ced_Product_Payload {
      */
 
     public function __invoke( $shop_name = '', $product_id= '' , $listing_id = '' ){
-        $this->shop_name  = $shop_name;
-        $this->product_id = $product_id;
-        $this->listing_id = $listing_id;
-        if ( $this->shop_name ) {
-            $this->ced_global_settings = isset( $this->ced_global_settings[$this->shop_name] ) ? $this->ced_global_settings[$this->shop_name] : $this->ced_global_settings;
-            $this->saved_etsy_details  = isset( $this->saved_etsy_details[$this->shop_name] ) ? $this->saved_etsy_details[$this->shop_name] : $this->saved_etsy_details;
-        }
+        echo "Invoke function triggered";
     }
     /**
      * Get value of an property which isn't exist in this class. 
@@ -123,12 +129,12 @@ class Ced_Product_Payload {
         if (empty( $pr_id )) {
             $pr_id = $this->product_id;
         }
-         $this->wc_product = wc_get_product( $pr_id );
-         $this->product = $this->wc_product->get_data();
-         $type          = $this->wc_product->get_type();
+         $wc_product = wc_get_product( $pr_id );
+         $this->product = $wc_product->get_data();
+         $type          = $wc_product->get_type();
          if ('variable' === $type ) {
             $this->product_type       = 'variable';
-            $this->parent_id = $this->wc_product->get_parent_id();
+            $this->parent_id = $wc_product->get_parent_id();
             return $this->product_type;
          }
         return 'simple';
@@ -166,7 +172,6 @@ class Ced_Product_Payload {
                 }
             }
         }
-
         global $wpdb;
         if ( isset( $profile_id ) && ! empty( $profile_id ) ) {
             $this->isProfileAssignedToProduct = true;
@@ -206,7 +211,7 @@ class Ced_Product_Payload {
             }
         }
         $tags = implode( ',', array_filter( array_values( array_unique( $tags ) ) ) );
-        $tags = isset( $tags ) ? array( $tags ) ? array();
+        $tags = isset( $tags ) ? array( $tags ) : array();
         return $tags;
     }
 
@@ -226,17 +231,16 @@ class Ced_Product_Payload {
      * @return $arguments all possible arguments .
      */
     public function ced_etsy_get_formatted_data( $product_id = '', $shop_name = '' ) {
-        // $profileData = $this->getProfileAssignedData( $product_id, $shop_name );
         $profile_data = $this->ced_etsy_check_profile( $product_id, $shop_name );
         if ( 'false' == $profile_data ) {
             return 'Profile Not Assigned';
         }
-
-        $product            = ced_pro_type( $product_id );
+        
+        $product            = $this->ced_pro_type( $product_id );
         $productData        = $this->product;
         $product_type       = $this->product_type;
+        // print_r( $this->ced_global_settings['product_data'] );
         $etsy_data_field    = isset( $this->ced_global_settings['product_data'] ) ? $this->ced_global_settings['product_data'] : $this->ced_global_settings[$shop_name]['product_data'];
-
         $pro_data = array();
         foreach ( $etsy_data_field as $meta_key => $value ) {
             $pro_val = get_post_meta( $product_id, $meta_key, true );
@@ -316,7 +320,7 @@ class Ced_Product_Payload {
             $materials = array( str_replace( ' ', ',', $materials ) );
         }
 
-        $shipping_t_id = 172257960844;
+        $pro_data['shipping_profile'] = 172257960844;
         if (empty($pro_data['shipping_profile'] )) {
             $error['msg'] = 'Shipping profile is not selected';
             return $error;
@@ -330,7 +334,7 @@ class Ced_Product_Payload {
             'shop_section_id'      => (int) 37380807 /*!empty( $pro_data['shop_section'] ) ? $pro_data['shop_section'] : ''*/,
             'taxonomy_id'          => (int) $category_id,
             'who_made'             => !empty ( $pro_data['who_made'] ) ? $pro_data['who_made'] : 'i_did',
-            'is_supply'            => !empty( $pro_data['product_supply'] ) ? 'true' == $pro_data['product_supply'] ? (bool)1 : (bool)0,
+            'is_supply'            => !empty( $pro_data['product_supply'] ) ? $prod_data['product_supply'] : ( 'true' == $pro_data['product_supply'] ? 1 : 0 ),
             'when_made'            => !empty( $pro_data['when_made'] ) ? $pro_data['when_made'] : 'made_to_order',
             'quantity'             => (int) $pro_qty,
             'price'                => (float) $pro_price,

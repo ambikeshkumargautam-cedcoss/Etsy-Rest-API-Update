@@ -241,7 +241,7 @@ function etsy_shop_id( $shop_name = '' ) {
 
 function deactivate_ced_etsy_woo_missing() {
 	deactivate_plugins( CED_ETSY_PLUGIN_BASENAME );
-	add_action( 'admin_notices', 'ced_zalora_woo_missing_notice' );
+	// add_action( 'admin_notices', 'ced_zalora_woo_missing_notice' );
 	if ( isset( $_GET['activate'] ) ) {
 		unset( $_GET['activate'] );
 	}

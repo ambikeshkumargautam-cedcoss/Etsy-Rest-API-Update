@@ -48,7 +48,6 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @param      string $version    The version of this plugin.
 	 */
 	public function __construct( $plugin_name, $version ) {
-		
 		$this->etsy_manager     = EtsyManager::get_instance();
 		$this->ced_etsy_order   = EtsyGetOrdes::get_instance();
 		$this->ced_etsy_product = $this->etsy_manager->{'etsy_product_upload'};
@@ -1188,9 +1187,9 @@ class Woocommmerce_Etsy_Integration_Admin {
 				die;
 			}
 
-			$fetchedCategories    = $this->etsy_cat_obj->getEtsyCategories( $shop_name );
+			$fetchedCategories = $this->etsy_cat_obj->get_etsy_categories( $shop_name );
 			if ( isset( $fetchedCategories['results'] ) && ! empty( $fetchedCategories['results'] ) ) {
-				$categories = $this->Ced_Etsy_Manager->StoreCategories( $fetchedCategories );
+				$categories = $this->etsy_cat_obj->ced_etsy_store_categories( $fetchedCategories );
 				echo json_encode( array( 'status' => 200 ) );
 				wp_die();
 			} else {
@@ -1231,237 +1230,95 @@ class Woocommmerce_Etsy_Integration_Admin {
 			$shop_name        = isset( $_POST['shopname'] ) ? sanitize_text_field( wp_unslash( $_POST['shopname'] ) ) : '';
 			$operation        = isset( $_POST['operation_to_be_performed'] ) ? sanitize_text_field( wp_unslash( $_POST['operation_to_be_performed'] ) ) : '';
 			$product_id       = isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
+			$not_found        = 'Product ' . $product_id . ' Not Found On Etsy';
+			$already_uploaded = get_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, true );
+			$message_already  = 'Product ' . $product_id . ' Already Uploaded';
 			$isShopInActive   = ced_etsy_inactive_shops( $shop_name );
 			if ( $isShopInActive ) {
-				echo json_encode(
-					array(
-						'status'  => 400,
-						'message' => __(
-							'Shop is Not Active',
-							'woocommerce-etsy-integration'
-						),
-					)
-				);
-				die;
+				$this->ced_notice_response( 400, 'Shop is Not Active', $product_id );
 			}
 			if ( 'upload_product' == $operation ) {
-				$prodIDs          = $product_id;
-				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
-				if ( $already_uploaded ) {
-					echo json_encode(
-						array(
-							'status'  => 400,
-							'message' => __(
-								'Product ' . $prodIDs . ' Already Uploaded',
-								'woocommerce-etsy-integration'
-							),
-						)
-					);
-					die;
+				if ($already_uploaded) {
+					$this->ced_notice_response( 400, $message_already, $product_id );
+				}
+				$get_product_detail = $this->ced_etsy_product->prepareDataForUploading( $product_id, $shop_name );
+				if ( isset( $get_product_detail['listing_id'] ) ) {
+					$this->ced_notice_response( 200, get_the_title( $product_id ). ' Uploaded Successfully', $product_id );
 				} else {
-					$get_product_detail = $this->ced_etsy_product->prepareDataForUploading( $prodIDs, $shop_name );
-					if ( isset( $get_product_detail['listing_id'] ) ) {
-						echo json_encode(
-							array(
-								'status'  => 200,
-								'message' => $get_product_detail['title'] . ' Uploaded Successfully',
-								'prodid'  => $prodIDs,
-							)
-						);
-						die;
-					} else {
-						echo json_encode(
-							array(
-								'status'  => 400,
-								'message' => isset( $get_product_detail['msg'] ) ? $get_product_detail['msg'] : json_encode( $get_product_detail ),
-								'prodid'  => $prodIDs,
-							)
-						);
-						die;
-					}
+					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
+				    $this->ced_notice_response( 400, $message, $product_id );
 				}
 			} elseif ( 'update_product' == $operation ) {
-				$prodIDs          = $product_id;
-				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
-				if ( $already_uploaded ) {
-					$get_product_detail = $this->ced_etsy_product->prepareDataForUpdating( $prodIDs, $shop_name );
-					if ( isset( $get_product_detail['listing_id'] ) ) {
-						echo json_encode(
-							array(
-								'status'  => 200,
-								'message' => $get_product_detail['results'][0]['title'] . ' Updated Successfully',
-							)
-						);
-						die;
-					} else {
-						echo json_encode(
-							array(
-								'status'  => 400,
-								'message' => isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail ),
-							)
-						);
-						die;
-					}
+				if (!$already_uploaded) {
+					$this->ced_notice_response( 400, $not_found, $product_id );
+				}
+				$update   = new \Cedcommerce\Product\Ced_Product_Update( $shop_name, $product_id );
+				$response = $update->ced_etsy_update_product();
+				if ( isset( $response['listing_id'] ) ) {
+					$this->ced_notice_response( 200, get_the_title( $product_id ). ' Updated Successfully', $product_id );
 				} else {
-					echo json_encode(
-						array(
-							'status'  => 400,
-							'message' => __(
-								'Product ' . $prodIDs . ' Not Found On Etsy',
-								'woocommerce-etsy-integration'
-							),
-						)
-					);
-					die;
+					$message = isset( $response['error'] ) ? $response['error'] : json_encode( $response );
+				    $this->ced_notice_response( 400, $message, $product_id );
 				}
 			} elseif ( 'remove_product' == $operation ) {
-				$prodIDs          = $product_id;
-				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
-				if ( $already_uploaded ) {
-					$get_product_detail = $this->ced_etsy_product->prepareDataForDelete( $prodIDs, $shop_name );
-					if ( !isset($get_product_detail['error'] ) ) {
-						echo json_encode(
-							array(
-								'status'  => 200,
-								'message' => 'Product ' . $prodIDs . ' Deleted Successfully',
-								'prodid'  => $prodIDs,
-							)
-						);
-						die;
-					} else {
-						echo json_encode(
-							array(
-								'status'  => 400,
-								'message' => isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail ),
-							)
-						);
-						die;
-					}
+				if (!$already_uploaded) {
+					$this->ced_notice_response( 400,$not_found, $product_id );
+				}
+				$ced_etsy_delete    = new \Cedcommerce\Product\Ced_Product_Delete( $shop_name, $product_id );
+				$get_product_detail = $ced_etsy_delete->ced_etsy_delete_product( $product_id, $shop_name );
+				if ( !isset( $get_product_detail['error'] ) ) {
+					$this->ced_notice_response( 200, get_the_title( $product_id ). ' Deleted Successfully', $product_id );
 				} else {
-					echo json_encode(
-						array(
-							'status'  => 400,
-							'message' => __(
-								'Product ' . $prodIDs . ' Not Found On Etsy',
-								'woocommerce-etsy-integration'
-							),
-						)
-					);
-					die;
+					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
+				    $this->ced_notice_response( 400, $message, $product_id );
 				}
 			} elseif ( 'update_inventory' == $operation ) {
-				$prodIDs          = $product_id;
-				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
-				if ( $already_uploaded ) {
-					$get_product_detail = $this->ced_etsy_product->prepareDataForUpdatingInventory( $prodIDs, $shop_name );
-					if ( isset( $get_product_detail['results'] ) ) {
-						echo json_encode(
-							array(
-								'status'  => 200,
-								'message' => __(
-									'Inventory Updated Successfully',
-									'woocommerce-etsy-integration'
-								),
-							)
-						);
-						die;
-					} else {
-						echo json_encode(
-							array(
-								'status'  => 400,
-								'message' => isset( $get_product_detail['msg'] ) ? $get_product_detail['msg'] : json_encode( $get_product_detail ),
-							)
-						);
-						die;
-					}
+				if (!$already_uploaded) {
+					$this->ced_notice_response( 400, $not_found, $product_id );
+				}
+				$get_product_detail = $this->ced_etsy_product->prepareDataForUpdatingInventory( $product_id, $shop_name );
+				if ( isset( $get_product_detail['listing_id'] ) ) {
+					$this->ced_notice_response( 200, get_the_title( $product_id ).'Inventory Updated Successfully', $product_id );
 				} else {
-					echo json_encode(
-						array(
-							'status'  => 400,
-							'message' => __(
-								'Product ' . $prodIDs . ' Not Found On Etsy',
-								'woocommerce-etsy-integration'
-							),
-						)
-					);
-					die;
+					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
+				    $this->ced_notice_response( 400, $message, $product_id );
 				}
 			} elseif ( 'deactivate_product' == $operation ) {
-				$prodIDs          = $product_id;
-				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
-				if ( $already_uploaded ) {
-					$get_product_detail = $this->ced_etsy_product->deactivate_products( $prodIDs, $shop_name );
-					if ( isset( $get_product_detail ) ) {
-						echo json_encode(
-							array(
-								'status'  => 200,
-								'message' => __(
-									'Product Deactivated Successfully',
-									'woocommerce-etsy-integration'
-								),
-							)
-						);
-						die;
-					} else {
-						echo json_encode(
-							array(
-								'status'  => 400,
-								'message' => isset( $get_product_detail['msg'] ) ? $get_product_detail['msg'] : json_encode( $get_product_detail ),
-							)
-						);
-						die;
-					}
+				if (!$already_uploaded) {
+					$this->ced_notice_response( 400, $not_found, $product_id );
+				}
+				$get_product_detail = $this->ced_etsy_product->deactivate_product( $product_id, $shop_name );
+				if ( isset( $get_product_detail['listing_id'] ) ) {
+					$this->ced_notice_response( 200, get_the_title( $product_id ).'Product Deactivated Successfully', $product_id );
 				} else {
-					echo json_encode(
-						array(
-							'status'  => 400,
-							'message' => __(
-								'Product ' . $prodIDs . ' Not Found On Etsy',
-								'woocommerce-etsy-integration'
-							),
-						)
-					);
-					die;
+					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
+				    $this->ced_notice_response( 400, $message, $product_id );
 				}
 			} elseif ( 'update_image' == $operation ) {
-				$prodIDs          = $product_id;
-				$already_uploaded = get_post_meta( $prodIDs, '_ced_etsy_listing_id_' . $shop_name, true );
-				if ( $already_uploaded ) {
-					$get_product_detail = $this->ced_etsy_product->ced_update_images_on_etsy( $prodIDs, $shop_name );
-					if ( isset( $get_product_detail ) ) {
-						echo json_encode(
-							array(
-								'status'  => 200,
-								'message' => __(
-									'Product Image Updated Successfully',
-									'woocommerce-etsy-integration'
-								),
-							)
-						);
-						die;
-					} else {
-						echo json_encode(
-							array(
-								'status'  => 400,
-								'message' => isset( $get_product_detail['msg'] ) ? $get_product_detail['msg'] : json_encode( $get_product_detail ),
-							)
-						);
-						die;
-					}
+				if (!$already_uploaded) {
+					$this->ced_notice_response( 400, $not_found, $product_id );
+				}
+				$get_product_detail = $this->ced_etsy_product->ced_update_images_on_etsy( $product_id, $shop_name );
+				if ( isset( $get_product_detail['listing_id'] ) ) {
+					$this->ced_notice_response( 200, get_the_title( $product_id ).'Image Updated Successfully', $product_id );
 				} else {
-					echo json_encode(
-						array(
-							'status'  => 400,
-							'message' => __(
-								'Product ' . $prodIDs . ' Not Found On Etsy',
-								'woocommerce-etsy-integration'
-							),
-						)
-					);
-					die;
+					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
+				    $this->ced_notice_response( 400, $message, $product_id );
 				}
 			}
 		}
+	}
+
+
+	private function ced_notice_response( $status = '', $message = '', $product_id = '' ){
+		echo json_encode(
+			array(
+				'status'  => $status,
+				'message' =>  __( $message ,'woocommerce-etsy-integration' ),
+				'prodid'  => $product_id,
+			)
+		);
+		die;
 	}
 
 	/**

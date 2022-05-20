@@ -137,7 +137,7 @@ if ( ced_etsy_check_woocommerce_active() ) {
 register_activation_hook( __FILE__, 'ced_admin_notice_example_activation_hook_ced_etsy' );
 	/*Admin admin notice */
 
-add_action( 'admin_notices', 'ced_etsy_admin_notice_activation' );
+// add_action( 'admin_notices', 'ced_etsy_admin_notice_activation' );
 } else {
 	add_action( 'admin_init', 'deactivate_ced_etsy_woo_missing' );
 }

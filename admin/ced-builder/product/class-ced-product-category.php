@@ -42,7 +42,7 @@ if ( ! class_exists( 'Ced_Product_Category' ) ) {
 		 *
 		 * @since    1.0.0
 		 */
-		public function getEtsyCategories( $shop_name = '' ) {
+		public function get_etsy_categories( $shop_name = '' ) {
 			do_action( 'ced_etsy_refresh_token', $shop_name );
 			$categories = etsy_request()->get( "application/seller-taxonomy/nodes", $shop_name );
 			return $categories;
@@ -53,7 +53,7 @@ if ( ! class_exists( 'Ced_Product_Category' ) ) {
 		 *
 		 * @since    1.0.0
 		 */
-		public function StoreCategories( $fetchedCategories, $ajax = '' ) {
+		public function ced_etsy_store_categories( $fetchedCategories, $ajax = '' ) {
 			foreach ( $fetchedCategories['results'] as $key => $value ) {
 				if ( count( $value['children_ids'] ) > 0 ) {
 					$arr1[] = array(

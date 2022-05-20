@@ -43,13 +43,6 @@ class Ced_Product_Update {
     public $response;
 
     /**
-     * Ced_Product_Update constructor.
-     */
-    public function __construct() {
-
-    }
-
-    /**
      * Get value of an property which isn't exist in this class. 
      *
      * @since    1.0.0
@@ -78,10 +71,12 @@ class Ced_Product_Update {
      *
      * @since    1.0.0
      */
-    public function __invoke( $shop_name = '', $product_id= '' ){
+    public function __construct( $shop_name = '', $product_id= '' ){
         $this->shop_name  = $shop_name;
-        $this->product_id = $product_id;
-        $this->listing_id = get_post_meta( $product_id, '_ced_etsy_listing_id_'.$this->shop_name, true );
+        $this->product_id = !is_array( $product_id ) ? array( $product_id ) : $product_id;
+        if (!empty( $this->shop_name ) && $this->product_id ) {
+            $this->listing_id = get_post_meta( $this->product_id, '_ced_etsy_listing_id_'.$this->shop_name, true );
+        }
     }
 
      /**
@@ -97,20 +92,26 @@ class Ced_Product_Update {
       * @return $response ,
       */
     public function ced_etsy_update_product( $product_ids = array(), $shop_name = '' ) {
-        if ( ! is_array( $proIDs ) ) {
-            $proIDs = array( $proIDs );
+        if ( ! is_array( $product_ids ) ) {
+            $product_ids = array( $product_ids );
         }
-
+        $shop_name   = empty( $shop_name ) ? $this->shop_name : $shop_name;
+        $product_ids = empty( $product_ids ) ? $this->product_id : $product_ids;
+        if (!is_array( $product_ids) ) {
+            $this->response['error'] = 'Ids Not set to valid formate';
+            return $this->response;
+        }
         foreach ( $product_ids as $product_id ) {
-            $listing_id  = get_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, true );
-            $profileData = $this->getProfileAssignedData( $product_id, $shop_name );
-            if ( 'false' == $profileData && ! $isPreview ) {
-                return array( 'msg' => 'Profile Not Assigned' );
+            if (empty( $this->listing_id )) {
+                $this->listing_id = get_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, true );
             }
             $payload    = new \Cedcommerce\Product\Ced_Product_Payload( $shop_name, $product_id );
             $arguements = $payload->ced_etsy_get_formatted_data( $product_id, $shop_name );
+            if ( !is_array( $arguements ) ){
+                return $arguements;
+            }
             $shop_id    = get_etsy_shop_id( $shop_name );
-            $action     = "application/shops/{$shop_id}/listings/{$listing_id}";
+            $action     = "application/shops/{$shop_id}/listings/{$this->listing_id}";
             do_action( 'ced_etsy_refresh_token', $shop_name );
             $this->response  = etsy_request()->put( $action, $arguements, $shop_name );
             if (isset( $this->response['listing_id'] ) ) {
@@ -121,14 +122,13 @@ class Ced_Product_Update {
                     $this->response = $this->ced_update_variation_to_etsy( $this->response['listing_id'], $arguements, $shop_name );
                 }
             }
-            if ( isset( $this->response['exception'] ) ) {
+            if ( isset( $this->response['error'] ) ) {
                 $error        = array();
-                $error['msg'] = isset( $this->response['exception']['last_response'] ) ? $this->response['exception']['last_response'] : 'some error occured';
+                $error['error'] = isset( $this->response['error'] ) ? $this->response['error'] : 'some error occured';
                 return $error;
             }
             return $this->response;
         }
-        return $this->uploadResponse;
     }
 
      /**
