@@ -126,26 +126,27 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 				$this->ced_product = wc_get_product( absint( $pr_id ) );
 				$pro_type          = $this->ced_product->get_type();
 				$alreadyUploaded   = false;
+				$payload    = new \Cedcommerce\product\Ced_Product_Payload( $shop_name, $pr_id );
 				if ( 'variable' == $pro_type ) {
+
 					$attributes = $this->ced_product->get_variation_attributes();
+					
+					ini_set( 'display_errors' , '1' );
+					ini_set( 'display_startup_errors' , '1' );
+					error_reporting( E_ALL );
+
 					if ( count( $attributes ) > 2 ) {
 						$error                = array();
 						$error['msg']         = 'Varition attributes cannot be more than 2 . Etsy accepts variations using two attributes only.';
 						$this->uploadResponse = $error;
 						return $this->uploadResponse;
 					}
-					$preparedData = $this->ced_etsy_get_formatted_data( $pr_id, $shop_name );
-					if (isset($preparedData['msg'])) {
-						$this->uploadResponse = $preparedData['msg'];
-						continue;
-					}
-					if ( 'Profile Not Assigned' == $preparedData || 'Quantity Cannot Be 0' == $preparedData ) {
-						$error                = array();
-						$error['msg']         = $preparedData;
-						$this->uploadResponse = $error;
-						return $this->uploadResponse;
-					}
-					$this->data = $preparedData;
+					$this->data = $payload->ced_etsy_get_formatted_data( $pr_id, $shop_name );
+					
+					echo "<pre>";
+					print_r( $this->data );
+					die();
+
 					self::doupload( $pr_id, $shop_name );
 					$response = $this->uploadResponse;
 					if ( isset( $response['listing_id'] ) ) {
@@ -166,7 +167,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 						}
 					}
 				} elseif ( 'simple' == $pro_type ) {
-					$payload    = new \Cedcommerce\product\Ced_Product_Payload( $shop_name, $pr_id );
 					$this->data = $payload->ced_etsy_get_formatted_data( $pr_id, $shop_name );
 					if (isset($this->data['msg'])) {
 						$this->uploadResponse = $this->data['msg'];

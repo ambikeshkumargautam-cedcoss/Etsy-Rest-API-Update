@@ -24,7 +24,6 @@ class Ced_Product_Payload {
     public $ced_global_settings;
     public $isProfileAssignedToProduct;
     public $profile_data;
-
     /**
      * Product Type variable
      *
@@ -40,7 +39,7 @@ class Ced_Product_Payload {
 
     public $product;
 
-
+       
     /**
      * Etsy Payload response.
      * @var string
@@ -129,7 +128,7 @@ class Ced_Product_Payload {
         if (empty( $pr_id )) {
             $pr_id = $this->product_id;
         }
-         $wc_product = wc_get_product( $pr_id );
+         $wc_product    = wc_get_product( $pr_id );
          $this->product = $wc_product->get_data();
          $type          = $wc_product->get_type();
          if ('variable' === $type ) {
@@ -236,7 +235,7 @@ class Ced_Product_Payload {
             return 'Profile Not Assigned';
         }
         
-        $product            = $this->ced_pro_type( $product_id );
+        $this->product      = $this->ced_pro_type( $product_id );
         $productData        = $this->product;
         $product_type       = $this->product_type;
         // print_r( $this->ced_global_settings['product_data'] );
