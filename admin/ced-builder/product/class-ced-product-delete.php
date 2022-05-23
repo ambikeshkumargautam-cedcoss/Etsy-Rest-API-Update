@@ -39,6 +39,7 @@ class Ced_Product_Delete {
      * Ced_Product_Delete constructor.
      */
     public function __construct( $shop_name = '', $product_id = '' ) {
+        $this->shop_name = isset( $shop_name ) ? $shop_name : '';
         $this->listing_id = get_post_meta( $product_id, '_ced_etsy_listing_id_'.$this->shop_name, true );
     }
 

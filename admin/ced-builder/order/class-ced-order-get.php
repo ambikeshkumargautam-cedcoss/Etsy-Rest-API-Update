@@ -24,9 +24,12 @@ class Ced_Order_Get {
 	 * @since 1.0.0
 	 */
 
-	public function getOrders( $shopId ) {
+	public function getOrders( $shop_name='' ) {
+		if (empty( $shop_name )) {
+			return;
+		}
 		$saved_etsy_details = get_option( 'ced_etsy_details', true );
-		$shopDetails        = $saved_etsy_details[ $shopId ];
+		$shopDetails        = $saved_etsy_details[ $shop_name ];
 		$shop_id            = $shopDetails['details']['shop_id'];
 		$last_created_order = get_option( 'ced_etsy_last_order_created_time', '' );
 		$last_created_order = date_i18n( 'F d, Y h:i', strtotime( $last_created_order ) );
@@ -39,18 +42,18 @@ class Ced_Order_Get {
 		);
 
 		$saved_global_settings_data = get_option( 'ced_etsy_global_settings', '' );
-		$fetch_order_status         = isset( $saved_global_settings_data[ $shopId ]['ced_fetch_etsy_order_by_status'] ) ? $saved_global_settings_data[ $shopId ]['ced_fetch_etsy_order_by_status'] : '';
+		$fetch_order_status         = isset( $saved_global_settings_data[ $shop_name ]['ced_fetch_etsy_order_by_status'] ) ? $saved_global_settings_data[ $shop_name ]['ced_fetch_etsy_order_by_status'] : '';
 		if ( 'all' != $fetch_order_status ) {
 			$order_status = '/' . $fetch_order_status;
 		} else {
 			$order_status = '';
 		}
-		$client  = ced_etsy_getOauthClientObject( $shopId );
-		$success = $client->CallAPI( 'https://openapi.etsy.com/v2/shops/' . $shop_id . '/receipts' . $order_status, 'GET', $params, array( 'FailOnAccessError' => true ), $result );
-		$result  = json_decode( json_encode( $result ), true );
 
+		do_action( 'ced_etsy_refresh_token', $shop_name );
+		$shop_id = get_etsy_shop_id( $shop_name );
+		$result  = etsy_request()->get( "application/shops/$shop_id/receipts/", $shop_name, $params );
 		if ( isset( $result['results'] ) && ! empty( $result['results'] ) ) {
-			$this->createLocalOrder( $result['results'], $shopId );
+			$this->createLocalOrder( $result['results'], $shop_name );
 		}
 	}
 

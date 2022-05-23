@@ -235,9 +235,9 @@ class Ced_Product_Payload {
             return 'Profile Not Assigned';
         }
         
-        $this->product      = $this->ced_pro_type( $product_id );
-        $productData        = $this->product;
-        $product_type       = $this->product_type;
+        $product            = wc_get_product( $product_id );
+        $productData        = $product->get_data();
+        $product_type       = $product->get_type();
         // print_r( $this->ced_global_settings['product_data'] );
         $etsy_data_field    = isset( $this->ced_global_settings['product_data'] ) ? $this->ced_global_settings['product_data'] : $this->ced_global_settings[$shop_name]['product_data'];
         $pro_data = array();
@@ -652,9 +652,7 @@ class Ced_Product_Payload {
             $setPropertyIds = array_unique( $setPropertyIds );
             $setPropertyIds = implode( ',', $setPropertyIds );
         }
-
         return $final_attribute_variation_final;
-
     }
 
 
