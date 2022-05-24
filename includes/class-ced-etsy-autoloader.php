@@ -75,22 +75,32 @@ class CedEtsyAutoloader {
 		}
 		$file = $this->ced_etsy_get_file_name_from_class( $class );
 		$path = '';
-		if ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_pro' ) || 0 === strpos( strtolower($class), 'ced_cat' )){
-			$path = $this->include_once . 'ced-builder/product/';
-		}elseif ( 0 === strpos( strtolower(  end( explode('\\', $class ) ) ), 'ced_ord' )) {
-			$path = $this->include_once . 'ced-builder/order/';
-		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_etsy_m' ) ) {
-			$path = $this->include_once . 'lib/';
-		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_view' ) ) {
-			$path = $this->include_once . 'template/view/';
-		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'ced_rend' ) ) {
-			$path = $this->include_once . 'template/view/render/';
-		} elseif ( 0 === strpos( strtolower( end( explode('\\', $class ) ) ), 'woocommmerce_etsy_integration_admin' ) ) {
-			$path = $this->include_once;
+		$paths = $this->ced_autoload_paths();
+		foreach ( $paths as $path_class => $dir_path ) {
+			if ( 0 === strpos( strtolower(  end( explode('\\', $class ) ) ), $path_class ) ){
+				$path = $this->include_once . $dir_path ;
+			}
 		}
 		if ( empty( $path ) || ! $this->ced_load_file( $path . $file ) ) {
 			$this->ced_load_file( $this->include_once . $file );
 		}
+
+	}
+	/**
+	 * Setting up classes with respective path.
+	 *
+	 * @return array file and class.
+	 */
+	private function ced_autoload_paths(){
+		return array(
+			'ced_pro'                             => 'ced-builder/product/',
+			'ced_cat'                             => 'ced-builder/product/',
+			'ced_ord'                             => 'ced-builder/order/',
+			'ced_etsy_m'                          => 'lib/',
+			'ced_view'                            => 'template/view/',
+			'ced_rend'                            => 'template/view/render/',
+			'woocommmerce_etsy_integration_admin' => 'ced-builder/product/',
+		);
 	}
 
 

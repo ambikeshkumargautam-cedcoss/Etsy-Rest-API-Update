@@ -68,22 +68,6 @@ class Ced_Product_Payload {
     }
 
     /**
-     * ********************************************************
-     * SET VALUE IN CLASS OBJECT TO HANDLE BEFORE CALL METHODS
-     * ********************************************************
-     *
-     * @since 1.0.0
-     *
-     * @param array  $proId Product lsting  ids.
-     * @param string $shop_name Active shopName.
-     *
-     * @link  http://www.cedcommerce.com/
-     */
-
-    public function __invoke( $shop_name = '', $product_id= '' , $listing_id = '' ){
-        echo "Invoke function triggered";
-    }
-    /**
      * Get value of an property which isn't exist in this class. 
      *
      * @param array  $property_name Get result by Defferent names.
