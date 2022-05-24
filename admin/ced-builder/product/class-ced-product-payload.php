@@ -22,7 +22,7 @@ class Ced_Product_Payload {
     */
     public $listing_id;
     public $ced_global_settings;
-    public $isProfileAssignedToProduct;
+    public $is_profile_assing;
     public $profile_data;
     /**
      * Product Type variable
@@ -157,14 +157,14 @@ class Ced_Product_Payload {
         }
         global $wpdb;
         if ( isset( $profile_id ) && ! empty( $profile_id ) ) {
-            $this->isProfileAssignedToProduct = true;
+            $this->is_profile_assing = true;
             $profile_data                     = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}ced_etsy_profiles WHERE `id`=%s ", $profile_id ), 'ARRAY_A' );
             if ( is_array( $profile_data ) ) {
                 $profile_data = isset( $profile_data[0] ) ? $profile_data[0] : $profile_data;
                 $profile_data = isset( $profile_data['profile_data'] ) ? json_decode( $profile_data['profile_data'], true ) : array();
             }
         } else {
-            $this->isProfileAssignedToProduct = false;
+            $this->is_profile_assing = false;
             return 'false';
         }
         $this->profile_data = isset( $profile_data ) ? $profile_data : '';
@@ -657,7 +657,7 @@ class Ced_Product_Payload {
 
     private function fetchMetaValueOfProduct( $product_id, $metaKey, $is_variation = false ) {
 
-        if ( isset( $this->isProfileAssignedToProduct ) && $this->isProfileAssignedToProduct ) {
+        if ( isset( $this->is_profile_assing ) && $this->is_profile_assing ) {
 
             $_product = wc_get_product( $product_id );
             if ( ! is_object( $_product ) ) {

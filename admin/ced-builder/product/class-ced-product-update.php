@@ -110,8 +110,8 @@ class Ced_Product_Update {
             if ( !is_array( $arguements ) ){
                 return $arguements;
             }
-            $shop_id    = get_etsy_shop_id( $shop_name );
-            $action     = "application/shops/{$shop_id}/listings/{$this->listing_id}";
+            $shop_id = get_etsy_shop_id( $shop_name );
+            $action  = "application/shops/{$shop_id}/listings/{$this->listing_id}";
             do_action( 'ced_etsy_refresh_token', $shop_name );
             $this->response  = etsy_request()->put( $action, $arguements, $shop_name );
             if (isset( $this->response['listing_id'] ) ) {

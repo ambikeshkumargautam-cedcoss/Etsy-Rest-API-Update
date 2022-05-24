@@ -264,3 +264,29 @@ function get_etsy_shop_id( $shop_name = '' ){
 function ced_filter_input(){
 	return filter_input_array( INPUT_POST, FILTER_SANITIZE_STRING );
 }
+
+function get_product_id_by_params( $meta_key = '', $meta_value = '' ) {
+	if ( ! empty( $meta_value ) ) {
+		$posts = get_posts(
+			array(
+
+				'numberposts' => -1,
+				'post_type'   => array( 'product', 'product_variation' ),
+				'meta_query'  => array(
+					array(
+						'key'     => $meta_key,
+						'value'   => trim( $meta_value ),
+						'compare' => '=',
+					),
+				),
+				'fields'      => 'ids',
+
+			)
+		);
+		if ( ! empty( $posts ) ) {
+			return $posts[0];
+		}
+		return false;
+	}
+	return false;
+}

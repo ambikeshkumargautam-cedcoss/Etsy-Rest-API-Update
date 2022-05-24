@@ -174,7 +174,6 @@ class Woocommmerce_Etsy_Integration {
 			'ced_etsy_change_account_status',
 			'ced_etsy_submit_shipment',
 			'ced_esty_delete_mapped_profiles',
-			'ced_update_inventory_etsy_to_woocommerce',
 			'ced_etsy_map_shipping_profiles_woo_cat',
 			'ced_etsy_delete_shipping_profile',
 			'ced_etsy_category_refresh',

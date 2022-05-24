@@ -151,11 +151,11 @@ class Ced_Order_Get {
 							$CancelQty  = 0;
 							$sku        = isset( $transaction['product_data']['sku'] ) ? $transaction['product_data']['sku'] : '';
 							if ( ! empty( $sku ) ) {
-								$ID = $this->get_product_id_by_params( '_sku', $sku );
+								$ID = get_product_id_by_params( '_sku', $sku );
 							}
 
 							if ( ! $ID ) {
-								$ID = $this->get_product_id_by_params( '_ced_etsy_listing_id_' . $shopId, $listing_id );
+								$ID = get_product_id_by_params( '_ced_etsy_listing_id_' . $shopId, $listing_id );
 							}
 
 							$item        = array(
@@ -212,33 +212,7 @@ class Ced_Order_Get {
 			}
 		}
 	}
-
-	public function get_product_id_by_params( $meta_key = '', $meta_value = '' ) {
-		if ( ! empty( $meta_value ) ) {
-			$posts = get_posts(
-				array(
-
-					'numberposts' => -1,
-					'post_type'   => array( 'product', 'product_variation' ),
-					'meta_query'  => array(
-						array(
-							'key'     => $meta_key,
-							'value'   => trim( $meta_value ),
-							'compare' => '=',
-						),
-					),
-					'fields'      => 'ids',
-
-				)
-			);
-			if ( ! empty( $posts ) ) {
-				return $posts[0];
-			}
-			return false;
-		}
-		return false;
-	}
-
+	
 	/*
 	*
 	*function for creating order in woocommerce

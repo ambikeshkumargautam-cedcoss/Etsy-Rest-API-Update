@@ -14,9 +14,9 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 * Saved data at the global settings.
 		 *
 		 * @since    2.0.8
-		 * @var      string    $renderDataOnGlobalSettings    variable to hold all saved data.
+		 * @var      string    $global_settings    variable to hold all saved data.
 		 */
-		private $renderDataOnGlobalSettings;
+		private $global_settings;
 		/**
 		 * The saved cedEtsy Data.
 		 *
@@ -61,9 +61,9 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		}
 
 		public function __construct( $shop_name = '' ) {
-			$this->shop_name                  = $shop_name;
-			$this->renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', array() );
-			$this->saved_etsy_details         = get_option( 'ced_etsy_details', array() );
+			$this->shop_name          = $shop_name;
+			$this->global_settings    = get_option( 'ced_etsy_global_settings', array() );
+			$this->saved_etsy_details = get_option( 'ced_etsy_details', array() );
 		}
 
 

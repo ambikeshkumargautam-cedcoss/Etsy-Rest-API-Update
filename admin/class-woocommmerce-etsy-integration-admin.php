@@ -1053,20 +1053,22 @@ class Woocommmerce_Etsy_Integration_Admin {
 		if ( empty( $offset ) ) {
 			$offset = 0;
 		}
-		$params = array(
-			'offset' => $offset,
-			'limit'  => 5,
+		$params   = array(
+			'state'    => $status,
+			'offset'   => $offset,
+			'limit'    => $per_page,
 		);
+		
+		if (empty( $shop_name ) ) {
+			return;
+		}
 
-		$renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', array() );
-		$language                   = isset( $renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] ) ? $renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] : 'en';
-
-		$success  = $client->CallAPI( 'https://openapi.etsy.com/v2/shops/' . $shop_id . '/listings/' . $status . '?language=' . $language, 'GET', $params, array( 'FailOnAccessError' => true ), $listings_details );
-		$response = json_decode( json_encode( $listings_details ), true );
-
+		do_action( 'ced_etsy_refresh_token', $shop_name );
+		$shop_id  = get_etsy_shop_id( $shop_name );
+		$response = etsy_request()->get( "application/shops/{$shop_id}/listings", $shop_name, $params );
 		if ( isset( $response['results'][0] ) ) {
 			foreach ( $response['results'] as $key => $value ) {
-				$this->import_product->get_listing_details_auto_upload( $value, $shop_name, $shop_id );
+				$this->import_product->ced_etsy_import_products( $value['listing_id'], $shop_name );
 			}
 			if ( isset( $response['pagination']['next_offset'] ) && ! empty( $response['pagination']['next_offset'] ) ) {
 				$next_offset = $response['pagination']['next_offset'];
@@ -1093,7 +1095,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 		}
 		$getOrders = $this->ced_etsy_order->getOrders( $shop_id );
 		if ( ! empty( $getOrders ) ) {
-			$createOrder = $etsyOrdersInstance->createLocalOrder( $getOrders, $shop_id );
+			$createOrder = $this->ced_etsy_order->createLocalOrder( $getOrders, $shop_id );
 		}
 	}
 
@@ -1405,108 +1407,6 @@ class Woocommmerce_Etsy_Integration_Admin {
 		}
 	}
 
-	/**
-	 * *****************************************
-	 * UPDATE INVENTORY FROM ETSY SHOP TO WOO
-	 * *****************************************
-	 *
-	 * @since version 1.0.8.
-	 */
-	public function ced_update_inventory_etsy_to_woocommerce() {
-
-		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
-		if ( $check_ajax ) {
-
-			$listing_id                 = isset( $_POST['listing_id'] ) ? sanitize_text_field( $_POST['listing_id'] ) : '';
-			$shop_name                  = isset( $_POST['shop_name'] ) ? sanitize_text_field( $_POST['shop_name'] ) : '';
-			$renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', array() );
-			$language                   = isset( $renderDataOnGlobalSettings[ $shop_name ]['etsy_language'] ) ? $renderDataOnGlobalSettings[ $shop_name ]['etsy_language'] : '';
-			$saved_etsy_details         = get_option( 'ced_etsy_details', array() );
-			$shopDetails                = $saved_etsy_details[ $shop_name ];
-			$shop_id                    = $shopDetails['details']['shop_id'];
-			$client                     = ced_etsy_getOauthClientObject( $shop_name );
-			$offset                     = get_option( 'ced_etsy_get_import_offset', 0 );
-
-			if ( empty( $offset ) ) {
-				$offset = 0;
-			}
-			$params            = array(
-				'offset'   => $offset,
-				'limit'    => 20,
-				'language' => $language,
-			);
-			$success           = $client->CallAPI( 'https://openapi.etsy.com/v2/listings/' . $listing_id, 'GET', $params, array( 'FailOnAccessError' => true ), $listings_details );
-			$listings_details  = json_decode( json_encode( $listings_details ), true );
-			$product           = $listings_details['results'][0];
-			$if_product_exists = etsy_get_product_id_by_shopname_and_listing_id( $shop_name, $listing_id );
-			if ( ! empty( $if_product_exists ) ) {
-				/**
-				 * ******************************************************
-				 *   Updating Changes From Etsy To Woocommerce products.
-				 * ******************************************************
-				 */
-				// Get product id
-				$product_id = $if_product_exists;
-
-				$post      = array(
-					'ID'           => esc_sql( $product_id ),
-					'post_content' => wp_kses_post( $product['description'] ),
-					'post_title'   => wp_strip_all_tags( $product['title'] ),
-				);
-				$parent_id = wp_update_post( $post, true );
-				 // Update diamention for the product.
-				update_post_meta( $product_id, '_weight', $product['item_weight'] );
-				update_post_meta( $product_id, '_length', $product['item_length'] );
-				update_post_meta( $product_id, '_width', $product['item_width'] );
-				update_post_meta( $product_id, '_height', $product['item_height'] );
-
-				if ( isset( $product['sku'][0] ) ) {
-					update_post_meta( $product_id, '_sku', $product['sku'][0] );
-				} else {
-					update_post_meta( $product_id, '_sku', $product['listing_id'] );
-				}
-
-				if ( $product['quantity'] > 0 ) {
-					update_post_meta( $product_id, '_stock_status', 'instock' );
-					update_post_meta( $product_id, '_manage_stock', 'yes' );
-					update_post_meta( $product_id, '_stock', $product['quantity'] );
-				} else {
-					update_post_meta( $product_id, '_stock_status', 'outofstock' );
-				}
-				update_post_meta( $product_id, '_regular_price', $product['price'] );
-				update_post_meta( $product_id, '_price', $product['price'] );
-
-				$product_type = wc_get_product( $parent_id );
-				if ( $product_type->is_type( 'variable' ) ) {
-					$client = ced_etsy_getOauthClientObject( $shop_name );
-					$params = array( 'listing_id' => $listing_id );
-					 // Call for get inventory
-					$response = $client->CallAPI( 'https://openapi.etsy.com/v2/listings/' . $listing_id . '/inventory', 'GET', $params, array( 'FailOnAccessError' => true ), $listings_variable );
-
-					$listings_variable       = json_decode( json_encode( $listings_variable, true ), true );
-					$etsy_variation_products = $listings_variable['results']['products'];
-					foreach ( $etsy_variation_products as $key => $value ) {
-						$variation_id = $value['product_id'];
-						update_post_meta( $variation_id, '_reguler_price', $value['offerings'][0]['price']['currency_formatted_raw'] );
-						update_post_meta( $variation_id, '_stock', $value['offerings'][0]['quantity'] );
-					}
-				}
-				echo json_encode(
-					array(
-						'status'  => 200,
-						'message' => __(
-							'Etsy Product Inventory Updated Successfully In Woocommerce !',
-							'woocommerce-etsy-integration'
-						),
-					)
-				);
-				wp_die();
-			} else {
-				wp_die();
-			}
-		}
-	}
-	
 	/**
 	 * ***********************************************************
 	 * CED etsy prdouct field table on the simple product level .

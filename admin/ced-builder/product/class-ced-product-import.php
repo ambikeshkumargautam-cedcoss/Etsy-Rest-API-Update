@@ -35,161 +35,48 @@ if ( ! class_exists( 'Ced_Etsy_Import_Products' ) ) {
 		 * @since    2.0.0
 		 */
 		public function ced_etsy_import_products( $listing_id = '', $shop_name = '' ) {
-
 			if ( empty( $listing_id ) || empty( $shop_name ) ) {
 				return;
 			}
-			$renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', '' );
-			$language                   = isset( $renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] ) ? $renderDataOnGlobalSettings[ $shop_name ]['product_data']['_etsy_language']['default'] : 'en';
-
-			$saved_etsy_details = get_option( 'ced_etsy_details', true );
-			$shopDetails        = $saved_etsy_details[ $shop_name ];
-			$shop_id            = $shopDetails['details']['shop_id'];
-			$client             = ced_etsy_getOauthClientObject( $shop_name );
-			$offset             = get_option( 'ced_etsy_get_import_offset', 0 );
-
-			if ( empty( $offset ) ) {
-				$offset = 0;
-			}
-			$params  = array(
-				'listing_id' => $listing_id,
-			);
-			$success = $client->CallAPI( 'https://openapi.etsy.com/v2/listings/' . $listing_id . '?language=' . $language, 'GET', $params, array( 'FailOnAccessError' => true ), $listings_details );
-
-			$response = json_decode( json_encode( $listings_details ), true );
-			if ( isset( $response['results'][0] ) ) {
-				$this->get_listing_details( $response['results'][0], $shop_name, $shop_id );
+			do_action( 'ced_etsy_refresh_token', $shop_name );
+            $response = etsy_request()->get( "application/listings/{$listing_id}", $shop_name );
+			if ( isset( $response['listing_id'] ) ) {
+				$this->ced_etsy_get_listing_infos( $response, $shop_name, $shop_id );
+			}else{
+				$error = array();
+				$error['msg'] = " Product doesn't contain information";
+				return $error;
 			}
 		}
 
 		/**
-		 * ******************************************************************************
-		 *  IMPORT PRODUCT BY SCHEDULER [AUTO IMPORT PRODUCT AND UPDATE THE INVENTORY]
-		 * ******************************************************************************
-		 *
-		 * @since    2.0.0
-		 */
-
-		public function get_listing_details_auto_upload( $product = array(), $shop_name = '', $shop_id = '' ) {
-
-			$listing_id = isset( $product['listing_id'] ) ? $product['listing_id'] : '';
-			if ( empty( $listing_id ) ) {
-				return;
-			}
-
-			$if_product_exists = etsy_get_product_id_by_shopname_and_listing_id( $shop_name, $listing_id );
-			if ( ! empty( $if_product_exists ) ) {
-				return;
-
-				/**
-				 * ******************************************************
-				 *   Updating Changes From Etsy To Woocommerce products.
-				 * ******************************************************
-				 */
-				$product_sync_etsy_to_woo = get_option( 'ced_etsy_global_settings', '' );
-				$product_sync_etsy_to_woo = $product_sync_etsy_to_woo[ $shop_name ]['ced_etsy_sync_product_etsy_to_woo_info'];
-
-				if ( false ) {
-
-					$product_id = $if_product_exists;
-					 $post      = array(
-						 'ID'           => esc_sql( $product_id ),
-						 'post_content' => wp_kses_post( $product['description'] ),
-						 'post_title'   => wp_strip_all_tags( $product['title'] ),
-					 );
-					 $parent_id = wp_update_post( $post, true );
-					 update_post_meta( $product_id, '_weight', $product['item_weight'] );
-					 update_post_meta( $product_id, '_length', $product['item_length'] );
-					 update_post_meta( $product_id, '_width', $product['item_width'] );
-					 update_post_meta( $product_id, '_height', $product['item_height'] );
-
-					 if ( isset( $product['sku'][0] ) ) {
-						 update_post_meta( $product_id, '_sku', $product['sku'][0] );
-					 } else {
-						 update_post_meta( $product_id, '_sku', $product['listing_id'] );
-					 }
-
-					 if ( $product['quantity'] > 0 ) {
-						 update_post_meta( $product_id, '_stock_status', 'instock' );
-						 update_post_meta( $product_id, '_manage_stock', 'yes' );
-						 update_post_meta( $product_id, '_stock', $product['quantity'] );
-					 } else {
-						 update_post_meta( $product_id, '_stock_status', 'outofstock' );
-					 }
-					 update_post_meta( $product_id, '_regular_price', $product['price'] );
-					 update_post_meta( $product_id, '_price', $product['price'] );
-
-					 $product_type = wc_get_product( $parent_id );
-					 if ( $product_type->is_type( 'variable' ) ) {
-						 $client = ced_etsy_getOauthClientObject( $shop_name );
-						 $params = array( 'listing_id' => $listing_id );
-						 // Call for get inventory
-						 $response = $client->CallAPI( 'https://openapi.etsy.com/v2/listings/' . $listing_id . '/inventory', 'GET', $params, array( 'FailOnAccessError' => true ), $listings_variable );
-
-							$listings_variable       = json_decode( json_encode( $listings_variable, true ), true );
-							$etsy_variation_products = $listings_variable['results']['products'];
-						 foreach ( $etsy_variation_products as $key => $value ) {
-							 $variation_id = $value['product_id'];
-							 update_post_meta( $variation_id, '_reguler_price', $value['offerings'][0]['price']['currency_formatted_raw'] );
-							 update_post_meta( $variation_id, '_stock', $value['offerings'][0]['quantity'] );
-						 }
-					 }
-				} else {
-					return;
-				}
-			}
-
-			$client           = ced_etsy_getOauthClientObject( $shop_name );
-			$params           = array( 'listing_id' => $listing_id );
-			$response         = $client->CallAPI( 'https://openapi.etsy.com/v2/listings/' . $listing_id . '/inventory', 'GET', $params, array( 'FailOnAccessError' => true ), $listings_details );
-			$images           = $client->CallAPI( 'https://openapi.etsy.com/v2/listings/' . $listing_id . '/images', 'GET', $params, array( 'FailOnAccessError' => true ), $images_details );
-			$listings_details = json_decode( json_encode( $listings_details ), true );
-			$image_details    = json_decode( json_encode( $images_details ), true );
-
-			if ( ! empty( $listings_details ) ) {
-				if ( isset( $listings_details['results']['products'] ) && count( $listings_details['results']['products'] ) > 1 ) {
-					$this->create_variable_product( $product, $listings_details, $image_details, $shop_name );
-				} else {
-					$this->create_simple_product( $product, $listings_details, $image_details, $shop_name );
-				}
-			} else {
-				return;
-			}
-
-		}
-
-		/**
 		 * *************************************
-		 * Etsy get_listing_details.
+		 * Etsy ced_etsy_get_listing_infos.
 		 * *************************************
 		 *
 		 * @since    2.0.0
 		 */
-		private function get_listing_details( $product = array(), $shop_name = '', $shop_id = '' ) {
+		private function ced_etsy_get_listing_infos( $etsy_product = array(), $shop_name = '' ) {
 
-			$listing_id = isset( $product['listing_id'] ) ? $product['listing_id'] : '';
+			$listing_id = isset( $etsy_product['listing_id'] ) ? $etsy_product['listing_id'] : '';
 			if ( empty( $listing_id ) ) {
 				return;
 			}
-			$if_product_exists = etsy_get_product_id_by_shopname_and_listing_id( $shop_name, $listing_id );
-			if ( ! empty( $if_product_exists ) ) {
+			$etsy_product_exists = etsy_get_product_id_by_shopname_and_listing_id( $shop_name, $listing_id );
+			$by_sku_exists       = get_product_id_by_params( '_ced_etsy_listing_id_' . $shop_name, $listing_id );
+			if ( ! empty( $etsy_product_exists ) || $by_sku_exists ) {
 				return;
 			}
-
-			$client = ced_etsy_getOauthClientObject( $shop_name );
-			$params = array( 'listing_id' => $listing_id );
-			// Call for get inventory
-			$response = $client->CallAPI( 'https://openapi.etsy.com/v2/listings/' . $listing_id . '/inventory', 'GET', $params, array( 'FailOnAccessError' => true ), $listings_details );
-
-			// Call for get image details.
-			$images = $client->CallAPI( 'https://openapi.etsy.com/v2/listings/' . $listing_id . '/images', 'GET', $params, array( 'FailOnAccessError' => true ), $images_details );
-
-			$listings_details = json_decode( json_encode( $listings_details ), true );
-			$image_details    = json_decode( json_encode( $images_details ), true );
-			if ( isset( $listings_details['results']['products'] ) && count( $listings_details['results']['products'] ) > 1 ) {
-				$this->create_variable_product( $product, $listings_details, $image_details, $shop_name );
+			do_action( 'ced_etsy_refresh_token', $shop_name );
+			$action        = "application/listings/{$listing_id}/";
+			$inventories   = etsy_request()->get( $action . "inventory", $shop_name );
+			$images        = etsy_request()->get( $action . "images", $shop_name );
+			$image_details = isset( $images['results'] ) ? $images['results'] : array();
+			$e_inventories = isset( $inventories['products'] ) ? $inventories['products'] : array();
+			if ( isset( $inventories['products'] ) && count( ['products'] ) > 1 ) {
+				$this->create_variable_product( $etsy_product, $e_inventories, $image_details, $shop_name );
 			} else {
-				$this->create_simple_product( $product, $listings_details, $image_details, $shop_name );
+				$this->create_simple_product( $etsy_product, $e_inventories, $image_details, $shop_name );
 			}
 		}
 
@@ -247,8 +134,8 @@ if ( ! class_exists( 'Ced_Etsy_Import_Products' ) ) {
 			update_post_meta( $product_id, '_regular_price', $product['price'] );
 			update_post_meta( $product_id, '_price', $product['price'] );
 
-			if ( isset( $image_details['results'] ) ) {
-				$this->create_product_images( $product_id, $image_details['results'] );
+			if ( isset( $image_details ) ) {
+				$this->create_product_images( $product_id, $image_details );
 			}
 
 		}
@@ -538,7 +425,6 @@ if ( ! class_exists( 'Ced_Etsy_Import_Products' ) ) {
 		 */
 
 		private function create_product_images( $product_id, $images = array() ) {
-
 			foreach ( $images as $key1 => $value1 ) {
 				$image_url  = $value1['url_fullxfull'];
 				$image_name = explode( '/', $image_url );

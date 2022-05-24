@@ -97,7 +97,6 @@ class EtsyListImportedProducts extends WP_List_Table {
 		);
 		
 		$shop_id            = get_etsy_shop_id( $shop_name );
-		$shippingTemplates  = array();
 		$action             = "application/shops/{$shop_id}/listings";
 		// Refresh token if isn't.
 		do_action( 'ced_etsy_refresh_token', $shop_name );

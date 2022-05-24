@@ -971,45 +971,6 @@
 				}
 			}
 		);
-		 /*
-		  ******************************************************
-		  * UPDATE INVENTORY OF ETSY SHOP PRODUCT ON WOOCOMMERCE
-		  ******************************************************
-		  */
-		$( document ).on(
-			'click' ,
-			'.update_inventory_etsy_to_wooc' ,
-			function (e){
-
-				e.preventDefault();
-				let listing_id = $( this ).data( 'listing-id' );
-				$( '.ced_etsy_loader' ).show();
-				$.ajax(
-					{
-						url : ajaxUrl,
-						data : {
-							listing_id : listing_id,
-							action     : 'ced_update_inventory_etsy_to_woocommerce',
-							shop_name  : shop_name,
-							ajax_nonce : ajaxNonce
-						},
-						type : 'POST',
-						success:function( response ) {
-							  parsed_response = jQuery.parseJSON( response );
-							  var classes     = classes = 'notice notice-success';
-							if ( parsed_response.status == 400 ) {
-								classes = 'notice notice-error';
-							}
-							$( '.ced_etsy_loader' ).hide();
-							var html = '<div class="' + classes + '"><p>' + parsed_response.message + '</p></div>';
-							$( '.ced_etsy_error' ).html( html );
-							window.setTimeout( function() {window.location.reload();},1000 );
-						}
-					}
-				);
-
-			}
-		);
 
 		// $(document).on('click', '.select2-selection__choice__remove', function(e){
 		// 	e.preventDefault();
