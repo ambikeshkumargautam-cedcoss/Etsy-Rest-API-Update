@@ -158,7 +158,7 @@ class Ced_Product_Payload {
         global $wpdb;
         if ( isset( $profile_id ) && ! empty( $profile_id ) ) {
             $this->is_profile_assing = true;
-            $profile_data                     = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}ced_etsy_profiles WHERE `id`=%s ", $profile_id ), 'ARRAY_A' );
+            $profile_data = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefix}ced_etsy_profiles WHERE `id`=%s ", $profile_id ), 'ARRAY_A' );
             if ( is_array( $profile_data ) ) {
                 $profile_data = isset( $profile_data[0] ) ? $profile_data[0] : $profile_data;
                 $profile_data = isset( $profile_data['profile_data'] ) ? json_decode( $profile_data['profile_data'], true ) : array();
@@ -233,7 +233,7 @@ class Ced_Product_Payload {
             if ( empty( $pro_val ) ) {
                 $pro_val = $value['default'];
             }
-            $pro_data[str_replace( '_ced_etsy_', ' ', $meta_key)] = !empty( $pro_val ) ? $pro_val : '';
+            $pro_data[trim( str_replace( '_ced_etsy_', ' ', $meta_key) )] = !empty( $pro_val ) ? $pro_val : '';
         }
 
         $productTitle         = !empty( $pro_data['title'] ) ? $pro_data['title'] : $productData['name'];
@@ -314,7 +314,7 @@ class Ced_Product_Payload {
             'title'                => trim( ucwords( strtolower( strtoupper( $productTitle ) ) ) ),
             'description'          => strip_tags( $productDescription ),
             'shipping_profile_id'  => doubleval( 171887176577 ),
-            'shop_section_id'      => (int) 37380807 /*!empty( $pro_data['shop_section'] ) ? $pro_data['shop_section'] : ''*/,
+            'shop_section_id'      => (int)!empty( $pro_data['shop_section'] ) ? $pro_data['shop_section'] : '',
             'taxonomy_id'          => (int) $category_id,
             'who_made'             => !empty ( $pro_data['who_made'] ) ? $pro_data['who_made'] : 'i_did',
             'is_supply'            => !empty( $pro_data['product_supply'] ) ? $prod_data['product_supply'] : ( 'true' == $pro_data['product_supply'] ? 1 : 0 ),
@@ -636,7 +636,13 @@ class Ced_Product_Payload {
             $setPropertyIds = array_unique( $setPropertyIds );
             $setPropertyIds = implode( ',', $setPropertyIds );
         }
-        return $final_attribute_variation_final;
+        $params = array(
+                'products'             => $final_attribute_variation_final,
+                'price_on_property'    => array( $setPropertyIds ),
+                'quantity_on_property' => array( $setPropertyIds ),
+                'sku_on_property'      => array( $setPropertyIds ),
+        );
+        return $params;
     }
 
 
@@ -700,7 +706,6 @@ class Ced_Product_Payload {
                                     }
                                 } else {
                                     $wooAttributeValue = $_product->get_attribute( 'pa_' . $wooAttribute );
-
                                     $wooAttributeValue = explode( ',', $wooAttributeValue );
                                     $wooAttributeValue = $wooAttributeValue[0];
 

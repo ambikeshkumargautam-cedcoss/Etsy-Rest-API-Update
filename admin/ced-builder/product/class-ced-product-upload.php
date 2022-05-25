@@ -137,6 +137,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 						return $this->uploadResponse;
 					}
 					$this->data = $payload->ced_etsy_get_formatted_data( $pr_id, $shop_name );
+					echo "<pre>";
 					self::doupload( $pr_id, $shop_name );
 					$response = $this->uploadResponse;
 					if ( isset( $response['listing_id'] ) ) {
@@ -631,8 +632,15 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 */
 
 		private function update_variation_sku_to_etsy( $product_id = '', $listing_id = '', $shop_name = '', $offerings_payload = '', $is_sync = false ) {
+			echo "<pre>";
+			print_r( $offerings_payload );
+			// print_r( json_encode( $offerings_payload ) );
+			// echo "Shop Name :-". get_etsy_shop_id( $shop_name );
+			// echo "<br>";
+			// echo "Listind id". $listing_id ;
+			// return;
 			do_action( 'ced_etsy_refresh_token', $shop_name );
-			$response = etsy_request()->put( "application/listings/{$listing_id}/inventory", array( 'products'=> $offerings_payload ), $shop_name );
+			$response = etsy_request()->put( "application/listings/{$listing_id}/inventory", $offerings_payload, $shop_name );
 			if ( isset( $response['listing_id'] ) ) {
 				update_post_meta( $product_id, 'ced_etsy_last_updated' . $shop_name, gmdate( 'l jS \of F Y h:i:s A' ) );
 			}

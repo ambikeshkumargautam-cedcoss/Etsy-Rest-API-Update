@@ -1247,7 +1247,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				if ( isset( $get_product_detail['listing_id'] ) ) {
 					$this->ced_notice_response( 200, get_the_title( $product_id ). ' Uploaded Successfully', $product_id );
 				} else {
-					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
+					$message = isset( $get_product_detail['error'] ) ? ucfirst( $get_product_detail['error'] ) : json_encode( $get_product_detail );
 				    $this->ced_notice_response( 400, $message, $product_id );
 				}
 			} elseif ( 'update_product' == $operation ) {
