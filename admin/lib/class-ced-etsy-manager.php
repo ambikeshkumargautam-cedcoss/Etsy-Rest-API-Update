@@ -100,16 +100,20 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 
 		public function ced_etsy_get_token_and_shop_data() {
 
+			// die('Ambikesh');
 			$log = '';
+			print_r( $_GET );
 			if ( isset( $_GET['state'] ) && ! empty( $_GET['code'] ) ) {
 				$log       .= "Authorization successful \n";
 				$code       = $_GET['code'];
 				$state      = $_GET['state'];
+				// $redirect_uri= $_GET['redirect_uri'];
+				$redirect_uri = ( 'https://woodemo.cedcommerce.com/woocommerce/authorize/etsy/authorize.php' );
 				$action     = 'public/oauth/token';
 				$query_args = array(
 					'grant_type'    => 'authorization_code',
-					'client_id'     => 'b2pa8bczfrwnuccpevnql8eh',
-					'redirect_uri'  => admin_url( 'admin.php?page=ced_etsy' ),
+					'client_id'     => 'ghvcvauxf2taqidkdx2sw4g4',
+					'redirect_uri'  => $redirect_uri,
 					'code'          => $code,
 					'code_verifier' => $state,
 				);
@@ -117,6 +121,9 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 				$shop_name  = get_option( 'ced_etsy_shop_name', '' );
 				$log       .= "retrieving access token from etsy action=$action\n";
 				$response   = etsy_request()->post( $action, $parameters, $shop_name, $query_args );
+				echo "<pre>";
+				print_r( $response );
+				die();
 				$log       .= "Response : \t\t\t" . json_encode( $response ) . "\n\n";
 				if ( isset( $response['access_token'] ) && ! empty( $response['access_token'] ) ) {
 					$action = 'application/shops';

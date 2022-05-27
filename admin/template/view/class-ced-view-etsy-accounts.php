@@ -114,9 +114,7 @@ class Ced_View_Etsy_Accounts extends WP_List_Table {
 	 * @return string
 	 */
 	public function column_name( $item ) {
-
 		echo '<b>' . esc_attr( $item['details']['ced_etsy_shop_name'] ) . '</b>';
-
 	}
 
 	public function column_username( $item ) {
@@ -124,7 +122,6 @@ class Ced_View_Etsy_Accounts extends WP_List_Table {
 	}
 
 	public function column_userid( $item ) {
-
 		echo esc_attr( $item['details']['user_id'] );
 	}
 
@@ -374,16 +371,18 @@ if ( isset( $_POST['ced_etsy_authorise_account_button'] ) && 'Authorize' == $_PO
 	);
 
 	$scopes       = urlencode( implode( ' ', $scopes ) );
-	$client_id    = 'b2pa8bczfrwnuccpevnql8eh';
-	$redirect_uri = admin_url( 'admin.php?page=ced_etsy' );
+	$client_id    = 'ghvcvauxf2taqidkdx2sw4g4';
+	$redirect_uri     = admin_url( 'admin.php?page=ced_etsy' );
+	// $redirect_uri = ( 'https://woodemo.cedcommerce.com/woocommerce/authorize/etsy/authorize.php' );
 	$shop_name    = isset( $_POST['ced_etsy_shop_name'] ) ? $_POST['ced_etsy_shop_name'] : '';
 	update_option( 'ced_etsy_shop_name', $shop_name );
-	$auth_url = "https://www.etsy.com/oauth/connect?response_type=code&redirect_uri=$redirect_uri&scope=$scopes&client_id=$client_id&state=$verifier&code_challenge=$code_challenge&code_challenge_method=S256";
+	// $auth_url = "https://www.etsy.com/oauth/connect?response_type=code&redirect_uri=$redirect_uri&scope=$scopes&client_id=$client_id&state=$verifier&code_challenge=$code_challenge&code_challenge_method=S256";
 	$log      = '';
 	$log     .= "Authorization process starts\n";
 	$log     .= "Redirecting to www.etsy.com\n";
 	etsy_write_logs( log_head() . $log, 'general', false );
-	$auth_url = "https://woodemo.cedcommerce.com/woocommerce/authorize/etsy/authorize.php";
+	// $auth_url = "https://woodemo.cedcommerce.com/woocommerce/authorize/etsy/authorize.php";
+	$auth_url = "https://woodemo.cedcommerce.com/woocommerce/authorize/etsy/authorize.php?response_type=code&redirect_uri=$redirect_uri&scope=$scopes&client_id=$client_id&state=$verifier&code_challenge=$code_challenge&code_challenge_method=S256";
 	wp_redirect( $auth_url );
 	exit;
 }
