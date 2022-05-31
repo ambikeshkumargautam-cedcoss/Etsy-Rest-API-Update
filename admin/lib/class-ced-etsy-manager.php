@@ -60,6 +60,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		 */
 
 		public function __construct() {
+			
 			$this->etsy_product_upload = ProductUpload::get_instance();
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_shipping_configuration' ), 10, 2 );
 			add_action( 'ced_etsy_additional_configuration', array( $this, 'ced_etsy_additional_payment_configuration' ), 11, 2 );
@@ -72,10 +73,10 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 			add_action( 'ced_etsy_auto_submit_shipment', array( $this, 'ced_etsy_auto_submit_shipment' ) );
 			// add_action( 'admin_notices', array( $this, 'ced_etsy_admin_notices' ) );
 			add_action( 'admin_init', array( $this, 'ced_etsy_get_token_and_shop_data' ) );
-			add_action( 'ced_etsy_refresh_token', array( $this, 'ced_etsy_refresh_token' ) );
+			add_action( 'ced_etsy_refresh_token', array( $this, 'ced_etsy_refresh_token_action' ) );
 		}
 
-		public function ced_etsy_refresh_token( $shop_name = '' ) {
+		public function ced_etsy_refresh_token_action( $shop_name = '' ) {
 
 			if ( ! $shop_name || get_transient( 'ced_etsy_token_' . $shop_name ) ) {
 				return;
@@ -100,30 +101,24 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 
 		public function ced_etsy_get_token_and_shop_data() {
 
-			// die('Ambikesh');
 			$log = '';
-			print_r( $_GET );
 			if ( isset( $_GET['state'] ) && ! empty( $_GET['code'] ) ) {
 				$log       .= "Authorization successful \n";
 				$code       = $_GET['code'];
-				$state      = $_GET['state'];
-				// $redirect_uri= $_GET['redirect_uri'];
-				$redirect_uri = ( 'https://woodemo.cedcommerce.com/woocommerce/authorize/etsy/authorize.php' );
+				$verifier      = $_GET['state'];
 				$action     = 'public/oauth/token';
 				$query_args = array(
 					'grant_type'    => 'authorization_code',
 					'client_id'     => 'ghvcvauxf2taqidkdx2sw4g4',
-					'redirect_uri'  => $redirect_uri,
+					'redirect_uri'  => 'https://woodemo.cedcommerce.com/woocommerce/authorize/etsy/authorize.php',
 					'code'          => $code,
-					'code_verifier' => $state,
+					'code_verifier' => $verifier,
 				);
 				$parameters = $query_args;
 				$shop_name  = get_option( 'ced_etsy_shop_name', '' );
 				$log       .= "retrieving access token from etsy action=$action\n";
 				$response   = etsy_request()->post( $action, $parameters, $shop_name, $query_args );
-				echo "<pre>";
-				print_r( $response );
-				die();
+				// print_r( $response );die;
 				$log       .= "Response : \t\t\t" . json_encode( $response ) . "\n\n";
 				if ( isset( $response['access_token'] ) && ! empty( $response['access_token'] ) ) {
 					$action = 'application/shops';
@@ -134,6 +129,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 					$shop       = etsy_request()->get( $action, '', $query_args );
 					$log       .= "retrieving shop information from etsy action=$action\n";
 					$log       .= "Response : \t\t\t" . json_encode( $shop ) . "\n\n";
+					// print_r($shop);
 					if ( isset( $shop['results'][0] ) ) {
 
 						set_transient( 'ced_etsy_token_' . $shop_name, $response, (int) $response['expires_in'] );
@@ -162,10 +158,11 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 						}
 					}
 				}
-				
+			
 				wp_redirect( admin_url( 'admin.php?page=ced_etsy' ) );
-				exit;
+					exit;
 			}
+
 
 		}
 		

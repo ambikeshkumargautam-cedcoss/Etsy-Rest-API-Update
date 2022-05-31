@@ -24,6 +24,8 @@ class Ced_Product_Payload {
     public $ced_global_settings;
     public $is_profile_assing;
     public $profile_data;
+    public $is_downloadable;
+    public $downloadable_data;
     /**
      * Product Type variable
      *
@@ -222,7 +224,13 @@ class Ced_Product_Payload {
         $product            = wc_get_product( $product_id );
         $productData        = $product->get_data();
         $product_type       = $product->get_type();
-        // print_r( $this->ced_global_settings['product_data'] );
+        
+        // Downloadable Products
+        $this->is_downloadable = isset( $productData['downloadable'] ) ? $productData['downloadable'] : 0;
+        if ( $this->is_downloadable ) {
+          $this->downloadable_data = isset( $productData['downloads'] ) ? $productData['downloads'] : array();
+        }
+       
         $etsy_data_field    = isset( $this->ced_global_settings['product_data'] ) ? $this->ced_global_settings['product_data'] : $this->ced_global_settings[$shop_name]['product_data'];
         $pro_data = array();
         foreach ( $etsy_data_field as $meta_key => $value ) {

@@ -1227,6 +1227,9 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @since    1.0.0
 	 */
 	public function ced_etsy_process_bulk_action() {
+			// ini_set('display_errors','1');
+			// 			ini_set('display_startup_errors','1');
+			// 			error_reporting( E_ALL );
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
 		if ( $check_ajax ) {
 			$shop_name        = isset( $_POST['shopname'] ) ? sanitize_text_field( wp_unslash( $_POST['shopname'] ) ) : '';

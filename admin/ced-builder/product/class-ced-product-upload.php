@@ -125,8 +125,8 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 				$this->ced_product = wc_get_product( absint( $pr_id ) );
 				$pro_type          = $this->ced_product->get_type();
 				$alreadyUploaded   = false;
-				$payload           = new \Cedcommerce\product\Ced_Product_Payload( $shop_name, $pr_id );
 				$delete_instance   = new \Cedcommerce\product\Ced_Product_Delete();
+				$payload           = new \Cedcommerce\product\Ced_Product_Payload( $shop_name, $pr_id );
 				if ( 'variable' == $pro_type ) {
 
 					$attributes = $this->ced_product->get_variation_attributes();
@@ -171,11 +171,71 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 						// $this->update_sku_to_etsy( $this->l_id, $pr_id, $shop_name );
 						// $this->ced_etsy_upload_attributes( $this->l_id, $pr_id, $shop_name );
 						// $this->ced_update_uploaded_images( $pr_id, $shop_name );
+
+						 if ( $payload->is_downloadable ) {
+							$digital_response = $this->ced_upload_downloadable( $pr_id, $shop_name, $response['listing_id'], $payload->downloadable_data );
+							if (!$digital_response) {
+								$delete_instance->ced_etsy_delete_product( array( $pr_id ), $shop_name );
+							}
+						}
 					}
 				}
 			}
 			return $this->uploadResponse;
 		}
+
+
+		 private function ced_upload_downloadable( $p_id='', $shop_name = '', $l_id= '', $downloadable_data= array() ) {
+			$listing_files_uploaded = get_post_meta( $p_id, '_ced_etsy_product_files_uploaded' . $l_id, true );
+			if ( empty( $listing_files_uploaded ) ) {
+				$listing_files_uploaded = array();
+			}
+
+			// echo "<pre>";
+			// print_r( $downloadable_data );
+			if ( ! empty( $downloadable_data ) ) {
+				$count = 0;
+				// var_dump( $downloadable_data );
+				foreach ( $downloadable_data as $data ) {
+					if ( $count > 4 ) {
+						break;
+					}
+					$file_data = $data->get_data();
+					if ( isset( $listing_files_uploaded[ $file_data['id'] ] ) ) {
+						continue;
+					}
+					try {
+						
+						// ini_set('display_errors','1');
+						// ini_set('display_startup_errors','1');
+						// error_reporting( E_ALL );
+						// // $file_type  = explode( '.', $file_data['file'] );
+						// // $file_type  = ! empty( end( $file_type ) ) ? end( $file_type ) : 'jpeg';
+						// //var_dump( $file_data['id'] );
+						$image_path = str_replace(wp_upload_dir()['baseurl'], wp_upload_dir()['basedir'],  $file_data['file'] );
+						// var_dump();
+						// // return;
+						// // $params    = array( 'image' => @base64_encode( @file_get_contents( $file_data['file'] ) ) );
+						// echo "<pre>";
+						// // print_r( $params );
+
+    					do_action( 'ced_etsy_refresh_token', $shop_name );
+    					$shop_id  = get_etsy_shop_id( $shop_name );
+						$response = etsy_request()->image_upload_test( "application/shops/{$shop_id}/listings/{$l_id}/images", $image_path, 'First_asdfsaimagesssss', $shop_name );
+						var_dump( $response );
+						if (isset( $response['listing_id'] ) && isset( $reponse['listing_image_id'] ) ) {
+							$listing_files_uploaded[ $file_data['id'] ] = $response['listing_image_id'];
+							update_post_meta( $p_id, '_ced_etsy_product_files_uploaded' . $l_id, $listing_files_uploaded );
+							var_dump('asssss');
+						}
+					} catch ( Exception $e ) {
+						$this->error_msg['msg'] = 'Message:' . $e->getMessage();
+						return $this->error_msg;
+					}
+				}
+			}
+		}
+
 
 		public function ced_update_listing_id_url( $product_id='', $listing_id_url = array() ){
 			foreach( $listing_id_url as $meta_key => $meta_value ) {
