@@ -91,6 +91,7 @@ class Ced_Product_Delete {
                 if ( !isset( $response['error'] ) ) {
                     delete_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name );
                     delete_post_meta( $product_id, '_ced_etsy_url_' . $shop_name );
+                    delete_post_meta( $product_id, '_ced_etsy_product_files_uploaded' . $listing_id );
                 }
                 return $response;
             }

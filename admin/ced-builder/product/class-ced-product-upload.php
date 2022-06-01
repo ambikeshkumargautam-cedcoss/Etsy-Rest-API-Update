@@ -168,15 +168,10 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 					if ( isset( $response['listing_id'] ) ) {
 						update_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, $response['listing_id'] );
 						update_post_meta( $pr_id, '_ced_etsy_url_' . $shop_name, $response['url'] );
-						// $this->update_sku_to_etsy( $this->l_id, $pr_id, $shop_name );
-						// $this->ced_etsy_upload_attributes( $this->l_id, $pr_id, $shop_name );
-						// $this->ced_update_uploaded_images( $pr_id, $shop_name );
-
-						 if ( $payload->is_downloadable ) {
-							$digital_response = $this->ced_upload_downloadable( $pr_id, $shop_name, $response['listing_id'], $payload->downloadable_data );
-							if (!$digital_response) {
-								$delete_instance->ced_etsy_delete_product( array( $pr_id ), $shop_name );
-							}
+						$this->l_id = $response['listing_id'];
+						$this->ced_etsy_prep_and_upload_img( $pr_id, $shop_name );
+						if ( $payload->is_downloadable ) {
+							$this->ced_upload_downloadable( $pr_id, $shop_name, $response['listing_id'], $payload->downloadable_data );
 						}
 					}
 				}
@@ -184,18 +179,13 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			return $this->uploadResponse;
 		}
 
-
-		 private function ced_upload_downloadable( $p_id='', $shop_name = '', $l_id= '', $downloadable_data= array() ) {
+		private function ced_upload_downloadable( $p_id='', $shop_name = '', $l_id= '', $downloadable_data= array() ) {
 			$listing_files_uploaded = get_post_meta( $p_id, '_ced_etsy_product_files_uploaded' . $l_id, true );
 			if ( empty( $listing_files_uploaded ) ) {
 				$listing_files_uploaded = array();
 			}
-
-			// echo "<pre>";
-			// print_r( $downloadable_data );
 			if ( ! empty( $downloadable_data ) ) {
 				$count = 0;
-				// var_dump( $downloadable_data );
 				foreach ( $downloadable_data as $data ) {
 					if ( $count > 4 ) {
 						break;
@@ -205,43 +195,24 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 						continue;
 					}
 					try {
-						
-						// ini_set('display_errors','1');
-						// ini_set('display_startup_errors','1');
-						// error_reporting( E_ALL );
-						// // $file_type  = explode( '.', $file_data['file'] );
-						// // $file_type  = ! empty( end( $file_type ) ) ? end( $file_type ) : 'jpeg';
-						// //var_dump( $file_data['id'] );
-						$image_path = str_replace(wp_upload_dir()['baseurl'], wp_upload_dir()['basedir'],  $file_data['file'] );
-						// var_dump();
-						// // return;
-						// // $params    = array( 'image' => @base64_encode( @file_get_contents( $file_data['file'] ) ) );
-						// echo "<pre>";
-						// // print_r( $params );
-
+						$file_path = str_replace( wp_upload_dir()['baseurl'], wp_upload_dir()['basedir'],  $file_data['file'] );
     					do_action( 'ced_etsy_refresh_token', $shop_name );
     					$shop_id  = get_etsy_shop_id( $shop_name );
-						$response = etsy_request()->image_upload_test( "application/shops/{$shop_id}/listings/{$l_id}/images", $image_path, 'First_asdfsaimagesssss', $shop_name );
-						var_dump( $response );
-						if (isset( $response['listing_id'] ) && isset( $reponse['listing_image_id'] ) ) {
-							$listing_files_uploaded[ $file_data['id'] ] = $response['listing_image_id'];
+						$response = etsy_request()->ced_etsy_upload_image_and_file( 'file', "application/shops/{$shop_id}/listings/{$l_id}/files", $file_path, $file_data['name'], $shop_name );
+						if ( isset( $response['listing_file_id'] ) ) {
+							$listing_files_uploaded[ $file_data['id'] ] = $response['listing_file_id'];
 							update_post_meta( $p_id, '_ced_etsy_product_files_uploaded' . $l_id, $listing_files_uploaded );
-							var_dump('asssss');
 						}
 					} catch ( Exception $e ) {
 						$this->error_msg['msg'] = 'Message:' . $e->getMessage();
 						return $this->error_msg;
 					}
 				}
+
 			}
 		}
 
 
-		public function ced_update_listing_id_url( $product_id='', $listing_id_url = array() ){
-			foreach( $listing_id_url as $meta_key => $meta_value ) {
-				update_post_meta( $product_id , $meta_key. $this->shop_name, $meta_value );
-			}
-		}
 
 		/**
 		 * *************************
@@ -256,7 +227,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 * @return
 		 */
 
-		private function ced_update_uploaded_images( $p_id = '', $shop_name = '' ) {
+		public function ced_etsy_prep_and_upload_img( $p_id = '', $shop_name = '' ) {
 			if ( empty( $p_id ) || empty( $shop_name ) ) {
 				return;
 			}
@@ -276,20 +247,62 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 					if ( isset( $previous_thum_ids[ $attachment_id ] ) ) {
 						continue;
 					}
-					$image_result = self::doImageUpload( $this->l_id, $p_id, $attachment_id, $shop_name );
-					if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
-						$previous_thum_ids[ $attachment_id ] = $image_result['results'][0]['listing_image_id'];
+
+					/*
+					|=======================
+					| UPLOAD GALLERY IMAGES
+					|=======================
+					*/
+					$image_result = self::do_image_upload( $this->l_id, $p_id, $attachment_id, $shop_name );
+					if ( isset( $image_result['listing_image_id'] ) ) {
+						$previous_thum_ids[ $attachment_id ] = $image_result['listing_image_id'];
 						update_post_meta( $p_id, 'ced_etsy_previous_thumb_ids' . $this->l_id, $previous_thum_ids );
 					}
 				}
 			}
+
+			/*
+			|===================
+			| UPLOAD MAIN IMAGE
+			|===================
+			*/
 			if ( ! isset( $previous_thum_ids[ $prnt_img_id ] ) ) {
-				$image_result = self::doImageUpload( $this->l_id, $p_id, $prnt_img_id, $shop_name );
-				if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
-					$previous_thum_ids[ $prnt_img_id ] = $image_result['results'][0]['listing_image_id'];
+				$image_result = self::do_image_upload( $this->l_id, $p_id, $prnt_img_id, $shop_name );
+				if ( isset( $image_result['listing_image_id'] ) ) {
+					$previous_thum_ids[ $prnt_img_id ] = $image_result['listing_image_id'];
 					update_post_meta( $p_id, 'ced_etsy_previous_thumb_ids' . $this->l_id, $previous_thum_ids );
 				}
 			}
+		}
+
+		/**
+		 * ************************************
+		 * UPLOAD IMAGED ON THE ETSY SHOP ;)
+		 * ************************************
+		 *
+		 * @since 1.0.0
+		 *
+		 * @param int    $l_id Product listing ids.
+		 * @param int    $pr_id Product ids .
+		 * @param int    $img_id Image Ids.
+		 * @param string $shop_name Active Shop Name
+		 *
+		 * @return Nothing [Message]
+		 */
+
+		public function do_image_upload( $l_id, $pr_id, $img_id, $shop_name ) {
+			$image_path = get_attached_file( $img_id );
+			$image_name = 'Rando Image name';
+			try {
+				do_action( 'ced_etsy_refresh_token', $shop_name );
+				$shop_id  = get_etsy_shop_id( $shop_name );
+				$response = etsy_request()->ced_etsy_upload_image_and_file( 'image', "application/shops/{$shop_id}/listings/{$l_id}/images", $image_path, $image_name, $shop_name );
+				var_dump( $response );
+				return $response;
+			} catch ( Exception $e ) {
+				$this->error_msg .= 'Message: ' . $pr_id . '--' . $e->getMessage();
+			}
+
 		}
 
 		/**
@@ -387,58 +400,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 
 		}
 
-		/**
-		 * ************************************
-		 * UPLOAD IMAGED ON THE ETSY SHOP ;)
-		 * ************************************
-		 *
-		 * @since 1.0.0
-		 *
-		 * @param int    $listingID Product listing ids.
-		 * @param int    $product_id Product ids .
-		 * @param int    $image_id Image Ids.
-		 * @param string $active_shop Active Shop Name
-		 *
-		 * @return Nothing [Message]
-		 */
-
-		private function doImageUpload( $listingID, $product_id, $image_id, $active_shop ) {
-
-			$saved_shop_etsy_details = $this->saved_etsy_details[ $active_shop ];
-			$ced_etsy_keystring      = isset( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_keystring'] ) : '';
-			$ced_etsy_shared_string  = isset( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) ? esc_attr( $saved_shop_etsy_details['details']['ced_etsy_shared_string'] ) : '';
-			$image_path              = get_attached_file( $image_id );
-			$image_url               = wp_get_attachment_url( $image_id );
-			$image_data              = file_get_contents( $image_url );
-			$image_data              = base64_encode( $image_data );
-			try {
-				$args = array(
-					'params' => array(
-						'listing_id' => $listingID,
-					),
-					'data'   => array(
-						'image' => array( '@' . $image_path . ';type=image/jpeg' ),
-					),
-				);
-
-				$requestBody = array(
-					'action'                 => 'uploadListingImage',
-					'ced_etsy_keystring'     => $ced_etsy_keystring,
-					'ced_etsy_shared_string' => $ced_etsy_shared_string,
-					'saved_etsy_details'     => json_encode( $this->saved_etsy_details ),
-					'data'                   => json_encode( $args ),
-					'image_url'              => $image_url,
-					'active_shop'            => $active_shop,
-				);
-				$result      = $this->ced_etsy_post_request( $requestBody );
-				$result      = !is_array( $result ) ? json_decode( $result, true ) : $result;
-				return $result;
-			} catch ( Exception $e ) {
-				$this->error_msg .= 'Message: ' . $product_id . '--' . $e->getMessage();
-			}
-
-		}
-
+		
 		/**
 		 * ************************************
 		 * UPLOAD IMAGED ON THE ETSY SHOP ;)
@@ -507,7 +469,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 							if ( isset( $previous_thum_ids[ $attachment_id ] ) && ! empty( $previous_thum_ids[ $attachment_id ] ) ) {
 								continue;
 							}
-							$image_result = self::doImageUpload( $listing_id, $value, $attachment_id, $shop_name );
+							$image_result = self::do_image_upload( $listing_id, $value, $attachment_id, $shop_name );
 							if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
 								$previous_thum_ids[ $attachment_id ] = $image_result['results'][0]['listing_image_id'];
 								update_post_meta( $value, 'ced_etsy_previous_thumb_ids' . $listing_id, $previous_thum_ids );
@@ -516,7 +478,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 					}
 
 					if ( ! isset( $previous_thum_ids[ $image_id ] ) || empty( $previous_thum_ids[ $image_id ] ) ) {
-						$image_result = self::doImageUpload( $listing_id, $value, $image_id, $shop_name );
+						$image_result = self::do_image_upload( $listing_id, $value, $image_id, $shop_name );
 						if ( isset( $image_result['results'][0]['listing_image_id'] ) ) {
 							$previous_thum_ids[ $image_id ] = $image_result['results'][0]['listing_image_id'];
 							update_post_meta( $value, 'ced_etsy_previous_thumb_ids' . $listing_id, $previous_thum_ids );

@@ -125,17 +125,11 @@ class Ced_Etsy_Request {
 	}
 
 
-	public function image_upload_test( $action, $source_file, $image_name, $shop_name ){
-
-		// var_dump( $this->base_url. $action );
+	public function ced_etsy_upload_image_and_file( $types = '', $action, $source_file, $file_name, $shop_name ){
 		$access_token = $this->get_access_token( $shop_name );
-		// var_dump( $access_token );
-		// var_dump( $image_url );
-		// var_dump( $image_name );
-		// $source_file = dirname(realpath(__FILE__)) ."/images/$filename";
-		$mimetype = mime_content_type($source_file);
-		$params = array('@image' => '@'.$source_file.';type='.$mimetype); 
-		$curl = curl_init();
+		$mimetype     = mime_content_type($source_file);
+		$params       = array('@'.$types => '@'.$source_file.';type='.$mimetype); 
+		$curl         = curl_init();
 		curl_setopt_array( $curl, array(
 		    CURLOPT_URL => 'https://openapi.etsy.com/v3/'. $action,
 		    CURLOPT_RETURNTRANSFER => true,
@@ -145,24 +139,20 @@ class Ced_Etsy_Request {
 		    CURLOPT_FOLLOWLOCATION => true,
 		    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 		    CURLOPT_CUSTOMREQUEST => 'POST',
-		    CURLOPT_POSTFIELDS => [
-		       'image' => new CURLFile($source_file),
-		       'name' => $image_name,
-		    ],
+		    CURLOPT_POSTFIELDS => array(
+		    	$types => new CURLFile($source_file),
+		    	'name' => $file_name,
+		    ),
 		    CURLOPT_HTTPHEADER => array(
 		        'Content-Type: multipart/form-data',
 		        'x-api-key: '.$this->client_id,
 		        'Authorization: Bearer '.$access_token,		    ),
-		));
-
+			)
+		);
 		$response = curl_exec($curl);
-		// var_dump( $response );
-		// var_dump( curl_error( $curl ) );
 		curl_close($curl);
 		return $response;
 	}
-
-
 
 	public function get( $action = '', $shop_name = '', $query_args = array() ) {
 
