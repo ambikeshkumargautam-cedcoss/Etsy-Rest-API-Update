@@ -169,7 +169,19 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 						update_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, $response['listing_id'] );
 						update_post_meta( $pr_id, '_ced_etsy_url_' . $shop_name, $response['url'] );
 						$this->l_id = $response['listing_id'];
+						/**
+						 * ********************************************
+						 *  Upload Product Images to Etsy.
+						 * ********************************************
+						 * 
+						 * @since 2.0.8
+						 */
 						$this->ced_etsy_prep_and_upload_img( $pr_id, $shop_name );
+						/**
+						 * ***********************
+						 * 	UPLOAD DIGITAL FILES
+						 * ***********************
+						 */
 						if ( $payload->is_downloadable ) {
 							$this->ced_upload_downloadable( $pr_id, $shop_name, $response['listing_id'], $payload->downloadable_data );
 						}
@@ -292,12 +304,12 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 
 		public function do_image_upload( $l_id, $pr_id, $img_id, $shop_name ) {
 			$image_path = get_attached_file( $img_id );
-			$image_name = 'Rando Image name';
+			$image_name = basename( $image_path );
+			var_dump( $image_name );
 			try {
 				do_action( 'ced_etsy_refresh_token', $shop_name );
 				$shop_id  = get_etsy_shop_id( $shop_name );
 				$response = etsy_request()->ced_etsy_upload_image_and_file( 'image', "application/shops/{$shop_id}/listings/{$l_id}/images", $image_path, $image_name, $shop_name );
-				var_dump( $response );
 				return $response;
 			} catch ( Exception $e ) {
 				$this->error_msg .= 'Message: ' . $pr_id . '--' . $e->getMessage();
@@ -507,7 +519,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		private function ced_etsy_upload_attributes( $listing_id, $productId, $shop_name ) {
 			if ( isset( $productId ) ) {
 				if ( isset( $listing_id ) ) {
-					$client = ced_etsy_getOauthClientObject( $shop_name );
 					$this->getProfileAssignedData( $productId, $shop_name );
 					$category_id = (int) $this->fetchMetaValueOfProduct( $productId, '_umb_etsy_category' );
 					if ( isset( $category_id ) ) {
@@ -582,6 +593,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			// return;
 			do_action( 'ced_etsy_refresh_token', $shop_name );
 			$response = etsy_request()->put( "application/listings/{$listing_id}/inventory", $offerings_payload, $shop_name );
+			var_dump( $response );
 			if ( isset( $response['listing_id'] ) ) {
 				update_post_meta( $product_id, 'ced_etsy_last_updated' . $shop_name, gmdate( 'l jS \of F Y h:i:s A' ) );
 			}

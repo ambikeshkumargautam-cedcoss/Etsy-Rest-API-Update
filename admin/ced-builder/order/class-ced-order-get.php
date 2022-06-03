@@ -64,8 +64,6 @@ class Ced_Order_Get {
 	*
 	*/
 	public function createLocalOrder( $orders, $shopId = '' ) {
-		$client = ced_etsy_getOauthClientObject( $shopId );
-
 		if ( is_array( $orders ) && ! empty( $orders ) ) {
 			$address        = array();
 			$OrderItemsInfo = array();

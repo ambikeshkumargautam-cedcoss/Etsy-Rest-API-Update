@@ -122,7 +122,8 @@ class Ced_Product_Payload {
             $this->parent_id = $wc_product->get_parent_id();
             return $this->product_type;
          }
-        return 'simple';
+         $this->product_type = 'simple';
+        return $this->product_type;
     }
 
     /**
@@ -225,19 +226,26 @@ class Ced_Product_Payload {
         $productData        = $product->get_data();
         $product_type       = $product->get_type();
         
-        // Downloadable Products
+        /**
+         * ***************************
+         *  GET DIGITAL PRODUCT DATA
+         * ***************************
+         */
         $this->is_downloadable = isset( $productData['downloadable'] ) ? $productData['downloadable'] : 0;
         if ( $this->is_downloadable ) {
           $this->downloadable_data = isset( $productData['downloads'] ) ? $productData['downloads'] : array();
         }
-       
+       #Global settings values.
         $etsy_data_field    = isset( $this->ced_global_settings['product_data'] ) ? $this->ced_global_settings['product_data'] : $this->ced_global_settings[$shop_name]['product_data'];
         $pro_data = array();
         foreach ( $etsy_data_field as $meta_key => $value ) {
+            
             $pro_val = get_post_meta( $product_id, $meta_key, true );
             if ( empty( $pro_val ) ) {
+                #Check if product meta key is set in profile.
                 $pro_val = $this->fetchMetaValueOfProduct( $product_id, $meta_key );
             }
+            #Check if product meta key is set in global settings.
             if ( empty( $pro_val ) ) {
                 $pro_val = $value['default'];
             }

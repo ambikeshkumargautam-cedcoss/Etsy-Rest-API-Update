@@ -79,9 +79,7 @@ class Ced_Product_Delete {
                 continue;
             }
             $listing_id = get_post_meta( $product_id, '_ced_etsy_listing_id_'.$shop_name , true );
-            // $listing_id = 1236576305;
             if ($listing_id) {
-                // die($listing_id.$shop_name);
                 do_action( 'ced_etsy_refresh_token', $shop_name );
                 $action    = "application/listings/{$listing_id}";
                 $response  =  etsy_request()->delete( $action , $shop_name );

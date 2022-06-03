@@ -2,16 +2,38 @@
 
 class Ced_Etsy_Request {
 	
+	/**
+	 * Etsy Cleint ID variable
+	 *
+	 * @var int
+	 */
 	public $client_id;
+	/**
+	 * Base URL for Etsy API.
+	 *
+	 * @var string
+	 */
 	public $base_url;
+	/**
+	 * Etsy API Key.
+	 *
+	 * @var string
+	 */
 	public $client_secret;
-
+	/**
+	 * Etsy Request construct.
+	 */
 	function __construct() {
 		$this->client_id     = 'ghvcvauxf2taqidkdx2sw4g4';
 		$this->client_secret = 'hznh7z8xkb';
 		$this->base_url      = 'https://api.etsy.com/v3/';
 	}
 
+	/**
+	 * Delete method to Etsy API.
+	 *
+	 * @since    1.0.0
+	 */
 	public function delete( $action ='', $shop_name='', $query_args=array(),$method='DELETE'  ){
 		$api_url = $this->base_url . $action;
 		if ( ! empty( $query_args ) ) {
