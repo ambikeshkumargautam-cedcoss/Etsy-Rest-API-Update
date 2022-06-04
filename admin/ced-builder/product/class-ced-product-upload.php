@@ -78,13 +78,13 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 * @param string $shopName Active Shop Name
 		 */
 
-		public function prepareDataForUploading( $proIDs = array(), $shop_name = '' ) {
-			if ( ! is_array( $proIDs ) ) {
-				$proIDs = array( $proIDs );
+		public function prepare_for_upload( $pro_ids = array(), $shop_name = '' ) {
+			if ( ! is_array( $pro_ids ) ) {
+				$pro_ids = array( $pro_ids );
 			}
-			if ( is_array( $proIDs ) && ! empty( $proIDs ) ) {
+			if ( is_array( $pro_ids ) && ! empty( $pro_ids ) ) {
 				$shop_name = trim( $shop_name );
-				self::prepareItems( $proIDs, $shop_name );
+				self::prepare_items( $pro_ids, $shop_name );
 				$response = $this->uploadResponse;
 				return $response;
 
@@ -103,12 +103,12 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 *
 		 * @return Uploaded Ids
 		 */
-		private function prepareItems( $proIDs = array(), $shop_name = '' ) {
+		private function prepare_items( $pro_ids = array(), $shop_name = '' ) {
 			if ( '' == $shop_name || empty( $shop_name ) ) {
 				return;
 			}
 
-			foreach ( $proIDs as $key => $pr_id ) {
+			foreach ( $pro_ids as $key => $pr_id ) {
 
 				/**
 				 * ********************************************
@@ -137,7 +137,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 						return $this->uploadResponse;
 					}
 					$this->data = $payload->ced_etsy_get_formatted_data( $pr_id, $shop_name );
-					echo "<pre>";
 					self::doupload( $pr_id, $shop_name );
 					$response = $this->uploadResponse;
 					if ( isset( $response['listing_id'] ) ) {
@@ -191,6 +190,18 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			return $this->uploadResponse;
 		}
 
+		/**
+		 * ***************************
+		 * Upload downloadable files
+		 * ***************************
+		 *
+		 * @since 2.0.8
+		 *
+		 * @param array  $p_id Checked Product ids
+		 * @param string $shopName Active Shop Name
+		 *
+		 * @return
+		 */
 		private function ced_upload_downloadable( $p_id='', $shop_name = '', $l_id= '', $downloadable_data= array() ) {
 			$listing_files_uploaded = get_post_meta( $p_id, '_ced_etsy_product_files_uploaded' . $l_id, true );
 			if ( empty( $listing_files_uploaded ) ) {
@@ -238,7 +249,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 *
 		 * @return
 		 */
-
 		public function ced_etsy_prep_and_upload_img( $p_id = '', $shop_name = '' ) {
 			if ( empty( $p_id ) || empty( $shop_name ) ) {
 				return;
@@ -305,7 +315,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		public function do_image_upload( $l_id, $pr_id, $img_id, $shop_name ) {
 			$image_path = get_attached_file( $img_id );
 			$image_name = basename( $image_path );
-			var_dump( $image_name );
 			try {
 				do_action( 'ced_etsy_refresh_token', $shop_name );
 				$shop_id  = get_etsy_shop_id( $shop_name );
@@ -520,7 +529,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			if ( isset( $productId ) ) {
 				if ( isset( $listing_id ) ) {
 					$this->getProfileAssignedData( $productId, $shop_name );
-					$category_id = (int) $this->fetchMetaValueOfProduct( $productId, '_umb_etsy_category' );
+					$category_id = (int) $this->fetch_meta_value( $productId, '_umb_etsy_category' );
 					if ( isset( $category_id ) ) {
 						$params                    = array( 'taxonomy_id' => $category_id );
 						$success                   = $client->CallAPI( "https://openapi.etsy.com/v2/taxonomy/seller/{$category_id}/properties", 'GET', $params, array( 'FailOnAccessError' => true ), $getTaxonomyNodeProperties );
@@ -531,7 +540,7 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 							foreach ( $getTaxonomyNodeProperties as $key => $value ) {
 								$property = ! empty( $attribute_meta_data[ ( '_ced_etsy_property_id_' . $value['property_id'] ) ] ) ? $attribute_meta_data[ ( '_ced_etsy_property_id_' . $value['property_id'] ) ] : 0;
 								if ( empty( $property ) ) {
-									$property = $this->fetchMetaValueOfProduct( $productId, '_ced_etsy_property_id_' . $value['property_id'] );
+									$property = $this->fetch_meta_value( $productId, '_ced_etsy_property_id_' . $value['property_id'] );
 								}
 								foreach ( $value['possible_values'] as $tax_value ) {
 									if ( $tax_value['name'] == $property ) {

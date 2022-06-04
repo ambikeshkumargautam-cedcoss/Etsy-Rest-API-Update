@@ -956,7 +956,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 			}
 		}
 		if ( isset( $product_chunk[0] ) && is_array( $product_chunk[0] ) && ! empty( $product_chunk[0] ) ) {
-			$response = $ced_etsy_product->prepareDataForUploading( $product_chunk[0], $shop_name );
+			$response = $ced_etsy_product->prepare_for_upload( $product_chunk[0], $shop_name );
 			unset( $product_chunk[0] );
 			$product_chunk = array_values( $product_chunk );
 			update_option( 'ced_etsy_product_upload_chunk_' . $shop_name, $product_chunk );
@@ -1108,8 +1108,8 @@ class Woocommmerce_Etsy_Integration_Admin {
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
 		if ( $check_ajax ) {
 			$shop_id        = isset( $_POST['shopid'] ) ? sanitize_text_field( wp_unslash( $_POST['shopid'] ) ) : '';
-			$isShopInActive = ced_etsy_inactive_shops( $shop_id );
-			if ( $isShopInActive ) {
+			$is_shop_inactive = ced_etsy_inactive_shops( $shop_id );
+			if ( $is_shop_inactive ) {
 				echo json_encode(
 					array(
 						'status'  => 400,
@@ -1175,8 +1175,8 @@ class Woocommmerce_Etsy_Integration_Admin {
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
 		if ( $check_ajax ) {
 			$shop_name      = isset( $_POST['shop_name'] ) ? sanitize_text_field( wp_unslash( $_POST['shop_name'] ) ) : '';
-			$isShopInActive = ced_etsy_inactive_shops( $shop_name );
-			if ( $isShopInActive ) {
+			$is_shop_inactive = ced_etsy_inactive_shops( $shop_name );
+			if ( $is_shop_inactive ) {
 				echo json_encode(
 					array(
 						'status'  => 400,
@@ -1227,103 +1227,104 @@ class Woocommmerce_Etsy_Integration_Admin {
 	 * @since    1.0.0
 	 */
 	public function ced_etsy_process_bulk_action() {
-			// ini_set('display_errors','1');
-			// 			ini_set('display_startup_errors','1');
-			// 			error_reporting( E_ALL );
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
 		if ( $check_ajax ) {
 			$shop_name        = isset( $_POST['shopname'] ) ? sanitize_text_field( wp_unslash( $_POST['shopname'] ) ) : '';
 			$operation        = isset( $_POST['operation_to_be_performed'] ) ? sanitize_text_field( wp_unslash( $_POST['operation_to_be_performed'] ) ) : '';
 			$product_id       = isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
+			$pro_title        = get_the_title( $product_id );
 			$not_found        = 'Product ' . $product_id . ' Not Found On Etsy';
 			$already_uploaded = get_post_meta( $product_id, '_ced_etsy_listing_id_' . $shop_name, true );
-			$message_already  = 'Product ' . $product_id . ' Already Uploaded';
-			$isShopInActive   = ced_etsy_inactive_shops( $shop_name );
-			if ( $isShopInActive ) {
-				$this->ced_notice_response( 400, 'Shop is Not Active', $product_id );
+			$is_shop_inactive = ced_etsy_inactive_shops( $shop_name );
+			$status           = 400;
+			if ( $is_shop_inactive ) {
+				$message = 'Shop is Not Active';
 			}
 			if ( 'upload_product' == $operation ) {
 				if ($already_uploaded) {
-					$this->ced_notice_response( 400, $message_already, $product_id );
+					$message = $pro_title . ' Already Uploaded';
 				}
-				$get_product_detail = $this->ced_etsy_product->prepareDataForUploading( $product_id, $shop_name );
-				if ( isset( $get_product_detail['listing_id'] ) ) {
-					$this->ced_notice_response( 200, get_the_title( $product_id ). ' Uploaded Successfully', $product_id );
+				$e_pro_response = $this->ced_etsy_product->prepare_for_upload( $product_id, $shop_name );
+				if ( isset( $e_pro_response['listing_id'] ) ) {
+					$message = $pro_title . ' Uploaded Successfully';
+					$status = 200;
 				} else {
-					$message = isset( $get_product_detail['error'] ) ? ucfirst( $get_product_detail['error'] ) : json_encode( $get_product_detail );
-				    $this->ced_notice_response( 400, $message, $product_id );
+					$message = isset( $e_pro_response['error'] ) ? ucfirst( $e_pro_response['error'] ) : json_encode( $e_pro_response );
 				}
 			} elseif ( 'update_product' == $operation ) {
 				if (!$already_uploaded) {
-					$this->ced_notice_response( 400, $not_found, $product_id );
+					$message = $not_found;
 				}
-				$update   = new \Cedcommerce\Product\Ced_Product_Update( $shop_name, $product_id );
+				$update   = new \Cedcommerce\Product\Ced_Product_Update( $product_id, $shop_name );
 				$response = $update->ced_etsy_update_product();
 				if ( isset( $response['listing_id'] ) ) {
-					$this->ced_notice_response( 200, get_the_title( $product_id ). ' Updated Successfully', $product_id );
+					$message = $pro_title . ' Updated Successfully';
+					$status = 200;
 				} else {
 					$message = isset( $response['error'] ) ? $response['error'] : json_encode( $response );
-				    $this->ced_notice_response( 400, $message, $product_id );
 				}
 			} elseif ( 'remove_product' == $operation ) {
 				if (!$already_uploaded) {
-					$this->ced_notice_response( 400,$not_found, $product_id );
+					$message = $not_found;
 				}
 				$ced_etsy_delete    = new \Cedcommerce\Product\Ced_Product_Delete( $shop_name, $product_id );
-				$get_product_detail = $ced_etsy_delete->ced_etsy_delete_product( $product_id, $shop_name );
-				if ( !isset( $get_product_detail['error'] ) ) {
-					$this->ced_notice_response( 200, get_the_title( $product_id ). ' Deleted Successfully', $product_id );
+				$e_pro_response = $ced_etsy_delete->ced_etsy_delete_product( $product_id, $shop_name );
+				if ( !isset( $e_pro_response['error'] ) ) {
+					$message = $pro_title . ' Deleted Successfully';
+					$status = 200;
+
 				} else {
-					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
-				    $this->ced_notice_response( 400, $message, $product_id );
+					$message = isset( $e_pro_response['error'] ) ? $e_pro_response['error'] : json_encode( $e_pro_response );
 				}
 			} elseif ( 'update_inventory' == $operation ) {
 				if (!$already_uploaded) {
-					$this->ced_notice_response( 400, $not_found, $product_id );
+					$message = $not_found;
 				}
-				$get_product_detail = $this->ced_etsy_product->prepareDataForUpdatingInventory( $product_id, $shop_name );
-				if ( isset( $get_product_detail['listing_id'] ) ) {
-					$this->ced_notice_response( 200, get_the_title( $product_id ).'Inventory Updated Successfully', $product_id );
+				$e_pro_response = $this->ced_etsy_product->prepareDataForUpdatingInventory( $product_id, $shop_name );
+				if ( isset( $e_pro_response['listing_id'] ) ) {
+					$message = $pro_title . ' Product Deactivated Successfully';
+					$status = 200;
 				} else {
-					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
-				    $this->ced_notice_response( 400, $message, $product_id );
+					$message = isset( $e_pro_response['error'] ) ? $e_pro_response['error'] : json_encode( $e_pro_response );
 				}
 			} elseif ( 'deactivate_product' == $operation ) {
 				if (!$already_uploaded) {
-					$this->ced_notice_response( 400, $not_found, $product_id );
+					$message = $not_found;
 				}
-				$get_product_detail = $this->ced_etsy_product->deactivate_product( $product_id, $shop_name );
-				if ( isset( $get_product_detail['listing_id'] ) ) {
-					$this->ced_notice_response( 200, get_the_title( $product_id ).'Product Deactivated Successfully', $product_id );
+				$e_pro_response = $this->ced_etsy_product->deactivate_product( $product_id, $shop_name );
+				if ( isset( $e_pro_response['listing_id'] ) ) {
+					$message = $pro_title . 'Product Deactivated Successfully';
+					$status = 200;
 				} else {
-					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
-				    $this->ced_notice_response( 400, $message, $product_id );
+					$message = isset( $e_pro_response['error'] ) ? $e_pro_response['error'] : json_encode( $e_pro_response );
 				}
 			} elseif ( 'update_image' == $operation ) {
 				if (!$already_uploaded) {
-					$this->ced_notice_response( 400, $not_found, $product_id );
+					$message = $not_found;
 				}
-				$get_product_detail = $this->ced_etsy_product->ced_update_images_on_etsy( $product_id, $shop_name );
-				if ( isset( $get_product_detail['listing_id'] ) ) {
-					$this->ced_notice_response( 200, get_the_title( $product_id ).'Image Updated Successfully', $product_id );
+				$update         = new \Cedcommerce\Product\Ced_Product_Update( $product_id, $shop_name );
+				$e_pro_response = $update->ced_update_images_on_etsy( $product_id, $shop_name );
+				if ( isset( $e_pro_response['listing_id'] ) ) {
+					$message = $pro_title.'Image Updated Successfully';
+					$status  = 200;
 				} else {
-					$message = isset( $get_product_detail['error'] ) ? $get_product_detail['error'] : json_encode( $get_product_detail );
-				    $this->ced_notice_response( 400, $message, $product_id );
+					$message = isset( $e_pro_response['error'] ) ? $e_pro_response['error'] : json_encode( $e_pro_response );
 				}
 			}
+			echo $this->ced_notice_response( $status, $message, $product_id );
+			wp_die();
 		}
 	}
 
 
 	private function ced_notice_response( $status = '', $message = '', $product_id = '' ){
-		echo json_encode(
+		return json_encode(
 			array(
 				'status'  => $status,
 				'message' =>  __( $message ,'woocommerce-etsy-integration' ),
 				'prodid'  => $product_id,
 			)
 		);
-		die;
 	}
 
 	/**

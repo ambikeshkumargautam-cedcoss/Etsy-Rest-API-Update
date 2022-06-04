@@ -243,7 +243,7 @@ class Ced_Product_Payload {
             $pro_val = get_post_meta( $product_id, $meta_key, true );
             if ( empty( $pro_val ) ) {
                 #Check if product meta key is set in profile.
-                $pro_val = $this->fetchMetaValueOfProduct( $product_id, $meta_key );
+                $pro_val = $this->fetch_meta_value( $product_id, $meta_key );
             }
             #Check if product meta key is set in global settings.
             if ( empty( $pro_val ) ) {
@@ -256,7 +256,7 @@ class Ced_Product_Payload {
         $productTitle         = $pro_data['title_pre'] . ' ' . $productTitle . ' ' . $pro_data['title_post'];
         $productDescription   = !empty( $pro_data['description'] ) ? $pro_data['description'] : $pro_data['description_pre'] . $productData['description'] . '</br>' . $pro_data['description_post'];
         $pro_price            = get_post_meta( $product_id, '_ced_etsy_price', true );
-        $price_at_profile_lvl = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_price' );
+        $price_at_profile_lvl = $this->fetch_meta_value( $product_id, '_ced_etsy_price' );
 
         // Price
         if ( ! empty( $pro_price ) ) {
@@ -271,8 +271,8 @@ class Ced_Product_Payload {
             if ( empty( $price_at_profile_lvl ) ) {
                 $price_at_profile_lvl = (float) $productData['price'];
             }
-            $markuptype_at_profile_lvl = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_markup_type' );
-            $markupValue               = (float) $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_markup_value' );
+            $markuptype_at_profile_lvl = $this->fetch_meta_value( $product_id, '_ced_etsy_markup_type' );
+            $markupValue               = (float) $this->fetch_meta_value( $product_id, '_ced_etsy_markup_value' );
             if ( 'Percentage_Increased' == $markuptype_at_profile_lvl ) {
                 $pro_price = (float) $price_at_profile_lvl + ( ( (float) $markupValue / 100 ) * (float) $price_at_profile_lvl );
             } else {
@@ -292,7 +292,7 @@ class Ced_Product_Payload {
             $stock_status = get_post_meta( $product_id, '_stock_status', true );
             $pro_qty      = get_post_meta( $product_id, '_ced_etsy_stock', true );
             if ( '' == $pro_qty ) {
-                $pro_qty = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_stock' );
+                $pro_qty = $this->fetch_meta_value( $product_id, '_ced_etsy_stock' );
             }
             if ( '' == $pro_qty ) {
                 $pro_qty = get_post_meta( $product_id, '_stock', true );
@@ -325,7 +325,7 @@ class Ced_Product_Payload {
             return $error;
         }
 
-        $category_id = $this->fetchMetaValueOfProduct( $product_id, '_umb_etsy_category' );
+        $category_id = $this->fetch_meta_value( $product_id, '_umb_etsy_category' );
         $arguements = array(
             'title'                => trim( ucwords( strtolower( strtoupper( $productTitle ) ) ) ),
             'description'          => strip_tags( $productDescription ),
@@ -455,7 +455,7 @@ class Ced_Product_Payload {
             $var_att_array                        = '';
             foreach ( $variation_category_attribute_property as $variation_category_attribute_property_key => $variation_category_attribute_property_value ) {
                 if ( isset( $variation_category_attribute_property ) ) {
-                    $variation_key_value     = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_variation_property_id_' . $variation_category_attribute_property_value['property_id'], true );
+                    $variation_key_value     = $this->fetch_meta_value( $product_id, '_ced_etsy_variation_property_id_' . $variation_category_attribute_property_value['property_id'], true );
                     $ReplacedAttributes      = get_option( 'ced_etsy_replaced_attributes', array() );
                     if ( isset( $ReplacedAttributes[ $variation_key_value ] ) && ! empty( $ReplacedAttributes[ $variation_key_value ] ) ) {
                         $variation_key_value = $ReplacedAttributes[ $variation_key_value ];
@@ -507,9 +507,9 @@ class Ced_Product_Payload {
                         $price_at_product_lvl       = get_post_meta( $variation['variation_id'], '_ced_etsy_price', true );
                         $markuptype_at_product_lvl  = get_post_meta( $variation['variation_id'], '_ced_etsy_markup_type', true );
                         $markupValue_at_product_lvl = get_post_meta( $variation['variation_id'], '_ced_etsy_markup_value', true );
-                        $markuptype_at_profile_lvl  = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_markup_type' );
-                        $markupValue_at_profile_lvl = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_markup_value' );
-                        $price_at_profile_lvl       = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_price' );
+                        $markuptype_at_profile_lvl  = $this->fetch_meta_value( $product_id, '_ced_etsy_markup_type' );
+                        $markupValue_at_profile_lvl = $this->fetch_meta_value( $product_id, '_ced_etsy_markup_value' );
+                        $price_at_profile_lvl       = $this->fetch_meta_value( $product_id, '_ced_etsy_price' );
 
                         // Price
                         if ( ! empty( $price_at_product_lvl ) ) {
@@ -533,7 +533,7 @@ class Ced_Product_Payload {
                         }
 
                         if ( '' == $pro_qty ) {
-                            $pro_qty = $this->fetchMetaValueOfProduct( $product_id, '_ced_etsy_stock' );
+                            $pro_qty = $this->fetch_meta_value( $product_id, '_ced_etsy_stock' );
                         }
                         if ( '' == $pro_qty ) {
                             $pro_qty = get_post_meta( $variation['variation_id'], '_stock', true );
@@ -677,7 +677,7 @@ class Ced_Product_Payload {
      * @return $meta data
      */
 
-    private function fetchMetaValueOfProduct( $product_id, $metaKey, $is_variation = false ) {
+    private function fetch_meta_value( $product_id, $metaKey, $is_variation = false ) {
 
         if ( isset( $this->is_profile_assing ) && $this->is_profile_assing ) {
 
