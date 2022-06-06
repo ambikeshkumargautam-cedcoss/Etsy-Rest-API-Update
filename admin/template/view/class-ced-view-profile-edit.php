@@ -105,13 +105,11 @@ $profile_data = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM {$wpdb->prefi
 
 if ( ! empty( $profile_data ) ) {
 	$profile_category_data = json_decode( $profile_data[0]['profile_data'], true );
-	$client                = ced_etsy_getOauthClientObject( $shop_name );
 	$profile_category_data = isset( $profile_category_data ) ? $profile_category_data : '';
 	$profile_category_id   = isset( $profile_category_data['_umb_etsy_category']['default'] ) ? (int) $profile_category_data['_umb_etsy_category']['default'] : '';
 
 	$profile_data              = isset( $profile_data[0] ) ? $profile_data[0] : $profile_data;
-	$success                   = $client->CallAPI( "https://openapi.etsy.com/v2/taxonomy/seller/{$profile_category_id}/properties", 'GET', array( 'taxonomy_id' => $profile_category_id ), array( 'FailOnAccessError' => true ), $getTaxonomyNodeProperties );
-	$getTaxonomyNodeProperties = json_decode( json_encode( $getTaxonomyNodeProperties ), true );
+	do_action( 'ced_etsy_refresh_token', $shop_name );
 	$action                    = "application/seller-taxonomy/nodes/{$profile_category_id}/properties";
 	$getTaxonomyNodeProperties = etsy_request()->get( $action, $shop_name );
 	$getTaxonomyNodeProperties = $getTaxonomyNodeProperties['results'];

@@ -109,9 +109,6 @@ class Ced_Etsy_Request {
 	public function post( $action = '', $parameters = array(), $shop_name = '', $query_args = array(), $request_type = 'POST', $content_type='' ) {
 
 		$api_url = $this->base_url . $action;
-		// var_dump( $api_url );
-		// var_dump( $parameters );
-		// var_dump( $shop_name );
 		if ( ! empty( $query_args ) ) {
 			$api_url = $api_url . '?' . http_build_query( $query_args );
 		}

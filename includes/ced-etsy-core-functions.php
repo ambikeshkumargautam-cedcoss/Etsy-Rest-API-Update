@@ -73,40 +73,6 @@ function ced_etsy_inactive_shops( $shop_name = '' ) {
 	}
 }
 
-function ced_etsy_getOauthClientObject( $shop_name = '' ) {
-
-	if ( session_status() == PHP_SESSION_NONE ) {
-		session_start();
-	}
-
-	$activeShop            = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : $shop_name;
-	$access_tokens         = get_option( 'ced_etsy_access_tokens', array() );
-	$ced_etsy_access_token = isset( $access_tokens[ $activeShop ] ) ? $access_tokens[ $activeShop ] : get_option( 'ced_etsy_access_token', array() );
-
-	if ( ! empty( $ced_etsy_access_token ) ) {
-		$_SESSION['OAUTH_ACCESS_TOKEN'] = $ced_etsy_access_token;
-	}
-
-	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/vendor/http.php' ) ) {
-		require_once CED_ETSY_DIRPATH . 'admin/lib/vendor/http.php';
-	}
-	if ( file_exists( CED_ETSY_DIRPATH . 'admin/lib/vendor/oauth_client.php' ) ) {
-		require_once CED_ETSY_DIRPATH . 'admin/lib/vendor/oauth_client.php';
-	}
-
-	$client                = new oauth_client_class();
-	$client->shop_name     = $activeShop;
-	$client->debug         = false;
-	$client->debug_http    = true;
-	$client->server        = 'Etsy';
-	$client->redirect_uri  = admin_url( 'admin.php?page=ced_etsy' );
-	$application_line      = __LINE__;
-	$client->client_id     = 'ghvcvauxf2taqidkdx2sw4g4';
-	$client->client_secret = '27u2kvhfmo';
-
-	$client->Initialize();
-	return $client;
-}
 
 function ced_etsy_get_active_shop_name() {
 	$saved_etsy_details = get_option( 'ced_etsy_details', array() );
@@ -226,7 +192,6 @@ function ced_etsy_cedcommerce_logo() {
 }
 
 function etsy_request() {
-	require_once CED_ETSY_DIRPATH . 'admin/lib/class-ced-etsy-request.php';
 	$request = new \Cedcommerce\EtsyManager\Ced_Etsy_Request();
 	return $request;
 }

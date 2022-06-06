@@ -235,9 +235,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 						'carrier_name'  => $tracking_code,
 					);
 
-					$client = ced_etsy_getOauthClientObject( $shopId );
-
-					$success = $client->CallAPI( 'https://openapi.etsy.com/v2/shops/' . $shop_id . '/receipts/' . $_ced_etsy_order_id . '/tracking', 'POST', $params, array( 'FailOnAccessError' => true ), $result );
+					// Order shipping update tracking information.
 					$result  = json_decode( json_encode( $result ), true );
 					if ( isset( $result['results'][0] ) || isset( $result['Shipping_notification_email_has_already_been_sent_for_this_receipt_'] ) ) {
 						update_post_meta( $woo_order_id, '_etsy_umb_order_status', 'Shipped' );

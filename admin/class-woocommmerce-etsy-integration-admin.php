@@ -1041,7 +1041,6 @@ class Woocommmerce_Etsy_Integration_Admin {
 		$saved_etsy_details = get_option( 'ced_etsy_details', array() );
 		$shopDetails        = $saved_etsy_details[ $shop_name ];
 		$shop_id            = $shopDetails['details']['shop_id'];
-		$client             = ced_etsy_getOauthClientObject( $shop_name );
 		$offset             = get_option( 'ced_etsy_get_import_offset', '' );
 
 		if ( ! empty( $saved_status ) ) {

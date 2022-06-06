@@ -25,37 +25,16 @@ $shopDetails = $saved_etsy_details[ $shop_name ];
 $user_id     = isset( $shopDetails['details']['user_id'] ) ? $shopDetails['details']['user_id'] : '';
 $shop_id     = isset( $shopDetails['details']['shop_id'] ) ? $shopDetails['details']['shop_id'] : '';
 
-$client = ced_etsy_getOauthClientObject( $shop_name );
-
-if ( ! file_exists( CED_ETSY_DIRPATH . 'admin/lib/json/countries.json' ) ) {
-	$success   = $client->CallAPI( 'https://openapi.etsy.com/v2/countries', 'GET', array(), array( 'FailOnAccessError' => true ), $countries );
-	$countries = json_encode( $countries );
-
-	$file = fopen( CED_ETSY_DIRPATH . 'admin/lib/json/countries.json', 'w+' );
-	chmod( CED_ETSY_DIRPATH . 'admin/lib/json/countries.json', 777 );
-	fwrite( $file, $countries );
-	fclose( $file );
+$countries = @file_get_contents( CED_ETSY_DIRPATH . 'admin/lib/json/countries.json' );
+if ( '' != $countries ) {
 	$countries = json_decode( $countries, true );
-} else {
-	$countries = file_get_contents( CED_ETSY_DIRPATH . 'admin/lib/json/countries.json' );
-	if ( '' != $countries ) {
-		$countries = json_decode( $countries, true );
-	}
 }
-
-if ( ! file_exists( CED_ETSY_DIRPATH . 'admin/lib/json/regions.json' ) ) {
-	$success = $client->CallAPI( 'https://openapi.etsy.com/v2/regions', 'GET', array(), array( 'FailOnAccessError' => true ), $regions );
-	$regions = json_encode( $regions );
-	$file    = CED_ETSY_DIRPATH . 'admin/lib/json/regions.json';
-	file_put_contents( $file, $regions );
+$countries = $countries['results'];
+$regions = @file_get_contents( CED_ETSY_DIRPATH . 'admin/lib/json/regions.json' );
+if ( '' != $regions ) {
 	$regions = json_decode( $regions, true );
-} else {
-	$regions = file_get_contents( CED_ETSY_DIRPATH . 'admin/lib/json/regions.json' );
-	if ( '' != $regions ) {
-		$regions = json_decode( $regions, true );
-	}
 }
-
+$regions = $regions['results'];
 if ( isset( $_POST['shipping_settings'] ) ) {
 	if ( ! isset( $_POST['shipping_settings_submit'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['shipping_settings_submit'] ) ), 'shipping_settings' ) ) {
 		return;
@@ -76,13 +55,13 @@ if ( isset( $_POST['shipping_settings'] ) ) {
 	if ( ! empty( $shipping_title ) && ! empty( $country_id ) ) {
 		$params = array(
 			'title'                  => "$shipping_title",
-			'origin_country_id'      => (int) $country_id,
-			'destination_country_id' => (int) $destination_id,
+			'origin_country_iso'      => (int) $country_id,
+			'destination_country_iso' => (int) $destination_id,
 			'primary_cost'           => (float) $primary_cost,
 			'secondary_cost'         => (float) $secondary_cost,
-			'destination_region_id'  => (int) $region_id,
-			'min_processing_days'    => (int) $min_process_time,
-			'max_processing_days'    => (int) $max_process_time,
+			'destination_region'  => (int) $region_id,
+			'min_processing_time'    => (int) $min_process_time,
+			'max_processing_time'    => (int) $max_process_time,
 		);
 
 		if ( ! empty( $origin_postal_code ) ) {
@@ -99,14 +78,16 @@ if ( isset( $_POST['shipping_settings'] ) ) {
 			$params['min_delivery_time'] = (int) $min_delivery_time;
 			$params['max_delivery_time'] = (int) $max_delivery_time;
 		}
-		$success          = $client->CallAPI( 'https://openapi.etsy.com/v2/shipping/templates', 'POST', $params, array( 'FailOnAccessError' => true ), $shippingTemplate );
-		$shippingTemplate = json_decode( json_encode( $shippingTemplate ), true );
 
-		if ( isset( $shippingTemplate['results'] ) ) {
+		$shop_id  = get_etsy_shop_id( $shop_name );
+		do_action( 'ced_etsy_refresh_token', $shop_name );
+		$action   = "application/shops/{$shop_id}/shipping-profiles";
+		$response = etsy_request()->post( $action, $params, $shop_name );
+		if ( isset( $response['shipping_profile_id'] ) ) {
 			echo '<div class="notice notice-success" ><p>' . esc_html( __( 'Shipping Template Created', 'woocommerce-etsy-integration' ) ) . '</p></div>';
 		} else {
 			// $shippingTemplate = !is_array( $shippingTemplate ) ? array( $shippingTemplate ) : array();
-			$error = @array_keys( $shippingTemplate );
+			$error = @array_keys( $response );
 			echo '<div class="notice notice-error" ><p>' . esc_html( __( ( isset( $error[0] ) ? ucfirst( str_replace( '_', ' ', $error[0] ) ) : 'Shipping Template Not Created.' ), 'woocommerce-etsy-integration' ) ) . '</p></div>';
 		}
 	} else {
@@ -115,7 +96,6 @@ if ( isset( $_POST['shipping_settings'] ) ) {
 }
 
 ?>
-
 <div class="ced_etsy_wrap">
 	<div class="ced_etsy_account_configuration_wrapper">	
 		<div class="ced_etsy_account_configuration_fields">	
@@ -142,7 +122,10 @@ if ( isset( $_POST['shipping_settings'] ) ) {
 								<select name="ced_etsy_shipping_country_id" class="select short" id="ced_etsy_shipping_country_id">
 									<option value=""><?php esc_html_e( '--Select--', 'woocommerce-etsy-integration' ); ?></option>
 									<?php
-									foreach ( $countries['results'] as $key => $value ) {
+									// echo "<pre>";
+									// print_r( $countries );
+									// die('asdfasd');
+									foreach ( $countries as $key => $value ) {
 										?>
 										<option value="<?php echo esc_attr( $value['country_id'] ); ?>" data-country-iso="<?php echo esc_attr( $value['iso_country_code'] ); ?>"><?php echo esc_attr( $value['name'] ); ?></option>
 										<?php
@@ -159,7 +142,9 @@ if ( isset( $_POST['shipping_settings'] ) ) {
 								<select name="ced_etsy_shipping_destination_id" class="select short">
 									<option value=""><?php esc_html_e( '--Select--', 'woocommerce-etsy-integration' ); ?></option>
 									<?php
-									foreach ( $countries['results'] as $key => $value ) {
+									echo "<pre>";
+									print_r( $countries );
+									foreach ( $countries as $key => $value ) {
 										?>
 										<option value="<?php echo esc_attr( $value['country_id'] ); ?>"><?php echo esc_attr( $value['name'] ); ?></option>
 										<?php
@@ -192,7 +177,7 @@ if ( isset( $_POST['shipping_settings'] ) ) {
 								<select name="ced_etsy_shipping_region_id" class="select short">
 									<option value=""><?php esc_html_e( '--Select--', 'woocommerce-etsy-integration' ); ?></option>
 									<?php
-									foreach ( $regions['results'] as $key => $value ) {
+									foreach ( $regions as $key => $value ) {
 										?>
 										<option value="<?php echo esc_attr( $value['region_id'] ); ?>"><?php echo esc_attr( $value['region_name'] ); ?></option>
 										<?php
