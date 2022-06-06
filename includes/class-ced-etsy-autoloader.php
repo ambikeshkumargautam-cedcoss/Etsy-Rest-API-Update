@@ -77,7 +77,7 @@ class CedEtsyAutoloader {
 		$path = '';
 		$paths = $this->ced_autoload_paths();
 		foreach ( $paths as $path_class => $dir_path ) {
-			if ( 0 === strpos( strtolower(  end( explode('\\', $class ) ) ), $path_class ) ){
+			if ( 0 === strpos( strtolower(  end( explode( '\\', @$class ) ) ), @$path_class ) ){
 				$path = $this->include_once . $dir_path ;
 			}
 		}

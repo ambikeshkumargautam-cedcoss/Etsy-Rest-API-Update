@@ -103,11 +103,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 * @return Uploaded Ids
 		 */
 		private function prepare_items( $pro_ids = array(), $shop_name = '' ) {
-			
-			ini_set('display_errors', '1');
-			ini_set('display_startup_errors', '1');
-			error_reporting( E_ALL );
-
 			if ( '' == $shop_name || empty( $shop_name ) ) {
 				return;
 			}
