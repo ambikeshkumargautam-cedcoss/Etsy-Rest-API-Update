@@ -20,16 +20,7 @@ class Ced_Etsy_Request {
 	 */
 	public $client_secret = 'hznh7z8xkb';
 	/**
-	 * Etsy Request construct.
-	 */
-	function __construct() {
-		$this->client_id     = 'ghvcvauxf2taqidkdx2sw4g4';
-		$this->client_secret = 'hznh7z8xkb';
-		$this->base_url      = 'https://api.etsy.com/v3/';
-	}
-
-	/**
-	 * Delete method to Etsy API.
+	 * Delete method Etsy API.
 	 *
 	 * @since    1.0.0
 	 */
@@ -68,9 +59,21 @@ class Ced_Etsy_Request {
 		return $response;
 
 	}
+	/**
+	 * *************************
+	 *  PUT METHOD ETSY API
+	 * *************************
+	 *
+	 *
+	 * @param string $action
+	 * @param array $parameters
+	 * @param string $shop_name
+	 * @param array $query_args
+	 * @param string $request_type
+	 * @return array
+	 */
 	public function put( $action = '', $parameters = array(), $shop_name = '', $query_args = array(), $request_type = 'PUT' ){
 		$api_url = $this->base_url . $action;
-		// var_dump( $api_url );
 		if ( ! empty( $query_args ) ) {
 			$api_url = $api_url . '?' . http_build_query( $query_args );
 		}
@@ -82,11 +85,9 @@ class Ced_Etsy_Request {
 		);
 
 		$access_token = $this->get_access_token( $shop_name );
-		// var_dump($access_token);
 		if ( ! empty( $access_token ) && $action != 'public/oauth/token' ) {
 			$header[] = 'Authorization: Bearer ' . $access_token;
 		}
-		// var_dump( $header );
 		$curl = curl_init();
 		curl_setopt_array(
 			$curl,
@@ -100,12 +101,24 @@ class Ced_Etsy_Request {
 			)
 		);
 		$response = curl_exec( $curl );
-		// var_dump( $response );
 		$response = $this->parse_reponse( $response );
 		curl_close( $curl );
 		return $response;
 	}
 
+	/**
+	 * *************************
+	 *  POST METHOD ETSY API
+	 * *************************
+	 *
+	 * @param string $action
+	 * @param array $parameters
+	 * @param string $shop_name
+	 * @param array $query_args
+	 * @param string $request_type
+	 * @param string $content_type
+	 * @return array
+	 */
 	public function post( $action = '', $parameters = array(), $shop_name = '', $query_args = array(), $request_type = 'POST', $content_type='' ) {
 
 		$api_url = $this->base_url . $action;
@@ -146,7 +159,18 @@ class Ced_Etsy_Request {
 
 	}
 
-
+	/**
+	 * *********************************
+	 * 	UPDATE FILE AND IMAGED TO ETSY
+	 * *********************************
+	 *
+	 * @param string $types
+	 * @param string $action
+	 * @param string $source_file
+	 * @param string $file_name
+	 * @param string $shop_name
+	 * @return object
+	 */
 	public function ced_etsy_upload_image_and_file( $types = '', $action, $source_file, $file_name, $shop_name ){
 		$access_token = $this->get_access_token( $shop_name );
 		$mimetype     = mime_content_type($source_file);
@@ -176,6 +200,16 @@ class Ced_Etsy_Request {
 		return $response;
 	}
 
+	/**
+	 * *************************
+	 *  GET METHOD ETSY API
+	 * *************************
+	 *
+	 * @param string $action
+	 * @param string $shop_name
+	 * @param array $query_args
+	 * @return array
+	 */
 	public function get( $action = '', $shop_name = '', $query_args = array() ) {
 
 		$api_url = $this->base_url . $action;
@@ -213,10 +247,22 @@ class Ced_Etsy_Request {
 
 	}
 
+	/**
+	 * Parse Etsy reponse.
+	 *
+	 * @param object $response
+	 * @return array
+	 */
 	public function parse_reponse( $response ) {
 		return json_decode( $response, true );
 	}
 
+	/**
+	 * Get access token.
+	 *
+	 * @param string $shop_name
+	 * @return string
+	 */
 	public function get_access_token( $shop_name ) {
 		$user_details     = get_option( 'ced_etsy_details', array() );
 			$access_token = isset( $user_details[ $shop_name ]['details']['token']['access_token'] ) ? $user_details[ $shop_name ]['details']['token']['access_token'] : '';

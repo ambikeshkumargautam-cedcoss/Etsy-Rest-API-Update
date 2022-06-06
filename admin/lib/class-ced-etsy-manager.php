@@ -72,10 +72,16 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 			add_filter( 'woocommerce_order_number', array( $this, 'ced_modify_woo_order_number' ), 20, 2 );
 			add_action( 'ced_etsy_auto_submit_shipment', array( $this, 'ced_etsy_auto_submit_shipment' ) );
 			// add_action( 'admin_notices', array( $this, 'ced_etsy_admin_notices' ) );
-			add_action( 'admin_init', array( $this, 'ced_etsy_get_token_and_shop_data' ) );
+			add_action( 'admin_init', array( $this, 'ced_etsy_get_token_and_shop_data' ), 999, 3 );
 			add_action( 'ced_etsy_refresh_token', array( $this, 'ced_etsy_refresh_token_action' ) );
 		}
 
+		/**
+		 * Refresh Etsy token
+		 *
+		 * @param string $shop_name
+		 * @return void
+		 */
 		public function ced_etsy_refresh_token_action( $shop_name = '' ) {
 
 			if ( ! $shop_name || get_transient( 'ced_etsy_token_' . $shop_name ) ) {
@@ -99,6 +105,12 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 
 		}
 
+		/**
+		 * Get Etsy token and shop data
+		 *
+		 * @param string $shop_name
+		 * @return void
+		 */
 		public function ced_etsy_get_token_and_shop_data() {
 
 			$log = '';
@@ -160,12 +172,17 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 				}
 			
 				wp_redirect( admin_url( 'admin.php?page=ced_etsy' ) );
-					exit;
+				exit;
 			}
 
 
 		}
 		
+		/**
+		 * Admin notice on top of the page
+		 *
+		 * @return void
+		 */
 		public function ced_etsy_admin_notices() {
 
 			if ( isset( $_GET['page'] ) && 'ced_etsy' == $_GET['page'] ) {
@@ -185,6 +202,11 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 			}
 		}
 
+		/**
+		 * Sumbit Etsy order shipping details.
+		 *
+		 * @return void
+		 */
 		public function ced_etsy_auto_submit_shipment() {
 			$etsy_orders = get_posts(
 				array(
@@ -200,11 +222,19 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 			);
 			if ( ! empty( $etsy_orders ) && is_array( $etsy_orders ) ) {
 				foreach ( $etsy_orders as $woo_order_id ) {
+					/**
+					 * Etsy ship order function.
+					 */
 					$this->ced_etsy_auto_ship_order( $woo_order_id );
 				}
 			}
 		}
 
+		/**
+		 * Sumbit Etsy order shipping details by Order ID.
+		 *
+		 * @return void
+		 */
 		public function ced_etsy_auto_ship_order( $woo_order_id = 0 ) {
 
 			$_etsy_umb_order_status = get_post_meta( $woo_order_id, '_etsy_umb_order_status', true );
@@ -245,7 +275,13 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 
 		}
 
-
+		/**
+		 * Ced Etsy modifiy woocommerce order number.
+		 *
+		 * @param [int] $order_id
+		 * @param [int] $order
+		 * @return int
+		 */
 		public function ced_modify_woo_order_number( $order_id, $order ) {
 			$_ced_etsy_order_id     = get_post_meta( $order->get_id(), '_ced_etsy_order_id', true );
 			$ced_etsy_order_shop_id = get_post_meta( $order->get_id(), 'ced_etsy_order_shop_id', true );
@@ -256,17 +292,27 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 			if ( ! empty( $_ced_etsy_order_id ) && 'on' == $use_etsy_order_no ) {
 				return $_ced_etsy_order_id;
 			}
-
 			return $order_id;
 
 		}
 
+		/**
+		 * Exclude duplicated products from order.
+		 *
+		 * @param array $metakeys
+		 * @return string
+		 */
 		public function woocommerce_duplicate_product_exclude_meta( $metakeys = array() ) {
 			$shop_name  = get_option( 'ced_etsy_shop_name', '' );
 			$metakeys[] = '_ced_etsy_listing_id_' . $shop_name;
 			return $metakeys;
 		}
 
+		/**
+		 * Schedule sycn existing, Auto upload product and Auto Submit order Shipping details.
+		 *
+		 * @return void
+		 */
 		public function ced_etsy_schedules() {
 			if ( isset( $_GET['shop_name'] ) && ! empty( $_GET['shop_name'] ) ) {
 				$shop_name = sanitize_text_field( $_GET['shop_name'] );
@@ -326,6 +372,14 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 			}
 		}
 
+		/**
+		 * ******************************************************
+		 *  Update product inventory on Etsy shop after Woo order
+		 * ******************************************************
+		 *
+		 * @param [int] $order_id
+		 * @return void
+		 */
 		public function ced_etsy_update_inventory_on_order_creation( $order_id ) {
 			if ( empty( $order_id ) ) {
 				return;
