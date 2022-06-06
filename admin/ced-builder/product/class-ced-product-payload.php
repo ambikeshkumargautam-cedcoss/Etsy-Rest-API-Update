@@ -21,10 +21,35 @@ class Ced_Product_Payload {
     * @var int
     */
     public $listing_id;
+    /**
+     * Ced Etsy global settings
+     *
+     * @var array
+     */
     public $ced_global_settings;
+    /**
+     * Profile assign flag
+     *
+     * @var bool
+     */
     public $is_profile_assing;
+    /**
+     * Mapped profile data.
+     *
+     * @var int
+     */
     public $profile_data;
+    /**
+     * Is product type dowloadable or not.
+     *
+     * @var array
+     */
     public $is_downloadable;
+    /**
+     * Downloadable file data.
+     *
+     * @var string
+     */
     public $downloadable_data;
     /**
      * Product Type variable
@@ -39,8 +64,11 @@ class Ced_Product_Payload {
      */
     public $shop_name;
 
+    /**
+     * Product ID.
+     * @var int
+     */
     public $product;
-
        
     /**
      * Etsy Payload response.
