@@ -227,7 +227,7 @@ function ced_etsy_cedcommerce_logo() {
 
 function etsy_request() {
 	require_once CED_ETSY_DIRPATH . 'admin/lib/class-ced-etsy-request.php';
-	$request = new Ced_Etsy_Request();
+	$request = new \Cedcommerce\EtsyManager\Ced_Etsy_Request();
 	return $request;
 }
 

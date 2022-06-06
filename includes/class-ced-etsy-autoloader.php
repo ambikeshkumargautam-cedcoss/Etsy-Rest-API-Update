@@ -97,6 +97,7 @@ class CedEtsyAutoloader {
 			'ced_cat'                             => 'ced-builder/product/',
 			'ced_ord'                             => 'ced-builder/order/',
 			'ced_etsy_m'                          => 'lib/',
+			'ced_etsy_req'                        => 'lib/',
 			'ced_view'                            => 'template/view/',
 			'ced_rend'                            => 'template/view/render/',
 			'woocommmerce_etsy_integration_admin' => 'ced-builder/product/',

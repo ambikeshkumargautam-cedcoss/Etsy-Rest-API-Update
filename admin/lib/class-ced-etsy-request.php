@@ -1,25 +1,24 @@
 <?php
-
+namespace Cedcommerce\EtsyManager;
 class Ced_Etsy_Request {
-	
 	/**
 	 * Etsy Cleint ID variable
 	 *
 	 * @var int
 	 */
-	public $client_id;
+	public $client_id = 'ghvcvauxf2taqidkdx2sw4g4';
 	/**
 	 * Base URL for Etsy API.
 	 *
 	 * @var string
 	 */
-	public $base_url;
+	public $base_url = 'https://api.etsy.com/v3/';
 	/**
 	 * Etsy API Key.
 	 *
 	 * @var string
 	 */
-	public $client_secret;
+	public $client_secret = 'hznh7z8xkb';
 	/**
 	 * Etsy Request construct.
 	 */
@@ -108,7 +107,11 @@ class Ced_Etsy_Request {
 	}
 
 	public function post( $action = '', $parameters = array(), $shop_name = '', $query_args = array(), $request_type = 'POST', $content_type='' ) {
+
 		$api_url = $this->base_url . $action;
+		// var_dump( $api_url );
+		// var_dump( $parameters );
+		// var_dump( $shop_name );
 		if ( ! empty( $query_args ) ) {
 			$api_url = $api_url . '?' . http_build_query( $query_args );
 		}
@@ -162,7 +165,7 @@ class Ced_Etsy_Request {
 		    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
 		    CURLOPT_CUSTOMREQUEST => 'POST',
 		    CURLOPT_POSTFIELDS => array(
-		    	$types => new CURLFile($source_file),
+		    	$types => new \CURLFile($source_file),
 		    	'name' => $file_name,
 		    ),
 		    CURLOPT_HTTPHEADER => array(

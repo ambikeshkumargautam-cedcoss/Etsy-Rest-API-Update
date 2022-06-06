@@ -5,15 +5,15 @@
  * @since 1.0.0
  * @package Cedcommmerce\ProductDelete\Class
  */
-
 namespace Cedcommerce\Product;
+use Cedcommerce\EtsyManager\Ced_Etsy_Request as Etsy_Request;
 
 /**
  * Class ProductDelete
  *
  * @package Cedcommerce\Product.
  */
-class Ced_Product_Delete {
+class Ced_Product_Delete extends Etsy_Request{
 
    /**
     * Listing ID variable
@@ -82,7 +82,7 @@ class Ced_Product_Delete {
             if ($listing_id) {
                 do_action( 'ced_etsy_refresh_token', $shop_name );
                 $action    = "application/listings/{$listing_id}";
-                $response  =  etsy_request()->delete( $action , $shop_name );
+                $response  =  parent::delete( $action , $shop_name );
                 if (empty( $response ) || null == $response ) {
                     $response = array();
                 }

@@ -166,25 +166,26 @@ class Ced_Product_Update {
         if ( ! is_array( $product_ids ) ) {
             $product_ids = array( $product_ids );
         }
+        $shop_id = get_etsy_shop_id( $shop_name );
         if ( is_array( $product_ids ) && ! empty( $product_ids ) ) {
             foreach ( $product_ids as $pr_id ) {
-                // var_dump( $pr_id );
                 $listing_id        = get_post_meta( $pr_id, '_ced_etsy_listing_id_' . $shop_name, true );
-                // var_dump( $listing_id );              
                 $previous_thum_ids = get_post_meta( $pr_id, 'ced_etsy_previous_thumb_ids' . $listing_id, true );
-                var_dump( $previous_thum_ids );
-                echo "<pre>";
-                print_r( $previous_thum_ids );
-                die();
                 foreach ( $previous_thum_ids as $attachment_id => $listing_image_id ){
                     // Get all the listing Images form Etsy
-                     // do_action( 'ced_etsy_refresh_token', $shop_name );
-                     // $action   = "application/shops/{$shop_id}/listings/{$listing_id}/images/{$listing_image_id}";
-                     // $response =  etsy_request()->delete( $action , $shop_name );
+                     do_action( 'ced_etsy_refresh_token', $shop_name );
+                     $action   = "application/shops/{$shop_id}/listings/{$listing_id}/images/{$listing_image_id}";
+                     $response =  etsy_request()->delete( $action , $shop_name );
+                     if( isset( $response['error'] ) ){
+                        $error        = array();
+                        $error['error'] = isset( $response['error'] ) ? $response['error'] : 'some error occured';
+                        return $error;
+                     }
+                     
                 }
-
+                delete_post_meta( $pr_id, 'ced_etsy_previous_thumb_ids' . $listing_id );
                 // Upload Images back to Etsy.
-                $upload = new \Cedcommerce\Product\Ced_Product_Upload();
+                $upload   = new \Cedcommerce\Product\Ced_Product_Upload();
                 $upload->ced_etsy_prep_and_upload_img( $pr_id, $shop_name );
             }
         }
