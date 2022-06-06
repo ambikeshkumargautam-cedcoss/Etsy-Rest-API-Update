@@ -24,7 +24,7 @@ class Ced_Order_Get {
 	 * @since 1.0.0
 	 */
 
-	public function getOrders( $shop_name='' ) {
+	public function get_orders( $shop_name='' ) {
 		if (empty( $shop_name )) {
 			return;
 		}
@@ -402,8 +402,8 @@ class Ced_Order_Get {
 				update_post_meta( $order_id, 'ced_etsy_order_shop_id', $shopId );
 				update_option( 'ced_etsy_last_order_created_time', $creation_date );
 
-				$renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', array() );
-				$default_order_status       = ! empty( $renderDataOnGlobalSettings[ $shopId ]['default_order_status'] ) ? $renderDataOnGlobalSettings[ $shopId ]['default_order_status'] : 'wc-processing';
+				$data_on_global_settings = get_option( 'ced_etsy_global_settings', array() );
+				$default_order_status       = ! empty( $data_on_global_settings[ $shopId ]['default_order_status'] ) ? $data_on_global_settings[ $shopId ]['default_order_status'] : 'wc-processing';
 				$order->update_status( $default_order_status );
 				if ( count( $orderMeta ) ) {
 					foreach ( $orderMeta as $oKey => $oValue ) {

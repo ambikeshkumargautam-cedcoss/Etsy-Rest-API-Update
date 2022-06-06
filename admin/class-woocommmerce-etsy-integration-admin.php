@@ -731,7 +731,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 				}
 			}
 			update_option( 'ced_woo_etsy_mapped_categories_name_' . $etsy_store_id, $alreadyMappedCategoriesName );
-			$this->etsy_manager->ced_etsy_createAutoProfiles( $etsyMappedCategories, $etsyMappedCategoriesName, $etsy_store_id );
+			$this->etsy_manager->ced_etsy_create_auto_profiles( $etsyMappedCategories, $etsyMappedCategoriesName, $etsy_store_id );
 			wp_die();
 		}
 	}
@@ -1092,9 +1092,9 @@ class Woocommmerce_Etsy_Integration_Admin {
 		if ( empty( $shop_id ) ) {
 			$shop_id = get_option( 'ced_etsy_shop_name', '' );
 		}
-		$getOrders = $this->ced_etsy_order->getOrders( $shop_id );
-		if ( ! empty( $getOrders ) ) {
-			$createOrder = $this->ced_etsy_order->createLocalOrder( $getOrders, $shop_id );
+		$get_orders = $this->ced_etsy_order->get_orders( $shop_id );
+		if ( ! empty( $get_orders ) ) {
+			$createOrder = $this->ced_etsy_order->createLocalOrder( $get_orders, $shop_id );
 		}
 	}
 
@@ -1120,9 +1120,9 @@ class Woocommmerce_Etsy_Integration_Admin {
 				);
 				die;
 			}
-			$getOrders = $this->ced_etsy_order->getOrders( $shop_id );
-			if ( ! empty( $getOrders ) ) {
-				$createOrder = $etsyOrdersInstance->createLocalOrder( $getOrders, $shop_id );
+			$get_orders = $this->ced_etsy_order->get_orders( $shop_id );
+			if ( ! empty( $get_orders ) ) {
+				$createOrder = $etsyOrdersInstance->createLocalOrder( $get_orders, $shop_id );
 			}
 		}
 	}

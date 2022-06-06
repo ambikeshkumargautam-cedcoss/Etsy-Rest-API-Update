@@ -283,11 +283,10 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		 * @return int
 		 */
 		public function ced_modify_woo_order_number( $order_id, $order ) {
-			$_ced_etsy_order_id     = get_post_meta( $order->get_id(), '_ced_etsy_order_id', true );
-			$ced_etsy_order_shop_id = get_post_meta( $order->get_id(), 'ced_etsy_order_shop_id', true );
-
-			$renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', array() );
-			$use_etsy_order_no          = isset( $renderDataOnGlobalSettings[ $ced_etsy_order_shop_id ]['use_etsy_order_no'] ) ? $renderDataOnGlobalSettings[ $ced_etsy_order_shop_id ]['use_etsy_order_no'] : '';
+			$_ced_etsy_order_id      = get_post_meta( $order->get_id(), '_ced_etsy_order_id', true );
+			$ced_etsy_order_shop_id  = get_post_meta( $order->get_id(), 'ced_etsy_order_shop_id', true );
+			$data_on_global_settings = get_option( 'ced_etsy_global_settings', array() );
+			$use_etsy_order_no       = isset( $data_on_global_settings[ $ced_etsy_order_shop_id ]['use_etsy_order_no'] ) ? $data_on_global_settings[ $ced_etsy_order_shop_id ]['use_etsy_order_no'] : '';
 
 			if ( ! empty( $_ced_etsy_order_id ) && 'on' == $use_etsy_order_no ) {
 				return $_ced_etsy_order_id;
@@ -320,9 +319,9 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 					wp_schedule_event( time(), 'ced_etsy_6min', 'ced_etsy_sync_existing_products_job_' . $shop_name );
 				}
 
-				$renderDataOnGlobalSettings   = get_option( 'ced_etsy_global_settings', array() );
-				$update_tracking              = isset( $renderDataOnGlobalSettings[ $shop_name ]['update_tracking'] ) ? $renderDataOnGlobalSettings[ $shop_name ]['update_tracking'] : '';
-				$ced_etsy_auto_upload_product = isset( $renderDataOnGlobalSettings[ $shop_name ]['ced_etsy_auto_upload_product'] ) ? $renderDataOnGlobalSettings[ $shop_name ]['ced_etsy_auto_upload_product'] : '';
+				$data_on_global_settings   = get_option( 'ced_etsy_global_settings', array() );
+				$update_tracking              = isset( $data_on_global_settings[ $shop_name ]['update_tracking'] ) ? $data_on_global_settings[ $shop_name ]['update_tracking'] : '';
+				$ced_etsy_auto_upload_product = isset( $data_on_global_settings[ $shop_name ]['ced_etsy_auto_upload_product'] ) ? $data_on_global_settings[ $shop_name ]['ced_etsy_auto_upload_product'] : '';
 				if ( ! wp_get_schedule( 'ced_etsy_auto_upload_products_' . $shop_name ) && 'on' == $ced_etsy_auto_upload_product ) {
 					wp_schedule_event( time(), 'ced_etsy_20min', 'ced_etsy_auto_upload_products_' . $shop_name );
 				} else {
@@ -449,34 +448,32 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		 *
 		 * @since    1.0.0
 		 */
-		public function ced_etsy_createAutoProfiles( $etsyMappedCategories = array(), $etsyMappedCategoriesName = array(), $etsyStoreId = '' ) {
+		public function ced_etsy_create_auto_profiles( $etsyMappedCategories = array(), $etsy_mapped_categories_name = array(), $etsyStoreId = '' ) {
 			global $wpdb;
 
-			$wooced_etsy_store_categories          = get_terms( 'product_cat' );
-			$alreadyMappedCategories     = get_option( 'ced_woo_etsy_mapped_categories_' . $etsyStoreId, array() );
-			$alreadyMappedCategoriesName = get_option( 'ced_woo_etsy_mapped_categories_name_' . $etsyStoreId, array() );
+			$wooced_etsy_store_categories = get_terms( 'product_cat' );
+			$alreadyMappedCategories      = get_option( 'ced_woo_etsy_mapped_categories_' . $etsyStoreId, array() );
+			$alreadyMappedCategoriesName  = get_option( 'ced_woo_etsy_mapped_categories_name_' . $etsyStoreId, array() );
 
 			if ( ! empty( $etsyMappedCategories ) ) {
 				foreach ( $etsyMappedCategories as $key => $value ) {
 					$profileAlreadyCreated = get_term_meta( $key, 'ced_etsy_profile_created_' . $etsyStoreId, true );
 					$createdProfileId      = get_term_meta( $key, 'ced_etsy_profile_id_' . $etsyStoreId, true );
 					if ( ! empty( $profileAlreadyCreated ) && 'yes' == $createdProfileId ) {
-
-						$newProfileNeedToBeCreated = $this->checkIfNewProfileNeedToBeCreated( $key, $value, $etsyStoreId );
-
-						if ( ! $newProfileNeedToBeCreated ) {
+						$need = $this->if_new_profile_need( $key, $value, $etsyStoreId );
+						if ( ! $need ) {
 							continue;
 						} else {
-							$this->resetMappedCategoryData( $key, $value, $etsyStoreId );
+							$this->reset_mapped_category_data( $key, $value, $etsyStoreId );
 						}
 					}
 
 					$wooCategories      = array();
 					$categoryAttributes = array();
 
-					$profileName = isset( $etsyMappedCategoriesName[ $value ] ) ? $etsyMappedCategoriesName[ $value ] : 'Profile for etsy - Category Id : ' . $value;
+					$profile_name = isset( $etsy_mapped_categories_name[ $value ] ) ? $etsy_mapped_categories_name[ $value ] : 'Profile for etsy - Category Id : ' . $value;
 
-					$profile_id = $wpdb->get_results( $wpdb->prepare( "SELECT `id` FROM {$wpdb->prefix}ced_etsy_profiles WHERE `profile_name` = %s", $profileName ), 'ARRAY_A' );
+					$profile_id = $wpdb->get_results( $wpdb->prepare( "SELECT `id` FROM {$wpdb->prefix}ced_etsy_profiles WHERE `profile_name` = %s", $profile_name ), 'ARRAY_A' );
 
 					if ( ! isset( $profile_id[0]['id'] ) && empty( $profile_id[0]['id'] ) ) {
 						$is_active       = 1;
@@ -491,7 +488,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 						$profileData    = array();
 						$profileData    = $this->prepareProfileData( $etsyStoreId, $value, $wooCategories );
 						$profileDetails = array(
-							'profile_name'   => $profileName,
+							'profile_name'   => $profile_name,
 							'profile_status' => 'active',
 							'shop_name'      => $etsyStoreId,
 							'profile_data'   => json_encode( $profileData ),
@@ -543,7 +540,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		 *
 		 * @since    1.0.0
 		 */
-		public function checkIfNewProfileNeedToBeCreated( $wooCategoryId = '', $etsyCategoryId = '', $etsyStoreId = '' ) {
+		public function if_new_profile_need( $wooCategoryId = '', $etsyCategoryId = '', $etsyStoreId = '' ) {
 
 			$oldetsyCategoryMapped = get_term_meta( $wooCategoryId, 'ced_etsy_mapped_category_' . $etsyStoreId, true );
 			if ( $oldetsyCategoryMapped == $etsyCategoryId ) {
@@ -558,7 +555,7 @@ if ( ! class_exists( 'Ced_Etsy_Manager' ) ) {
 		 *
 		 * @since    1.0.0
 		 */
-		public function resetMappedCategoryData( $wooCategoryId = '', $etsyCategoryId = '', $etsyStoreId = '' ) {
+		public function reset_mapped_category_data( $wooCategoryId = '', $etsyCategoryId = '', $etsyStoreId = '' ) {
 
 			update_term_meta( $wooCategoryId, 'ced_etsy_mapped_category_' . $etsyStoreId, $etsyCategoryId );
 

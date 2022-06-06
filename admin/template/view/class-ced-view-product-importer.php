@@ -64,8 +64,8 @@ class EtsyListImportedProducts extends WP_List_Table {
 
 	public function get_product_details( $per_page = '', $offset = 1, $shop_name = '' ) {
 
-		$renderDataOnGlobalSettings = get_option( 'ced_etsy_global_settings', '' );
-		$language                   = isset( $renderDataOnGlobalSettings[ $shop_name ]['etsy_language'] ) ? $renderDataOnGlobalSettings[ $shop_name ]['etsy_language'] : '';
+		$data_on_global_settings = get_option( 'ced_etsy_global_settings', '' );
+		$language                   = isset( $data_on_global_settings[ $shop_name ]['etsy_language'] ) ? $data_on_global_settings[ $shop_name ]['etsy_language'] : '';
 
 			// Check clicked button of filter
 		if ( isset( $_POST['filter_button'] ) ) {
