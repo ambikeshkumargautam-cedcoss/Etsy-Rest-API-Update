@@ -160,7 +160,7 @@ class Ced_Product_Update {
      * @param array $product_ids All  product ID. 
      * @param array $shop_name Active shop name of Etsy. 
      *
-     * @return Array. 
+     * @return array. 
      */
     public function ced_update_images_on_etsy( $product_ids = array(), $shop_name = '' ) {
         if ( ! is_array( $product_ids ) ) {
