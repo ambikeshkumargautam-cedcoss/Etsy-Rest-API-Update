@@ -440,13 +440,16 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 */
 
 		private function update_variation_sku_to_etsy( $product_id = '', $listing_id = '', $shop_name = '', $offerings_payload = '', $is_sync = false ) {
-			echo "<pre>";
-			print_r( $offerings_payload );
+
+			// echo "<pre>";
+			// print_r( json_encode( $offerings_payload  ));
+			// die();
 			// print_r( json_encode( $offerings_payload ) );
 			// echo "Shop Name :-". get_etsy_shop_id( $shop_name );
 			// echo "<br>";
 			// echo "Listind id". $listing_id ;
 			// return;
+
 			do_action( 'ced_etsy_refresh_token', $shop_name );
 			$response = parent::put( "application/listings/{$listing_id}/inventory", $offerings_payload, $shop_name );
 			var_dump( $response );

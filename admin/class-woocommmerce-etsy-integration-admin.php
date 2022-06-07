@@ -1619,38 +1619,13 @@ class Woocommmerce_Etsy_Integration_Admin {
 				}else{
 					$cat_id = $woo_cat_id;
 				}
-				// update_term_meta( $cat_id, 'ced_etsy_shipping_profile_with_woo_cat_'. $shop_name. '_'. $e_shiping_id, $e_shiping_id );
-				update_term_meta( $cat_id, 'ced_etsy_shipping_profile_with_woo_cat_'. $shop_name . '_'. $e_shiping_id, $e_shiping_id );
-				// $pre_saved_ids = get_term_meta( $cat_id, 'ced_etsy_shipping_profile_with_woo_cat_'. $shop_name, true );
-				// $pre_saved_ids = !empty( $pre_saved_ids ) ? $pre_saved_ids : array();
-				// $pre_saved_ids[$e_shiping_id][] = $cat_id;
-				// echo "<pre>";
-				// print_r( $pre_saved_ids );
-				// update_term_meta( $e_shiping_id, 'ced_etsy_shipping_profile_with_woo_cat_'. $shop_name, $pre_saved_ids );
-
-				// echo "Shipping Profile ID :-". $e_shiping_id . "<br>";
-				// var_dump( update_term_meta( $e_shiping_id, 'ced_etsy_shipping_profile_with_woo_cat_'. $shop_name, $pre_saved_ids ) );
-
-				$already_selected = get_option( 'ced_etsy_already_selected_profile_at_cat_'.$shop_name, array() );
-				$already_selected[] = $cat_id;
-				update_option( 'ced_etsy_already_selected_profile_at_cat_'.$shop_name, $already_selected );
-
-				echo json_encode( array(
-					'status'  => 200,
-					'message' => __(
-						'Profile is selected with this Category',
-						'woocommerce-etsy-integration'
-					),
-				));
+				$store_profiles                  = get_option( 'ced_etsy_shipping_profiles_'. $shop_name, array() );
+				$store_profiles[$e_shiping_id][] = $cat_id;
+				update_option( 'ced_etsy_shipping_profiles_'. $shop_name, $store_profiles );
+				echo $this->ced_notice_response( 200, 'Profile is selected with this Category' );
 				wp_die();
 			}else{
-				echo json_encode( array(
-					'status'  => 200,
-					'message' => __(
-						'Please select woo category with Etsy shipping profile',
-						'woocommerce-etsy-integration'
-					),
-				));
+				echo $this->ced_notice_response( 200, 'Please select woo category with Etsy shipping profile' );
 				wp_die();
 			}
 		}

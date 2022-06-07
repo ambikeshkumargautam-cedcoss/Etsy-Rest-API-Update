@@ -56,7 +56,7 @@ class Ced_Product_Payload {
      *
      * @var int
      */
-     public $product_type;
+    public $product_type;
 
     /**
      * Etsy shop name.
@@ -424,6 +424,7 @@ class Ced_Product_Payload {
 
             ),
         );
+
         $_product                   = wc_get_product( $product_id );
         $variations                 = $_product->get_available_variations();
         $variationProductAttributes = $_product->get_variation_attributes();
@@ -531,7 +532,7 @@ class Ced_Product_Payload {
                         $extra_price                = $variation['display_price'];
                         $manage_stock               = get_post_meta( $variation['variation_id'], '_manage_stock', true );
                         $stock_status               = get_post_meta( $variation['variation_id'], '_stock_status', true );
-                        $pro_qty            = get_post_meta( $variation['variation_id'], '_ced_etsy_stock', true );
+                        $pro_qty                    = get_post_meta( $variation['variation_id'], '_ced_etsy_stock', true );
                         $price_at_product_lvl       = get_post_meta( $variation['variation_id'], '_ced_etsy_price', true );
                         $markuptype_at_product_lvl  = get_post_meta( $variation['variation_id'], '_ced_etsy_markup_type', true );
                         $markupValue_at_product_lvl = get_post_meta( $variation['variation_id'], '_ced_etsy_markup_value', true );
@@ -682,9 +683,9 @@ class Ced_Product_Payload {
         }
         $params = array(
                 'products'             => $final_attribute_variation_final,
-                'price_on_property'    => array( $setPropertyIds ),
-                'quantity_on_property' => array( $setPropertyIds ),
-                'sku_on_property'      => array( $setPropertyIds ),
+                'price_on_property'    => array( /*$setPropertyIds*/ ),
+                'quantity_on_property' => array( /*$setPropertyIds*/ ),
+                'sku_on_property'      => array( /*$setPropertyIds*/ ),
         );
         return $params;
     }

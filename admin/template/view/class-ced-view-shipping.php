@@ -25,6 +25,7 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 
 	public function prepare_items() {
 		global $wpdb;
+		$shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 		$per_page = apply_filters( 'show_etsy_shipping_profile_per_page', 30 );
 		$columns  = $this->get_columns();
 		$hidden   = array();
@@ -148,21 +149,18 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 	}
 
 	public function column_woo_categories( $etsy_profile ) {
-		$shop_name       = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
+		$shop_name            = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 		$woo_store_categories = get_terms( 'product_cat'/*array( 'hide_empty' => false )*/ );
-		$alreay_selected_cats = get_option( 'ced_etsy_already_selected_profile_at_cat_'.$shop_name, array() );
+		$selected_profiles    = get_option( 'ced_etsy_shipping_profiles_'.$shop_name, array() );
+		$selected_profiles    = isset( $selected_profiles[$etsy_profile['id']] ) ? $selected_profiles[$etsy_profile['id']] : array();
+		$select               = '';
 		echo '<select class="ced_etsy_shipping_profile_selectWoo ced_etsy_shipn_prof" data-e_profile_id="'.esc_attr($etsy_profile['id']).'" multiple="">';
 		echo "<option value=''>---Select---</option>";
-		$select='';
 		foreach ( $woo_store_categories as $cat_term ) {
-			// if ( isset( $alreay_selected_cats ) && in_array( $cat_term->term_id, $alreay_selected_cats)) {
-			// 	continue;
-			// }
-			$updated_value = get_term_meta( $cat_term->term_id, 'ced_etsy_shipping_profile_with_woo_cat_'.$shop_name.'_'.$etsy_profile['id'], true );
-			if ( $etsy_profile['id'] == $updated_value ) {
+			$select = "";
+			if ( in_array( $cat_term->term_id , $selected_profiles) ) {
 				$select = 'selected';
 			}
-
 			echo '<option value="'. esc_attr( $cat_term->term_id ).'"'.$select.'>'.$cat_term->name.'</option>';
 		}
 		echo '</select>';
