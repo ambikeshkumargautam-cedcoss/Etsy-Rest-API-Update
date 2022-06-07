@@ -1619,9 +1619,16 @@ class Woocommmerce_Etsy_Integration_Admin {
 				}else{
 					$cat_id = $woo_cat_id;
 				}
+
+				// Update option for, 
 				$store_profiles                  = get_option( 'ced_etsy_shipping_profiles_'. $shop_name, array() );
 				$store_profiles[$e_shiping_id][] = $cat_id;
 				update_option( 'ced_etsy_shipping_profiles_'. $shop_name, $store_profiles );
+				// Update for seelcted category to be not appear.
+				$already_selected = get_option( 'ced_etsy_already_selected_profile_at_cat_'.$shop_name, array() );
+				$already_selected[] = $cat_id;
+				update_option( 'ced_etsy_already_selected_profile_at_cat_'.$shop_name, $already_selected );
+
 				echo $this->ced_notice_response( 200, 'Profile is selected with this Category' );
 				wp_die();
 			}else{

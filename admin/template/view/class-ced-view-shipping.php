@@ -152,12 +152,16 @@ class Ced_Etsy_Shipping_Profile_Table extends WP_List_Table {
 		$shop_name            = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 		$woo_store_categories = get_terms( 'product_cat'/*array( 'hide_empty' => false )*/ );
 		$selected_profiles    = get_option( 'ced_etsy_shipping_profiles_'.$shop_name, array() );
+		$alreay_selected_cats = get_option( 'ced_etsy_already_selected_profile_at_cat_'.$shop_name, array() );
 		$selected_profiles    = isset( $selected_profiles[$etsy_profile['id']] ) ? $selected_profiles[$etsy_profile['id']] : array();
 		$select               = '';
 		echo '<select class="ced_etsy_shipping_profile_selectWoo ced_etsy_shipn_prof" data-e_profile_id="'.esc_attr($etsy_profile['id']).'" multiple="">';
 		echo "<option value=''>---Select---</option>";
 		foreach ( $woo_store_categories as $cat_term ) {
 			$select = "";
+			if ( isset( $alreay_selected_cats ) && in_array( $cat_term->term_id, $alreay_selected_cats)) {
+				continue;
+			}
 			if ( in_array( $cat_term->term_id , $selected_profiles) ) {
 				$select = 'selected';
 			}

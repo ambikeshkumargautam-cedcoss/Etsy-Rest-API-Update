@@ -20,7 +20,7 @@ class Ced_Product_Payload {
     *
     * @var int
     */
-    public $listing_id;
+   public $listing_id;
     /**
      * Ced Etsy global settings
      *
@@ -69,7 +69,7 @@ class Ced_Product_Payload {
      * @var int
      */
     public $product;
-       
+
     /**
      * Etsy Payload response.
      * @var string
@@ -85,7 +85,7 @@ class Ced_Product_Payload {
      *
      */
 
-    public function __construct( $shop_name = '', $product_id= '' , $listing_id = '' ) {
+   public function __construct( $shop_name = '', $product_id= '' , $listing_id = '' ) {
        $this->ced_global_settings = get_option( 'ced_etsy_global_settings', array() );
        $this->saved_etsy_details  = get_option( 'ced_etsy_details', array() );
        $this->shop_name           = $shop_name;
@@ -95,7 +95,7 @@ class Ced_Product_Payload {
            $this->ced_global_settings = isset( $this->ced_global_settings[$this->shop_name] ) ? $this->ced_global_settings[$this->shop_name] : $this->ced_global_settings;
            $this->saved_etsy_details  = isset( $this->saved_etsy_details[$this->shop_name] ) ? $this->saved_etsy_details[$this->shop_name] : $this->saved_etsy_details;
        }
-    }
+   }
 
     /**
      * Get value of an property which isn't exist in this class. 
@@ -142,15 +142,15 @@ class Ced_Product_Payload {
         if (empty( $pr_id )) {
             $pr_id = $this->product_id;
         }
-         $wc_product    = wc_get_product( $pr_id );
-         $this->product = $wc_product->get_data();
-         $type          = $wc_product->get_type();
-         if ('variable' === $type ) {
+        $wc_product    = wc_get_product( $pr_id );
+        $this->product = $wc_product->get_data();
+        $type          = $wc_product->get_type();
+        if ('variable' === $type ) {
             $this->product_type       = 'variable';
             $this->parent_id = $wc_product->get_parent_id();
             return $this->product_type;
-         }
-         $this->product_type = 'simple';
+        }
+        $this->product_type = 'simple';
         return $this->product_type;
     }
 
@@ -262,123 +262,123 @@ class Ced_Product_Payload {
         $this->is_downloadable = isset( $productData['downloadable'] ) ? $productData['downloadable'] : 0;
         if ( $this->is_downloadable ) {
           $this->downloadable_data = isset( $productData['downloads'] ) ? $productData['downloads'] : array();
-        }
+      }
        #Global settings values.
-        $etsy_data_field    = isset( $this->ced_global_settings['product_data'] ) ? $this->ced_global_settings['product_data'] : $this->ced_global_settings[$shop_name]['product_data'];
-        $pro_data = array();
-        foreach ( $etsy_data_field as $meta_key => $value ) {
-            
-            $pro_val = get_post_meta( $product_id, $meta_key, true );
-            if ( empty( $pro_val ) ) {
-                #Check if product meta key is set in profile.
-                $pro_val = $this->fetch_meta_value( $product_id, $meta_key );
-            }
-            #Check if product meta key is set in global settings.
-            if ( empty( $pro_val ) ) {
-                $pro_val = $value['default'];
-            }
-            $pro_data[trim( str_replace( '_ced_etsy_', ' ', $meta_key) )] = !empty( $pro_val ) ? $pro_val : '';
-        }
+      $etsy_data_field    = isset( $this->ced_global_settings['product_data'] ) ? $this->ced_global_settings['product_data'] : $this->ced_global_settings[$shop_name]['product_data'];
+      $pro_data = array();
+      foreach ( $etsy_data_field as $meta_key => $value ) {
 
-        $productTitle         = !empty( $pro_data['title'] ) ? $pro_data['title'] : $productData['name'];
-        $productTitle         = $pro_data['title_pre'] . ' ' . $productTitle . ' ' . $pro_data['title_post'];
-        $productDescription   = !empty( $pro_data['description'] ) ? $pro_data['description'] : $pro_data['description_pre'] . $productData['description'] . '</br>' . $pro_data['description_post'];
-        $pro_price            = get_post_meta( $product_id, '_ced_etsy_price', true );
-        $price_at_profile_lvl = $this->fetch_meta_value( $product_id, '_ced_etsy_price' );
+        $pro_val = get_post_meta( $product_id, $meta_key, true );
+        if ( empty( $pro_val ) ) {
+                #Check if product meta key is set in profile.
+            $pro_val = $this->fetch_meta_value( $product_id, $meta_key );
+        }
+            #Check if product meta key is set in global settings.
+        if ( empty( $pro_val ) ) {
+            $pro_val = $value['default'];
+        }
+        $pro_data[trim( str_replace( '_ced_etsy_', ' ', $meta_key) )] = !empty( $pro_val ) ? $pro_val : '';
+    }
+
+    $productTitle         = !empty( $pro_data['title'] ) ? $pro_data['title'] : $productData['name'];
+    $productTitle         = $pro_data['title_pre'] . ' ' . $productTitle . ' ' . $pro_data['title_post'];
+    $productDescription   = !empty( $pro_data['description'] ) ? $pro_data['description'] : $pro_data['description_pre'] . $productData['description'] . '</br>' . $pro_data['description_post'];
+    $pro_price            = get_post_meta( $product_id, '_ced_etsy_price', true );
+    $pr_pf_l = $this->fetch_meta_value( $product_id, '_ced_etsy_price' );
 
         // Price
-        if ( ! empty( $pro_price ) ) {
-            $markuptype_at_product_lvl = get_post_meta( $product_id, '_ced_etsy_markup_type', true );
-            $markupValue               = (float) get_post_meta( $product_id, '_ced_etsy_markup_value', true );
-            if ( 'Percentage_Increased' == $markuptype_at_product_lvl ) {
-                $pro_price = (float) $pro_price + ( ( (float) $markupValue / 100 ) * (float) $pro_price );
-            } else {
-                $pro_price = (float) $pro_price + (float) $markupValue;
-            }
+    if ( ! empty( $pro_price ) ) {
+        $m_ty_pr_l = get_post_meta( $product_id, '_ced_etsy_markup_type', true );
+        $markupValue               = (float) get_post_meta( $product_id, '_ced_etsy_markup_value', true );
+        if ( 'Percentage_Increased' == $m_ty_pr_l ) {
+            $pro_price = (float) $pro_price + ( ( (float) $markupValue / 100 ) * (float) $pro_price );
         } else {
-            if ( empty( $price_at_profile_lvl ) ) {
-                $price_at_profile_lvl = (float) $productData['price'];
-            }
-            $markuptype_at_profile_lvl = $this->fetch_meta_value( $product_id, '_ced_etsy_markup_type' );
-            $markupValue               = (float) $this->fetch_meta_value( $product_id, '_ced_etsy_markup_value' );
-            if ( 'Percentage_Increased' == $markuptype_at_profile_lvl ) {
-                $pro_price = (float) $price_at_profile_lvl + ( ( (float) $markupValue / 100 ) * (float) $price_at_profile_lvl );
-            } else {
-                $pro_price = (float) $price_at_profile_lvl + (float) $markupValue;
-            }
+            $pro_price = (float) $pro_price + (float) $markupValue;
         }
-
-        if ( 'variable' == $product_type ) {
-            $variations = $product->get_available_variations();
-            if ( isset( $variations['0']['display_regular_price'] ) ) {
-                $pro_price    = $variations['0']['display_regular_price'];
-                $varId        = $variations['0']['variation_id'];
-                $pro_qty = 1;
-            }
+    } else {
+        if ( empty( $pr_pf_l ) ) {
+            $pr_pf_l = (float) $productData['price'];
+        }
+        $m_t_p_l = $this->fetch_meta_value( $product_id, '_ced_etsy_markup_type' );
+        $markupValue               = (float) $this->fetch_meta_value( $product_id, '_ced_etsy_markup_value' );
+        if ( 'Percentage_Increased' == $m_t_p_l ) {
+            $pro_price = (float) $pr_pf_l + ( ( (float) $markupValue / 100 ) * (float) $pr_pf_l );
         } else {
-            $manage_stock = get_post_meta( $product_id, '_manage_stock', true );
-            $stock_status = get_post_meta( $product_id, '_stock_status', true );
-            $pro_qty      = get_post_meta( $product_id, '_ced_etsy_stock', true );
-            if ( '' == $pro_qty ) {
-                $pro_qty = $this->fetch_meta_value( $product_id, '_ced_etsy_stock' );
-            }
-            if ( '' == $pro_qty ) {
-                $pro_qty = get_post_meta( $product_id, '_stock', true );
-            }
-            if ( trim( $stock_status ) == 'instock' && trim( $manage_stock ) == 'no' && '' == $pro_qty ) {
-                $pro_qty = 1;
-            }
+            $pro_price = (float) $pr_pf_l + (float) $markupValue;
         }
-
-        if ( ! empty( $pro_data['_ced_etsy_tags'] )) {
-            $explode_tags = explode( ',', $pro_data['_ced_etsy_tags'] );
-            if ( is_array( $explode_tags ) ) {
-                 $tags = $this->ced_etsy_tags( $explode_tags );
-            }
-        }
-        if ( empty( $tags ) ) {
-            $current_tag = get_the_terms( $product_id, 'product_tag' );
-            if ( is_array( $current_tag ) ) {
-                $tags = $this->ced_etsy_tags( $current_tag );
-            }
-        }
-
-        if ( ! empty( $pro_data['materials'] ) ) {
-            $materials = array( str_replace( ' ', ',', $materials ) );
-        }
-
-        $pro_data['shipping_profile'] = 172257960844;
-        if (empty($pro_data['shipping_profile'] )) {
-            $error['msg'] = 'Shipping profile is not selected';
-            return $error;
-        }
-
-        $category_id = $this->fetch_meta_value( $product_id, '_umb_etsy_category' );
-        $arguements = array(
-            'title'                => trim( ucwords( strtolower( strtoupper( $productTitle ) ) ) ),
-            'description'          => strip_tags( $productDescription ),
-            'shipping_profile_id'  => doubleval( 171887176577 ),
-            'shop_section_id'      => (int)!empty( $pro_data['shop_section'] ) ? $pro_data['shop_section'] : '',
-            'taxonomy_id'          => (int) $category_id,
-            'who_made'             => !empty ( $pro_data['who_made'] ) ? $pro_data['who_made'] : 'i_did',
-            'is_supply'            => !empty( $pro_data['product_supply'] ) ? $prod_data['product_supply'] : ( 'true' == $pro_data['product_supply'] ? 1 : 0 ),
-            'when_made'            => !empty( $pro_data['when_made'] ) ? $pro_data['when_made'] : 'made_to_order',
-            'quantity'             => (int) $pro_qty,
-            'price'                => (float) $pro_price,
-            'non_taxable'          => 0,
-            'state'                => !empty( $pro_data['product_list_type'] ) ? $pro_data['product_list_type'] : 'draft',
-            'processing_min'       => !empty( $pro_data['processing_min'] ) ? $pro_data['processing_min'] : 1,
-            'processing_max'       => !empty( $pro_data['processing_max'] ) ? $pro_data['processing_max'] : 3,
-            'materials'            => !empty( $materials ) ? (int) $materials : array(),
-            'tags'                 => !empty( $tags ) ? (int) $tags : array(),
-            'recipient'            => !empty( $pro_data['recipient'] ) ? (int) $pro_data['recipient'] : '',
-            'occasion'             => !empty( $pro_data['occasion'] ) ? (int) $pro_data['occasion'] : '',
-            'listing_type'         => 'physical',
-            'language'             => 'en',
-            'image_ids'            => array( 3842639609, 3849518812 ),
-        );
-        return $arguements;
     }
+
+    if ( 'variable' == $product_type ) {
+        $variations = $product->get_available_variations();
+        if ( isset( $variations['0']['display_regular_price'] ) ) {
+            $pro_price    = $variations['0']['display_regular_price'];
+            $varId        = $variations['0']['variation_id'];
+            $pro_qty = 1;
+        }
+    } else {
+        $manage_stock = get_post_meta( $product_id, '_manage_stock', true );
+        $stock_status = get_post_meta( $product_id, '_stock_status', true );
+        $pro_qty      = get_post_meta( $product_id, '_ced_etsy_stock', true );
+        if ( '' == $pro_qty ) {
+            $pro_qty = $this->fetch_meta_value( $product_id, '_ced_etsy_stock' );
+        }
+        if ( '' == $pro_qty ) {
+            $pro_qty = get_post_meta( $product_id, '_stock', true );
+        }
+        if ( trim( $stock_status ) == 'instock' && trim( $manage_stock ) == 'no' && '' == $pro_qty ) {
+            $pro_qty = 1;
+        }
+    }
+
+    if ( ! empty( $pro_data['_ced_etsy_tags'] )) {
+        $explode_tags = explode( ',', $pro_data['_ced_etsy_tags'] );
+        if ( is_array( $explode_tags ) ) {
+         $tags = $this->ced_etsy_tags( $explode_tags );
+     }
+ }
+ if ( empty( $tags ) ) {
+    $current_tag = get_the_terms( $product_id, 'product_tag' );
+    if ( is_array( $current_tag ) ) {
+        $tags = $this->ced_etsy_tags( $current_tag );
+    }
+}
+
+if ( ! empty( $pro_data['materials'] ) ) {
+    $materials = array( str_replace( ' ', ',', $materials ) );
+}
+
+$pro_data['shipping_profile'] = 172257960844;
+if (empty($pro_data['shipping_profile'] )) {
+    $error['msg'] = 'Shipping profile is not selected';
+    return $error;
+}
+
+$category_id = $this->fetch_meta_value( $product_id, '_umb_etsy_category' );
+$arguements = array(
+    'title'                => trim( ucwords( strtolower( strtoupper( $productTitle ) ) ) ),
+    'description'          => strip_tags( $productDescription ),
+    'shipping_profile_id'  => doubleval( 171887176577 ),
+    'shop_section_id'      => (int)!empty( $pro_data['shop_section'] ) ? $pro_data['shop_section'] : '',
+    'taxonomy_id'          => (int) $category_id,
+    'who_made'             => !empty ( $pro_data['who_made'] ) ? $pro_data['who_made'] : 'i_did',
+    'is_supply'            => !empty( $pro_data['product_supply'] ) ? $prod_data['product_supply'] : ( 'true' == $pro_data['product_supply'] ? 1 : 0 ),
+    'when_made'            => !empty( $pro_data['when_made'] ) ? $pro_data['when_made'] : 'made_to_order',
+    'quantity'             => (int) $pro_qty,
+    'price'                => (float) $pro_price,
+    'non_taxable'          => 0,
+    'state'                => !empty( $pro_data['product_list_type'] ) ? $pro_data['product_list_type'] : 'draft',
+    'processing_min'       => !empty( $pro_data['processing_min'] ) ? $pro_data['processing_min'] : 1,
+    'processing_max'       => !empty( $pro_data['processing_max'] ) ? $pro_data['processing_max'] : 3,
+    'materials'            => !empty( $materials ) ? (int) $materials : array(),
+    'tags'                 => !empty( $tags ) ? (int) $tags : array(),
+    'recipient'            => !empty( $pro_data['recipient'] ) ? (int) $pro_data['recipient'] : '',
+    'occasion'             => !empty( $pro_data['occasion'] ) ? (int) $pro_data['occasion'] : '',
+    'listing_type'         => 'physical',
+    'language'             => 'en',
+    'image_ids'            => array( 3842639609, 3849518812 ),
+);
+return $arguements;
+}
 
     /**
      * *****************************************
@@ -396,298 +396,117 @@ class Ced_Product_Payload {
      */
 
     public function ced_variation_details( $product_id = '', $shop_name = '', $is_sync = false ) {
-        $variation_category_attribute_property = array(
-           array(
-                'property_id' => '513',
-                'name' => 'Custom1',
-                'display_name' => 'Custom Property',
-                'is_required' => 0,
-                'supports_attributes' => 0,
-                'supports_variations' => 1,
-                'is_multivalued' => 0,
-                'scales' => array(),
-                'possible_values' => array(),
-                'selected_values' => array(),
-
-            ),
-            array(
-                    'property_id' => '514',
-                    'name' => 'Custom1',
-                    'display_name' => 'Custom Property',
-                    'is_required' => 0,
-                    'supports_attributes' => 0,
-                    'supports_variations' => 1,
-                    'is_multivalued' => 0,
-                    'scales' => array(),
-                    'possible_values' => array(),
-                    'selected_values' => array(),
-
-            ),
-        );
-
-        $_product                   = wc_get_product( $product_id );
-        $variations                 = $_product->get_available_variations();
-        $variationProductAttributes = $_product->get_variation_attributes();
-        $extra_price                = $variations['0']['display_regular_price'];
-        $setPropertyIds             = array();
-        $possible_combinations      = array();
-        $attributes                 = wc_list_pluck( $_product->get_attributes(), 'get_slugs' );
-        if ( ! empty( $attributes ) ) {
-            $possible_combinations = array_values( wc_array_cartesian( $attributes ) );
-            $com_to_be_prepared    = array();
-            foreach ( $possible_combinations as $po_attr => $po_values ) {
-                $att_name_po = '';
-                $po_values   = array_reverse( $po_values );
-
-                foreach ( $po_values as $kk => $po_value ) {
-                    if ( ! isset($variationProductAttributes[$kk]) ) {
-                    continue;
-                    }
-                    $att_name_po .= $po_value . '~';
-                }
-                $com_to_be_prepared[ trim( strtolower( $att_name_po ) ) ] = trim( strtolower( $att_name_po ) );
-            }
-        }
-        $parent_sku  = get_post_meta( $product_id, '_sku', true );
-        $combo_count = count( $possible_combinations );
-        $var_ids     = array();
-        foreach ( $variations as $variation ) {
-            $product_id          = $variation['variation_id'];
-            $var_product         = wc_get_product( $product_id );
-            $productAttributes   = $var_product->get_variation_attributes();
-            $attribute_one       = '';
-            $attribute_two       = '';
-            $attribute_one_value = '';
-            $attribute_two_value = '';
-            $count               = 0;
-            foreach ( $productAttributes as $name => $attr_values ) {
-                $name         = str_replace( 'attribute_', '', $name );
-                $term         = get_term_by( 'slug', $attr_values, $name );
-                $product_term = $attr_values;
-                if ( is_object( $term ) ) {
-                    $product_term = $term->name;
-                }
-                if ( 0 == $count ) {
-                    $attribute_one       = wc_attribute_label( $name );
-                    $attribute_one_value = $product_term;
-                } else {
-                    $attribute_two       = wc_attribute_label( $name );
-                    $attribute_two_value = $product_term;
-                }
-                ++$count;
-            }
-
+        $property_ids = array( 513, 514 );
+        $product      = wc_get_product( $product_id );
+        $variations   = $product->get_available_variations();
+        $attributes   = array();
+        foreach ($variations as $variation ) {
+            
             $attribute_one_mapped = false;
             $attribute_two_mapped = false;
+            $var_product          = wc_get_product( $variation['variation_id'] );
+            $attributes           = $var_product->get_variation_attributes();
+            $count                = 0;
+            $property_values      = array();
+            $offerings            = array();
 
-            $final_etsy_product_property_valuedem = array();
-            $var_att_array                        = '';
-            foreach ( $variation_category_attribute_property as $variation_category_attribute_property_key => $variation_category_attribute_property_value ) {
-                if ( isset( $variation_category_attribute_property ) ) {
-                    $variation_key_value     = $this->fetch_meta_value( $product_id, '_ced_etsy_variation_property_id_' . $variation_category_attribute_property_value['property_id'], true );
-                    $ReplacedAttributes      = get_option( 'ced_etsy_replaced_attributes', array() );
-                    if ( isset( $ReplacedAttributes[ $variation_key_value ] ) && ! empty( $ReplacedAttributes[ $variation_key_value ] ) ) {
-                        $variation_key_value = $ReplacedAttributes[ $variation_key_value ];
-                    }
+            // Attributes as it's slug and attribute values.
+            foreach ($attributes as $property_name => $property_value ) {
+                $property_id = 513;
+                if ( $count > 0) {
+                    $property_id = 514;
+                }
+                $property_values[] = array(
+                    'property_id'   => (int) $property_id,
+                    'value_ids'     => array( $property_id ),
+                    'property_name' => ucwords( str_replace( array( 'attribute_pa_', 'attribute_' ), array( '', '' ), $property_name ) ),
+                    'values'        => array( ucwords( strtolower( $property_value ) ) ),
 
-                    $property_name = $variation_category_attribute_property_value['name'];
-                    $property_id   = $variation_category_attribute_property_value['property_id'];
-                    if ( empty( $variation_key_value ) && count( $productAttributes ) > 1 && ( 513 == $property_id || '513' == $property_id ) && ! $attribute_one_mapped ) {
-                        $property_name       = $attribute_one;
-                        $variation_key_value = $attribute_one_value;
-                    }
+                );
+                $count++;
+            }
 
-                    if ( empty( $variation_key_value ) && count( $productAttributes ) > 1 && ( 514 == $property_id || '514' == $property_id ) && ! $attribute_two_mapped ) {
-                        $property_name       = $attribute_two;
-                        $variation_key_value = $attribute_two_value;
-                    }
 
-                    if ( empty( $variation_key_value ) && count( $productAttributes ) == 1 && ( 514 == $property_id || '514' == $property_id ) && ! $attribute_one_mapped ) {
-                        $property_name       = $attribute_one;
-                        $variation_key_value = $attribute_one_value;
-                    }
-                    if ( isset( $variation_key_value ) && ! empty( $variation_key_value ) ) {
-                        if ( ! $attribute_one_mapped ) {
-                            $attribute_one_mapped = true;
-                            $property_id_one      = $property_id;
-                            $property_name_one    = ucwords( str_replace( array( 'attribute_pa_', 'attribute_' ), array( '', '' ), $property_name ) );
-                        } else {
-                            $attribute_two_mapped = true;
-                            $property_id_two      = $property_id;
-                            $property_name_two    = ucwords( str_replace( array( 'attribute_pa_', 'attribute_' ), array( '', '' ), $property_name ) );
-                        }
-                        $final_attribute_variation         = array();
-                        $final_etsy_product_property_value = array();
-                        $var_att_array                    .= $variation_key_value . '~';
-                        $setPropertyIds[]                  = (int) $property_id;
-                        $var_ids[]                         = isset( $variation['variation_id'] ) ? $variation['variation_id'] : ''; 
-                        $final_etsy_product_property_value = array(
-                            'property_id'   => (int) $variation_category_attribute_property_value['property_id'],
-                            'value_ids'     => array( 513, 514 ),
-                            'property_name' => ucwords( str_replace( array( 'attribute_pa_', 'attribute_' ), array( '', '' ), $property_name ) ),
-                            'values'        => array( ucwords( strtolower( $variation_key_value ) ) ),
-                        );
+            $price        = $variation['display_price'];
+            $manage_stock = get_post_meta( $variation['variation_id'], '_manage_stock', true );
+            $stock_status = get_post_meta( $variation['variation_id'], '_stock_status', true );
+            $var_quantity = get_post_meta( $variation['variation_id'], '_ced_etsy_stock', true );
+            $pr_pr_l      = get_post_meta( $variation['variation_id'], '_ced_etsy_price', true );
+            $m_ty_pr_l    = get_post_meta( $variation['variation_id'], '_ced_etsy_markup_type', true );
+            $mrkp_v_p_l   = get_post_meta( $variation['variation_id'], '_ced_etsy_markup_value', true );
+            $m_t_p_l      = $this->fetch_meta_value( $product_id, '_ced_etsy_markup_type' );
+            $m_val_p_l    = $this->fetch_meta_value( $product_id, '_ced_etsy_markup_value' );
+            $pr_pf_l      = $this->fetch_meta_value( $product_id, '_ced_etsy_price' );
 
-                        $price                      = $variation['display_price'];
-                        $extra_price                = $variation['display_price'];
-                        $manage_stock               = get_post_meta( $variation['variation_id'], '_manage_stock', true );
-                        $stock_status               = get_post_meta( $variation['variation_id'], '_stock_status', true );
-                        $pro_qty                    = get_post_meta( $variation['variation_id'], '_ced_etsy_stock', true );
-                        $price_at_product_lvl       = get_post_meta( $variation['variation_id'], '_ced_etsy_price', true );
-                        $markuptype_at_product_lvl  = get_post_meta( $variation['variation_id'], '_ced_etsy_markup_type', true );
-                        $markupValue_at_product_lvl = get_post_meta( $variation['variation_id'], '_ced_etsy_markup_value', true );
-                        $markuptype_at_profile_lvl  = $this->fetch_meta_value( $product_id, '_ced_etsy_markup_type' );
-                        $markupValue_at_profile_lvl = $this->fetch_meta_value( $product_id, '_ced_etsy_markup_value' );
-                        $price_at_profile_lvl       = $this->fetch_meta_value( $product_id, '_ced_etsy_price' );
-
-                        // Price
-                        if ( ! empty( $price_at_product_lvl ) ) {
-                            $price = (float) $price_at_product_lvl;
-                            if ( 'Percentage_Increased' == $markuptype_at_product_lvl ) {
-                                $price = $price + ( ( (float) $markupValue_at_product_lvl / 100 ) * $price );
-                            } else {
-                                $price = $price + (float) $markupValue_at_product_lvl;
-                            }
-                        } else {
-                            $price = $price_at_profile_lvl;
-                            if ( empty( $price ) ) {
-                                $price = trim( $variation['display_price'] );
-                            }
-                            $price = (float) $price;
-                            if ( 'Percentage_Increased' == $markuptype_at_profile_lvl ) {
-                                $price = $price + ( ( (float) $markupValue_at_profile_lvl / 100 ) * $price );
-                            } else {
-                                $price = $price + (float) $markupValue_at_profile_lvl;
-                            }
-                        }
-
-                        if ( '' == $pro_qty ) {
-                            $pro_qty = $this->fetch_meta_value( $product_id, '_ced_etsy_stock' );
-                        }
-                        if ( '' == $pro_qty ) {
-                            $pro_qty = get_post_meta( $variation['variation_id'], '_stock', true );
-                        }
-
-                        if ( trim( $stock_status ) == 'instock' && trim( $manage_stock ) == 'no' && '' == $pro_qty ) {
-                            $pro_qty = 1;
-                        }
-
-                        if ( $pro_qty < 1 ) {
-                            $pro_qty = 0;
-                        }
-
-                        $variation_max_qty                      = $pro_qty;
-                        $final_etsy_product_property_valuedem[] = $final_etsy_product_property_value;
-                        if ( $variation_max_qty <= 0 ) {
-                            $product_enable    = 0;
-                            $variation_max_qty = 0;
-                        } else {
-                            $product_enable = 1;
-                        }
-
-                        $final_etsy_product_offering = array(
-                            array(
-                                'price'      => (float) $price,
-                                'quantity'   => (int) $variation_max_qty,
-                                'is_enabled' => $product_enable,
-                            ),
-                        );
-
-                        $var_sku = $variation['sku'];
-                        if ( empty( $var_sku ) || strlen( $var_sku ) > 32 || $parent_sku == $var_sku ) {
-                            $var_sku = (string) $variation['variation_id'];
-                        }
-
-                        $final_attribute_variation = array(
-                            'sku'             => $var_sku,
-                            'property_values' => $final_etsy_product_property_valuedem,
-                            'offerings'       => $final_etsy_product_offering,
-                        );
-                    }
+            // Price
+            if ( ! empty( $pr_pr_l ) ) {
+                $price = (float) $pr_pr_l;
+                if ( 'Percentage_Increased' == $m_ty_pr_l ) {
+                    $price = $price + ( ( (float) $mrkp_v_p_l / 100 ) * $price );
+                } else {
+                    $price = $price + (float) $mrkp_v_p_l;
+                }
+            } else {
+                $price = $pr_pf_l;
+                if ( empty( $price ) ) {
+                    $price = trim( $variation['display_price'] );
+                }
+                $price = (float) $price;
+                if ( 'Percentage_Increased' == $m_t_p_l ) {
+                    $price = $price + ( ( (float) $m_val_p_l / 100 ) * $price );
+                } else {
+                    $price = $price + (float) $m_val_p_l;
                 }
             }
 
-            if ( isset( $com_to_be_prepared[ strtolower( $var_att_array ) ] ) ) {
-                unset( $com_to_be_prepared[ strtolower( $var_att_array ) ] );
+            if ( '' == $var_quantity ) {
+                $var_quantity = $this->fetch_meta_value( $product_id, '_ced_etsy_stock' );
+            }
+            if ( '' == $var_quantity ) {
+                $var_quantity = get_post_meta( $variation['variation_id'], '_stock', true );
             }
 
-            $final_attribute_variation_final[] = isset( $final_attribute_variation ) ? $final_attribute_variation : '';
-        }
-        goto aftervariable;
-        if ( count( $final_attribute_variation_final ) && ( count( $final_attribute_variation_final ) != $combo_count ) && count( $variationProductAttributes ) == 2 ) {
-            $remaining_combination = $com_to_be_prepared;
-            foreach ( $remaining_combination as $combination ) {
-                $property_values_remaining = array_values( array_filter( explode( '~', $combination ) ) );
-                if ( isset( $property_values_remaining[1] ) ) {
-                    $final_attribute_variation_final[] = array(
-
-                        'sku'             => '',
-                        'property_values' => array(
-                            array(
-                                'property_id'   => (int) $property_id_one,
-                                'value_ids'   => array( 513, 514 ),
-                                'property_name' => $property_name_one,
-                                'values'        => array(
-                                    isset( $property_values_remaining[0] ) ? ucwords( strtolower( $property_values_remaining[0] ) ) : '',
-                                ),
-                            ),
-                            array(
-                                'property_id'   => (int) $property_id_two,
-                                'value_ids'   => array(),
-                                'property_name' => $property_name_two,
-                                'values'        => array(
-                                    isset( $property_values_remaining[1] ) ? ucwords( strtolower( $property_values_remaining[1] ) ) : '',
-                                ),
-                            ),
-                        ),
-                        'offerings'       => array(
-                            array(
-                                'price'      => (float) $extra_price,
-                                'quantity'   => 0,
-                                'is_enabled' => 0,
-                            ),
-                        ),
-
-                    );
-                } elseif ( isset( $property_values_remaining[0] ) ) {
-                    $final_attribute_variation_final[] = array(
-
-                        'sku'             => '',
-                        'property_values' => array(
-                            array(
-                                'value_ids'   => array( 513, 514 ),
-                                'property_id'   => (int) $property_id_one,
-                                'property_name' => $property_name_one,
-                                'values'        => array(
-                                    isset( $property_values_remaining[0] ) ? ucwords( strtolower( $property_values_remaining[0] ) ) : '',
-                                ),
-                            ),
-
-                        ),
-                        'offerings'       => array(
-                            array(
-                                'price'      => (float) $extra_price,
-                                'quantity'   => 0,
-                                'is_enabled' => 0,
-                            ),
-                        ),
-
-                    );
+            if ( trim( $stock_status ) == 'instock' && trim( $manage_stock ) == 'no' && '' == $var_quantity ) {
+                $var_quantity = $this->fetch_meta_value( $product_id, '_ced_etsy_default_stock' );
+                if ( '' == $var_quantity ) {
+                    $var_quantity = 1;
                 }
             }
+
+            if ( $var_quantity < 1 ) {
+                $var_quantity = 0;
+            }
+
+            $var_sku = $variation['sku'];
+            if ( empty( $var_sku ) || strlen( $var_sku ) > 32 || $parent_sku == $var_sku ) {
+                $var_sku = (string) $variation['variation_id'];
+            }
+
+            $offerings = array(
+                array(
+                    'price'      => (float) $price,
+                    'quantity'   => (int) $var_quantity,
+                    'is_enabled' => 1,
+                ),
+            );
+            $variation_info = array(
+                'sku'             => $var_sku,
+                'property_values' => $property_values,
+                'offerings'       => $offerings,
+            );
+            $offer_info[]   = $variation_info;
+            $property_ids[] = $property_id;
         }
-        aftervariable:
-        if ( isset( $setPropertyIds ) && is_array( $setPropertyIds ) && ! empty( $setPropertyIds ) ) {
-            $setPropertyIds = array_unique( $setPropertyIds );
-            $setPropertyIds = implode( ',', $setPropertyIds );
-        }
-        $params = array(
-                'products'             => $final_attribute_variation_final,
-                'price_on_property'    => array( /*$setPropertyIds*/ ),
-                'quantity_on_property' => array( /*$setPropertyIds*/ ),
-                'sku_on_property'      => array( /*$setPropertyIds*/ ),
+
+        $property_ids = array_unique( $property_ids );
+        $property_ids = implode( ',', $property_ids );
+        $payload = array(
+            'products'            => $offer_info,
+            'price_on_property'   => $property_ids,
+            'quantity_on_property'=> $property_ids,
+            'sku_on_property'     => $property_ids,
         );
-        return $params;
+        return $payload;
     }
 
 

@@ -70,8 +70,13 @@ class Ced_Order_Get {
 			foreach ( $orders as $order ) {
 				$receipt_id = isset( $order['receipt_id'] ) ? $order['receipt_id'] : '';
 				if ( ! empty( $receipt_id ) ) {
-					$params                   = array( 'receipt_id' => (int) $receipt_id );
+					// $params                   = array( 'receipt_id' => (int) $receipt_id );
+					
 					// Get receipts by reciepts order id
+					do_action( 'ced_etsy_refresh_token', $shop_name );
+					$shop_id = get_etsy_shop_id( $shop_name );
+					$result  = etsy_request()->get( "application/shops/$shop_id/receipts/{$receipt_id}", $shop_name, $params );
+
 					$transactions_per_reciept = json_decode( json_encode( $transactions_per_reciept ), true );
 					$ShipToFirstName          = isset( $order['name'] ) ? $order['name'] : '';
 					$ShipToAddress1           = isset( $order['first_line'] ) ? $order['first_line'] : '';
@@ -92,7 +97,8 @@ class Ced_Order_Get {
 						
 						do_action( 'ced_etsy_refresh_token', $shop_name );
 						$shop_id = get_etsy_shop_id( $shop_name );
-						$result  = etsy_request()->get( "application/shops/$shop_id/receipts/", $shop_name, $params );
+						// "https://openapi.etsy.com/v3/application/shops/{shop_id}/receipts/"
+						$result  = etsy_request()->get( "application/shops/$shop_id/receipts/{$receipt_id}", $shop_name, $params );
 
 						$country_name = json_decode( json_encode( $country_name ), true );
 						if ( isset( $country_name['results'] ) && is_array( $country_name['results'] ) ) {

@@ -109,6 +109,9 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 
 			foreach ( $pro_ids as $key => $pr_id ) {
 
+				// ini_set('display_errors', '1');
+				// ini_set('display_startup_errors', '1');
+				// error_reporting( E_ALL );
 				/**
 				 * ********************************************
 				 *  Get Post meta check if alreay got uploaded.
@@ -144,10 +147,12 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 						update_post_meta( $pr_id, '_ced_etsy_url_' . $shop_name, $response['url'] );
 						$offerings_payload = $payload->ced_variation_details( $pr_id, $shop_name );
 						$var_response      = $this->update_variation_sku_to_etsy( $pr_id, $this->l_id, $shop_name, $offerings_payload, false );
-						if ( ! isset( $var_response['listing_id'] ) ) {
+						if ( ! isset( $var_response['products'][0]['product_id'] ) ) {
 							$delete_instance->ced_etsy_delete_product( array( $pr_id ), $shop_name );
 							$this->upload_response = isset( $var_response ) ? $var_response : 'Some error occured!';
+							continue;
 						}
+						$this->ced_etsy_prep_and_upload_img( $pr_id, $shop_name );
 					}
 				} elseif ( 'simple' == $pro_type ) {
 					$this->data = $payload->ced_etsy_get_formatted_data( $pr_id, $shop_name );
@@ -440,26 +445,14 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 		 */
 
 		private function update_variation_sku_to_etsy( $product_id = '', $listing_id = '', $shop_name = '', $offerings_payload = '', $is_sync = false ) {
-
-			// echo "<pre>";
-			// print_r( json_encode( $offerings_payload  ));
-			// die();
-			// print_r( json_encode( $offerings_payload ) );
-			// echo "Shop Name :-". get_etsy_shop_id( $shop_name );
-			// echo "<br>";
-			// echo "Listind id". $listing_id ;
-			// return;
-
 			do_action( 'ced_etsy_refresh_token', $shop_name );
 			$response = parent::put( "application/listings/{$listing_id}/inventory", $offerings_payload, $shop_name );
-			var_dump( $response );
-			if ( isset( $response['listing_id'] ) ) {
+			if ( isset( $response['products'][0]['product_id'] ) ) {
 				update_post_meta( $product_id, 'ced_etsy_last_updated' . $shop_name, gmdate( 'l jS \of F Y h:i:s A' ) );
 			}
 			if ( ! $is_sync ) {
 				return $response;
 			}
-			return $response;
 		}
 
 
