@@ -108,10 +108,6 @@ if ( ! class_exists( 'Ced_Product_Upload' ) ) {
 			}
 
 			foreach ( $pro_ids as $key => $pr_id ) {
-
-				// ini_set('display_errors', '1');
-				// ini_set('display_startup_errors', '1');
-				// error_reporting( E_ALL );
 				/**
 				 * ********************************************
 				 *  Get Post meta check if alreay got uploaded.

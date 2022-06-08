@@ -73,10 +73,10 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 				$action             = "application/shops/{$shop_id}/sections";
 				// Refresh token if isn't.
 				do_action( 'ced_etsy_refresh_token', $active_shop );
-				$shopSections = etsy_request()->get( $action, $active_shop );
-				if ( isset( $shopSections['count'] ) && $shopSections['count'] >= 1 ) {
-					$shopSections = $shopSections['results'];
-					foreach ( $shopSections as $key => $value ) {
+				$shop_sections = etsy_request()->get( $action, $active_shop );
+				if ( isset( $shop_sections['count'] ) && $shop_sections['count'] >= 1 ) {
+					$shop_sections = $shop_sections['results'];
+					foreach ( $shop_sections as $key => $value ) {
 						$sections[ $value['shop_section_id'] ] = $value['title'];
 					}
 				}
@@ -294,20 +294,6 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 						'type'        => 'select',
 						'options'     => $sections,
 						'is_required' => false,
-						'class'       => 'wc_input_price',
-					),
-				),
-				array(
-					'type'   => '_select',
-					'id'     => '_ced_etsy_shipping_profile',
-					'fields' => array(
-						'id'          => '_ced_etsy_shipping_profile',
-						'label'       => __( 'Shipping Profile', 'woocommerce-etsy-integration' ),
-						'desc_tip'    => true,
-						'description' => __( 'Shipping profile to be used for products while uploading on etsy.', 'woocommerce-etsy-integration' ),
-						'type'        => 'select',
-						'options'     => $shipping_templates,
-						'is_required' => true,
 						'class'       => 'wc_input_price',
 					),
 				),

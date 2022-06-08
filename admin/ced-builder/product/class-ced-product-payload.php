@@ -280,11 +280,11 @@ class Ced_Product_Payload {
         $pro_data[trim( str_replace( '_ced_etsy_', ' ', $meta_key) )] = !empty( $pro_val ) ? $pro_val : '';
     }
 
-    $productTitle         = !empty( $pro_data['title'] ) ? $pro_data['title'] : $productData['name'];
-    $productTitle         = $pro_data['title_pre'] . ' ' . $productTitle . ' ' . $pro_data['title_post'];
-    $productDescription   = !empty( $pro_data['description'] ) ? $pro_data['description'] : $pro_data['description_pre'] . $productData['description'] . '</br>' . $pro_data['description_post'];
-    $pro_price            = get_post_meta( $product_id, '_ced_etsy_price', true );
-    $pr_pf_l = $this->fetch_meta_value( $product_id, '_ced_etsy_price' );
+    $productTitle        = !empty( $pro_data['title'] ) ? $pro_data['title'] : $productData['name'];
+    $productTitle        = $pro_data['title_pre'] . ' ' . $productTitle . ' ' . $pro_data['title_post'];
+    $product_description = !empty( $pro_data['description'] ) ? $pro_data['description'] : $pro_data['description_pre'] . $productData['description'] . '</br>' . $pro_data['description_post'];
+    $pro_price           = get_post_meta( $product_id, '_ced_etsy_price', true );
+    $pr_pf_l             = $this->fetch_meta_value( $product_id, '_ced_etsy_price' );
 
         // Price
     if ( ! empty( $pro_price ) ) {
@@ -347,17 +347,20 @@ if ( ! empty( $pro_data['materials'] ) ) {
     $materials = array( str_replace( ' ', ',', $materials ) );
 }
 
-$pro_data['shipping_profile'] = 172257960844;
-if (empty($pro_data['shipping_profile'] )) {
+$category_id               = $this->fetch_meta_value( $product_id, '_umb_etsy_category' );
+$selected_shipping_profile = get_option( 'ced_etsy_shipping_profiles_'. $shop_name, array() );
+$shipping_profile_id       = array_search( $category_id, $selected_shipping_profile );
+
+if ( empty( $shipping_profile_id ) ) {
     $error['msg'] = 'Shipping profile is not selected';
     return $error;
 }
+// $shipping_profile_id = 172257960844;
 
-$category_id = $this->fetch_meta_value( $product_id, '_umb_etsy_category' );
 $arguements = array(
     'title'                => trim( ucwords( strtolower( strtoupper( $productTitle ) ) ) ),
-    'description'          => strip_tags( $productDescription ),
-    'shipping_profile_id'  => doubleval( 171887176577 ),
+    'description'          => strip_tags( $product_description ),
+    'shipping_profile_id'  => doubleval( $shipping_profile_id ),
     'shop_section_id'      => (int)!empty( $pro_data['shop_section'] ) ? $pro_data['shop_section'] : '',
     'taxonomy_id'          => (int) $category_id,
     'who_made'             => !empty ( $pro_data['who_made'] ) ? $pro_data['who_made'] : 'i_did',
