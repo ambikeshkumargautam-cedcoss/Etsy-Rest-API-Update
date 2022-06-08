@@ -5,6 +5,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 
+
 /**
  * The Settings specific class..
  *
@@ -44,6 +45,8 @@ class CedEtsyHeader{
 	public function __construct($shop_name = '')
 	{
 		$this->shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
+		// delete_option('ced_etsy_already_selected_profile_at_cat_'.$this->shop_name);
+		// delete_option('ced_etsy_shipping_profiles_'.$this->shop_name);
 		if ( isset( $_GET['section'] ) ) {
 
 			$this->section = isset( $_GET['section'] ) ? sanitize_text_field( wp_unslash( $_GET['section'] ) ) : '';

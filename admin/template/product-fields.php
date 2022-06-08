@@ -82,7 +82,20 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 				}
 			}
 
-			$shipping_templates = array();
+			/*GET COUNTRIES LIST FOR SHIPPING TEMPLATE */
+			$shop_id            = get_etsy_shop_id( $active_shop );
+			$shippingTemplates  = array();
+			$action             = "application/shops/{$shop_id}/shipping-profiles";
+			// Refresh token if isn't.
+			do_action( 'ced_etsy_refresh_token', $active_shop );
+			$shopShippingTemplates = etsy_request()->get( $action, $active_shop );
+			if ( isset( $shopShippingTemplates['count'] ) && $shopShippingTemplates['count'] >= 1 ) {
+				foreach ( $shopShippingTemplates['results'] as $key => $value ) {
+					$shipping_templates[$value['shipping_profile_id']] = $value['title'];
+				}
+			}else{
+				$shopShippingTemplates = array();
+			}
 
 			$required_fields = array(
 				array(
@@ -299,6 +312,20 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 				),
 				array(
 					'type'   => '_select',
+					'id'     => '_ced_etsy_shipping_profile',
+					'fields' => array(
+						'id'          => '_ced_etsy_shipping_profile',
+						'label'       => __( 'Shipping Profile', 'woocommerce-etsy-integration' ),
+						'desc_tip'    => true,
+						'description' => __( 'Shipping profile to be used for products while uploading on etsy.', 'woocommerce-etsy-integration' ),
+						'type'        => 'select',
+						'options'     => $shipping_templates,
+						'is_required' => true,
+						'class'       => 'wc_input_price',
+					),
+				),
+				array(
+					'type'   => '_select',
 					'id'     => '_ced_etsy_product_list_type',
 					'fields' => array(
 						'id'          => '_ced_etsy_product_list_type',
@@ -489,7 +516,6 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 						'class'       => 'wc_input_price',
 					),
 				),
-
 			);
 
 			return $required_fields;

@@ -1036,4 +1036,9 @@
 				}
 			});
 		});
+
+		$(document).on( 'click', '.select2-selection__choice__remove', function(e){
+			console.log('Ambikesh');
+		});
+		
 })( jQuery );

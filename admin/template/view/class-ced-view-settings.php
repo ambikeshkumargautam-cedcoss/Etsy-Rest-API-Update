@@ -401,7 +401,7 @@ class Ced_View_Settings {
 						foreach ( $product_fields as $field_data ) {
 							echo '<tr>';
 							// Don't show category specifiction option
-							if ( '_umb_etsy_category' == $field_data['id'] || '_ced_etsy_shipping_profile' == $field_data['id'] ) {
+							if ( '_umb_etsy_category' == $field_data['id'] /*|| '_ced_etsy_shipping_profile' == $field_data['id']*/ ) {
 								continue;
 							}
 

@@ -1623,7 +1623,8 @@ class Woocommmerce_Etsy_Integration_Admin {
 				// Update option for, 
 				$store_profiles                  = get_option( 'ced_etsy_shipping_profiles_'. $shop_name, array() );
 				$store_profiles[$e_shiping_id][] = $cat_id;
-				$store_profiles                  = array_unique( $store_profiles );
+				$store_profiles[$e_shiping_id]                = array_unique($store_profiles[$e_shiping_id]);
+				// print_r($store_profiles);
 				update_option( 'ced_etsy_shipping_profiles_'. $shop_name, $store_profiles );
 				// Update for seelcted category to be not appear.
 				$already_selected = get_option( 'ced_etsy_already_selected_profile_at_cat_'.$shop_name, array() );
