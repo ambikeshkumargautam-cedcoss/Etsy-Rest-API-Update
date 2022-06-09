@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-Cedhandler::ced_header();
+$header = new \Cedcommerce\Template\View\Ced_View_Header();
 $woo_store_categories     = get_terms( 'product_cat' );
 $etsyFirstLevelCategories = @file_get_contents( CED_ETSY_DIRPATH . 'admin/lib/json/categoryLevel-1.json' );
 $etsyFirstLevelCategories = json_decode( $etsyFirstLevelCategories, true );

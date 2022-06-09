@@ -1,7 +1,6 @@
 <?php
 
 $product_meta_data = array();
-
 $product_object = wc_get_product( $product_id );
 if ( is_object( $product_object ) ) {
 	$product_type       = $product_object->get_type();

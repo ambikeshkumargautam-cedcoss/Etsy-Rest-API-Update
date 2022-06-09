@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-Cedhandler::ced_header();
+$header = new \Cedcommerce\Template\View\Ced_View_Header();
 $profileID = isset( $_GET['profileID'] ) ? sanitize_text_field( wp_unslash( $_GET['profileID'] ) ) : '';
 global $wpdb;
 $shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';

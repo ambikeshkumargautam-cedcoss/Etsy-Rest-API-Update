@@ -3,7 +3,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-Cedhandler::ced_header();
+$header = new \Cedcommerce\Template\View\Ced_View_Header();
 $shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 $e_prof_id = isset( $_GET['e_prof_id'] ) ? sanitize_text_field( wp_unslash( $_GET['e_prof_id'] ) ) : '';
 $saved_etsy_details = get_option( 'ced_etsy_details', array() );

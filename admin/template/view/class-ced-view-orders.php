@@ -5,8 +5,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-Cedhandler::ced_header();
-
+$header = new \Cedcommerce\Template\View\Ced_View_Header();
 if ( file_exists( $file ) ) {
 	require_once $file;
 }

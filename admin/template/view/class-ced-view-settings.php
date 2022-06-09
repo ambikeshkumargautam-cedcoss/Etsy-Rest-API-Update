@@ -1,5 +1,5 @@
 <?php
-
+$header = new \Cedcommerce\Template\View\Ced_View_Header();
 /**
  * Class Ced View Settings.
  *
@@ -64,7 +64,6 @@ class Ced_View_Settings {
 		 * @since    1.0.0
 		 * @var      string    $plugin_name    The ID of this plugin.
 		 */
-		Cedhandler::ced_header();
 		?>
 		<div class="ced_etsy_heading ">
 			<?php echo esc_html_e( get_etsy_instuctions_html() ); ?>

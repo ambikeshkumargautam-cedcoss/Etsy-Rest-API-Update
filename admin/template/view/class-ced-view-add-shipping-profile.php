@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 
-Cedhandler::ced_header();
+$header = new \Cedcommerce\Template\View\Ced_View_Header();
 $saved_etsy_details = get_option( 'ced_etsy_details', array() );
 
 if ( ! is_array( $saved_etsy_details ) ) {

@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 
-Cedhandler::ced_header();
+$header = new \Cedcommerce\Template\View\Ced_View_Header();
 if ( ! class_exists( 'WP_List_Table' ) ) {
 	require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
 }

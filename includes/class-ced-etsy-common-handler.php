@@ -33,8 +33,4 @@ class Cedhandler {
 			}
 		}
 	}
-
-	public static function ced_header() {
-		require_once CED_ETSY_DIRPATH . 'admin/template/view/class-ced-view-header.php';
-	}
 }

@@ -1,5 +1,5 @@
 <?php
-// namespace Cedcommerce\Template\View;
+namespace Cedcommerce\Template\View;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @package    Woocommmerce_Etsy_Integration
  * @subpackage Woocommmerce_Etsy_Integration/View/Settings
  */
-class CedEtsyHeader{
+class Ced_View_Header{
 	/**
 	 * The Current shop name which currently active now.
 	 *
@@ -45,10 +45,7 @@ class CedEtsyHeader{
 	public function __construct($shop_name = '')
 	{
 		$this->shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-		// delete_option('ced_etsy_already_selected_profile_at_cat_'.$this->shop_name);
-		// delete_option('ced_etsy_shipping_profiles_'.$this->shop_name);
 		if ( isset( $_GET['section'] ) ) {
-
 			$this->section = isset( $_GET['section'] ) ? sanitize_text_field( wp_unslash( $_GET['section'] ) ) : '';
 		}
 		update_option( 'ced_etsy_active_shop', trim( $this->shop_name ) );
@@ -147,5 +144,4 @@ class CedEtsyHeader{
 		);
 	}
 }
-$header = new CedEtsyHeader();
 ?>

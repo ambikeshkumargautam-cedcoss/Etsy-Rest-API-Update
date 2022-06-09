@@ -1,5 +1,5 @@
 <?php
-Cedhandler::ced_header();
+$header = new \Cedcommerce\Template\View\Ced_View_Header();
 $shop_name =isset($_GET['shop_name']) ? sanitize_text_field( $_GET['shop_name'] ) :'';
 
 if ( isset( $_POST['ced_etsy_product_log_submit'] ) ) {

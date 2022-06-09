@@ -7,7 +7,7 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
-Cedhandler::ced_header();
+$header = new \Cedcommerce\Template\View\Ced_View_Header();
 class EtsyListProducts extends WP_List_Table {
 
 	public $show_reset;
