@@ -357,14 +357,8 @@ class Ced_View_Settings {
 					 * -------------------------------------
 					 */
 					$this->shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-
-					$product_fields_files = CED_ETSY_DIRPATH . 'admin/template/product-fields.php';
-					if ( file_exists( $product_fields_files ) ) {
-						require_once $product_fields_files;
-					}
-
-					$productFieldInstance = Ced_Etsy_Product_Fields::get_instance();
-					$product_fields       = $productFieldInstance->get_custom_products_fields();
+					$product_field_instance = \Cedcommerce\Template\Ced_Template_Product_Fields::get_instance();
+					$product_fields       = $product_field_instance->get_custom_products_fields();
 					$requiredInAnyCase    = array( '_umb_id_type', '_umb_id_val', '_umb_brand' );
 					$marketPlace          = 'ced_etsy_required_common';
 					$productID            = 0;
@@ -443,11 +437,11 @@ class Ced_View_Settings {
 							);
 
 							if ( '_text_input' == $field_data['type'] ) {
-								$productFieldInstance->renderInputTextHTML( $field_id, $label, $category_id, $product_id, $market_place, $description, $index_to_use, $field_value, $required );
+								$product_field_instance->renderInputTextHTML( $field_id, $label, $category_id, $product_id, $market_place, $description, $index_to_use, $field_value, $required );
 
 							} elseif ( '_select' == $field_data['type'] ) {
 								$value_for_dropdown = $field_data['fields']['options'];
-								$productFieldInstance->renderDropdownHTML( $field_id, $label, $value_for_dropdown, $category_id, $product_id, $market_place, $description, $index_to_use, $field_value, $required );
+								$product_field_instance->renderDropdownHTML( $field_id, $label, $value_for_dropdown, $category_id, $product_id, $market_place, $description, $index_to_use, $field_value, $required );
 							}
 							echo '<td>';
 							$previous_selected_value = 'null';

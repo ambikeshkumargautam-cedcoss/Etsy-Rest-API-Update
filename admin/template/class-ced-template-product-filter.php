@@ -1,14 +1,15 @@
 <?php
+namespace Cedcommerce\Template;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 /**
- * FilterClass.
+ * Ced_Template_Product_Filter.
  *
  * @since 1.0.0
  */
-class FilterClass {
+class Ced_Template_Product_Filter{
 
 	/**
 	 * Function- filter_by_category.

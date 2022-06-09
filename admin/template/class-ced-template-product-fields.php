@@ -1,5 +1,5 @@
 <?php
-// namespace Cedcommerce\Template;
+namespace Cedcommerce\Template;
 // If this file is called directly, abort.
 if ( ! defined( 'ABSPATH' ) ) {
 	die;
@@ -14,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @subpackage Woocommerce etsy Integration/admin/helper
  */
 
-if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
+if ( ! class_exists( 'Ced_Template_Product_Fields' ) ) {
 
 	/**
 	 * Single product related functionality.
@@ -25,24 +25,24 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 	 * @package    Woocommerce etsy Integration
 	 * @subpackage Woocommerce etsy Integration/admin/helper
 	 */
-	class Ced_Etsy_Product_Fields {
+	class Ced_Template_Product_Fields {
 
 		/**
-		 * The Instace of CED_etsy_product_fields.
+		 * The Instace of Ced_Template_Product_Fields.
 		 *
 		 * @since    1.0.0
-		 * @var      $_instance   The Instance of CED_etsy_product_fields class.
+		 * @var      $_instance   The Instance of Ced_Template_Product_Fields class.
 		 */
 		private static $_instance;
 
 		/**
-		 * CED_etsy_product_fields Instance.
+		 * Ced_Template_Product_Fields Instance.
 		 *
-		 * Ensures only one instance of CED_etsy_product_fields is loaded or can be loaded.
+		 * Ensures only one instance of Ced_Template_Product_Fields is loaded or can be loaded.
 		 *
 		 * @since 1.0.0
 		 * @static
-		 * @return CED_etsy_product_fields instance.
+		 * @return Ced_Template_Product_Fields instance.
 		 */
 		public static function get_instance() {
 			if ( is_null( self::$_instance ) ) {
@@ -63,17 +63,17 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 		 */
 		public static function get_custom_products_fields( $shop_name = '' ) {
 
-			$active_shop = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : $shop_name;
-			if ( empty( $active_shop ) ) {
-				$active_shop = get_option( 'ced_etsy_shop_name', '' );
+			$shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : $shop_name;
+			if ( empty( $shop_name ) ) {
+				$shop_name = get_option( 'ced_etsy_shop_name', '' );
 			}
-			$shop_id            = get_etsy_shop_id( $active_shop );
+			$shop_id            = get_etsy_shop_id( $shop_name );
 			$sections           = array();
 			if ( ! empty( $shop_id ) ) {
 				$action             = "application/shops/{$shop_id}/sections";
 				// Refresh token if isn't.
-				do_action( 'ced_etsy_refresh_token', $active_shop );
-				$shop_sections = etsy_request()->get( $action, $active_shop );
+				do_action( 'ced_etsy_refresh_token', $shop_name );
+				$shop_sections = etsy_request()->get( $action, $shop_name );
 				if ( isset( $shop_sections['count'] ) && $shop_sections['count'] >= 1 ) {
 					$shop_sections = $shop_sections['results'];
 					foreach ( $shop_sections as $key => $value ) {
@@ -83,18 +83,18 @@ if ( ! class_exists( 'Ced_Etsy_Product_Fields' ) ) {
 			}
 
 			/*GET COUNTRIES LIST FOR SHIPPING TEMPLATE */
-			$shop_id            = get_etsy_shop_id( $active_shop );
-			$shippingTemplates  = array();
+			$shop_id            = get_etsy_shop_id( $shop_name );
+			$e_shpng_tmplts     = array();
 			$action             = "application/shops/{$shop_id}/shipping-profiles";
 			// Refresh token if isn't.
-			do_action( 'ced_etsy_refresh_token', $active_shop );
-			$shopShippingTemplates = etsy_request()->get( $action, $active_shop );
-			if ( isset( $shopShippingTemplates['count'] ) && $shopShippingTemplates['count'] >= 1 ) {
-				foreach ( $shopShippingTemplates['results'] as $key => $value ) {
+			do_action( 'ced_etsy_refresh_token', $shop_name );
+			$e_shpng_tmplts = etsy_request()->get( $action, $shop_name );
+			if ( isset( $e_shpng_tmplts['count'] ) && $e_shpng_tmplts['count'] >= 1 ) {
+				foreach ( $e_shpng_tmplts['results'] as $key => $value ) {
 					$shipping_templates[$value['shipping_profile_id']] = $value['title'];
 				}
 			}else{
-				$shopShippingTemplates = array();
+				$e_shpng_tmplts = array();
 			}
 
 			$required_fields = array(

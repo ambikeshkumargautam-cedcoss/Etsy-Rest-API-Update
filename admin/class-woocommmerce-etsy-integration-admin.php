@@ -1499,7 +1499,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 			require $file_name;
 		}
 
-		$productFieldInstance = Ced_Etsy_Product_Fields::get_instance();
+		$productFieldInstance = Ced_Template_Product_Fields::get_instance();
 		$product_fields       = $productFieldInstance->get_custom_products_fields();
 
 		if ( ! empty( $product_fields ) ) {

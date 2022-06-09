@@ -4,9 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	die;
 }
 Cedhandler::ced_header();
-require_once CED_ETSY_DIRPATH . 'admin/template/product-fields.php';
 $profileID = isset( $_GET['profileID'] ) ? sanitize_text_field( wp_unslash( $_GET['profileID'] ) ) : '';
-
 global $wpdb;
 $shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
 $tableName = $wpdb->prefix . 'ced_etsy_profiles';
@@ -113,8 +111,8 @@ if ( ! empty( $profile_data ) ) {
 	$action                    = "application/seller-taxonomy/nodes/{$profile_category_id}/properties";
 	$getTaxonomyNodeProperties = etsy_request()->get( $action, $shop_name );
 	$getTaxonomyNodeProperties = $getTaxonomyNodeProperties['results'];
-	$productFieldInstance      = Ced_Etsy_Product_Fields::get_instance();
-	$taxonomyList              = $productFieldInstance->get_taxonomy_node_properties( $getTaxonomyNodeProperties );
+	$product_instance_field      = \Cedcommerce\Template\Ced_Template_Product_Fields::get_instance();
+	$taxonomyList              = $product_instance_field->get_taxonomy_node_properties( $getTaxonomyNodeProperties );
 }
 $attributes    = wc_get_attribute_taxonomies();
 $attrOptions   = array();
@@ -145,9 +143,9 @@ if ( is_array( $attrOptions ) ) {
 	endforeach;
 }
 echo '</select>';
-$selectDropdownHTML   = ob_get_clean();
-$productFieldInstance = Ced_Etsy_Product_Fields::get_instance();
-$fields               = $productFieldInstance->get_custom_products_fields();
+$selectDropdownHTML     = ob_get_clean();
+$product_instance_field = \Cedcommerce\Template\Ced_Template_Product_Fields::get_instance();
+$fields                 = $product_instance_field->get_custom_products_fields();
 ?>
 
 <?php do_action( 'ced_etsy_render_meta_keys_settings' ); ?>
@@ -217,7 +215,7 @@ $fields               = $productFieldInstance->get_custom_products_fields();
 								unset( $valueForDropdown['null'] );
 							}
 							$valueForDropdown = apply_filters( 'ced_etsy_alter_data_to_render_on_profile', $valueForDropdown, $field_id );
-							$productFieldInstance->renderDropdownHTML(
+							$product_instance_field->renderDropdownHTML(
 								$field_id,
 								$attributeNameToRender,
 								$valueForDropdown,
@@ -235,7 +233,7 @@ $fields               = $productFieldInstance->get_custom_products_fields();
 							$isText = true;
 
 						} elseif ( '_text_input' == $value['type'] ) {
-							$productFieldInstance->renderInputTextHTML(
+							$product_instance_field->renderInputTextHTML(
 								$field_id,
 								$attributeNameToRender,
 								$categoryID,
@@ -250,7 +248,7 @@ $fields               = $productFieldInstance->get_custom_products_fields();
 								$is_required
 							);
 						} elseif ( '_checkbox' == $value['type'] ) {
-							$productFieldInstance->rendercheckboxHTML(
+							$product_instance_field->rendercheckboxHTML(
 								$field_id,
 								$attributeNameToRender,
 								$categoryID,
@@ -268,7 +266,7 @@ $fields               = $productFieldInstance->get_custom_products_fields();
 						} elseif ( '_hidden' == $value['type'] ) {
 
 							$profile_category_id = isset( $profile_category_id ) ? $profile_category_id : '';
-							$productFieldInstance->renderInputTextHTMLhidden(
+							$product_instance_field->renderInputTextHTMLhidden(
 								$field_id,
 								$attributeNameToRender,
 								$categoryID,
@@ -330,7 +328,7 @@ $fields               = $productFieldInstance->get_custom_products_fields();
 								}
 								$valueForDropdown = $tempValueForDropdown;
 
-								$productFieldInstance->renderDropdownHTML(
+								$product_instance_field->renderDropdownHTML(
 									$field_id,
 									ucfirst( $value['fields']['label'] ),
 									$valueForDropdown,
@@ -347,7 +345,7 @@ $fields               = $productFieldInstance->get_custom_products_fields();
 								$isText = true;
 							} else {
 								continue;
-								$productFieldInstance->renderInputTextHTML(
+								$product_instance_field->renderInputTextHTML(
 									$field_id,
 									ucfirst( $value['fields']['label'] ),
 									$categoryID,

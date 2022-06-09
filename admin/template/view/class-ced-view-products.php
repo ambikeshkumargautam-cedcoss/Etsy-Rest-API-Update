@@ -61,15 +61,9 @@ class EtsyListProducts extends WP_List_Table {
 
 
 	public function get_product_details( $per_page = '', $page_number = 1, $post_type ) {
-		$filterFile = CED_ETSY_DIRPATH . 'admin/template/products-filters.php';
-		if ( file_exists( $filterFile ) ) {
-			require_once $filterFile;
-		}
-
-		$instanceOf_FilterClass = new FilterClass();
-		// $shop_name = get_option('etsyActiveShop', '');
+		
+		$pro_fltr_inst = new \Cedcommerce\Template\Ced_Template_Product_Filter();
 		$shop_name = isset( $_GET['shop_name'] ) ? sanitize_text_field( wp_unslash( $_GET['shop_name'] ) ) : '';
-
 		$args = $this->GetFilteredData( $per_page, $page_number );
 		if ( ! empty( $args ) && isset( $args['tax_query'] ) || isset( $args['meta_query'] ) || isset( $args['s'] ) ) {
 			$args = $args;
@@ -94,12 +88,12 @@ class EtsyListProducts extends WP_List_Table {
 			if ( ! isset( $_POST['manage_product_filters'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['manage_product_filters'] ) ), 'manage_products' ) ) {
 				return;
 			}
-			$wooProducts = $instanceOf_FilterClass->ced_etsy_filters_on_products( $wooProducts, $shop_name );
+			$wooProducts = $pro_fltr_inst->ced_etsy_filters_on_products( $wooProducts, $shop_name );
 		} elseif ( isset( $_POST['s'] ) ) {
 			if ( ! isset( $_POST['manage_product_filters'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['manage_product_filters'] ) ), 'manage_products' ) ) {
 				return;
 			}
-			$instanceOf_FilterClass->productSearch_box( $wooProducts, $shop_name );
+			$pro_fltr_inst->productSearch_box( $wooProducts, $shop_name );
 		}
 		return $wooProducts;
 
