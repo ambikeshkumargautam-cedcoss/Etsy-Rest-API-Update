@@ -218,6 +218,7 @@ class Woocommmerce_Etsy_Integration {
 		$this->loader->add_action( 'ced_etsy_order_scheduler_job_', $plugin_admin, 'ced_etsy_order_schedule_manager' );
 		$this->loader->add_action( 'ced_etsy_inventory_scheduler_job_', $plugin_admin, 'ced_etsy_inventory_schedule_manager' );
 		$this->loader->add_action( 'ced_etsy_sync_existing_products_job_', $plugin_admin, 'ced_etsy_sync_existing_products' );
+		$this->loader->add_action( 'admin_bar_menu', $plugin_admin, 'ced_etsy_admin_bar_menu', 500 ,3 );
 		$order_status = array(
 			'new_order',
 			'customer_processing_order',

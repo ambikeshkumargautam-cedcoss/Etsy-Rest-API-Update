@@ -1642,7 +1642,7 @@ class Woocommmerce_Etsy_Integration_Admin {
 		$check_ajax = check_ajax_referer( 'ced-etsy-ajax-seurity-string', 'ajax_nonce' );
 		if ($check_ajax) {
 			$sanitized_array = filter_input_array( INPUT_POST, FILTER_SANITIZE_STRING );
-			$e_shiping_id     = isset( $sanitized_array['e_profile_id'] ) ?$sanitized_array['e_profile_id'] : array();
+			$e_shiping_id    = isset( $sanitized_array['e_profile_id'] ) ?$sanitized_array['e_profile_id'] : array();
 			$shop_name       = isset( $sanitized_array['shop_name'] ) ? $sanitized_array['shop_name'] : '';
 			if ( '' != $shop_name && !empty( $e_shiping_id ) ) {
 				$shop_id = get_etsy_shop_id( $shop_name );
@@ -1659,5 +1659,110 @@ class Woocommmerce_Etsy_Integration_Admin {
 				wp_die();
 			}
 		}
+	}
+
+	public function ced_etsy_admin_bar_menu( $wp_admin_bar ){
+		if ( !is_admin() ) {
+			return;
+		}
+
+		$args = array(
+			'id'    => 'ced_etsy_admin_bar',
+			'title' => __( 'Etsy', 'woocommerc-etsy-integration' ),
+			'href'  => admin_url( 'admin.php?page=ced_etsy' ),
+			'meta'  => array('class' => 'normal')
+		);
+		$wp_admin_bar->add_node($args);
+
+		// Settings page
+		$args = array(
+			'id'    => 'ced_etsy_settings',
+			'title' => __( 'Settings', 'woocommerc-etsy-integration' ),
+			'href'  => admin_url( 'admin.php?page=ced_etsy&section=settings&shop_name=GoToStar' ),
+			'parent'  => 'ced_etsy_admin_bar',
+			'meta'  => array('class' => 'blank')
+		);
+		$wp_admin_bar->add_node($args);
+
+		// Settings page
+		$args = array(
+			'id'    => 'ced_etsy_category_mapping',
+			'title' => __( 'Category Mapping', 'woocommerc-etsy-integration' ),
+			'href'  => admin_url( 'admin.php?page=ced_etsy&section=category&shop_name=GoToStar' ),
+			'parent'  => 'ced_etsy_admin_bar',
+			'meta'  => array('class' => 'blank')
+		);
+		$wp_admin_bar->add_node($args);
+
+		// Settings page
+		$args = array(
+			'id'    => 'ced_etsy_shipping_profile',
+			'title' => __( 'Shipping Profiles', 'woocommerc-etsy-integration' ),
+			'href'  => admin_url( 'admin.php?page=ced_etsy&section=shipping&shop_name=GoToStar' ),
+			'parent'  => 'ced_etsy_admin_bar',
+			'meta'  => array('class' => 'blank')
+		);
+		$wp_admin_bar->add_node( $args );
+
+		// // Settings - General tab
+		// $args = array(
+		// 	'id'    => 'wpla_settings_general',
+		// 	'title' => __( 'General Settings', 'wp-lister-for-amazon' ),
+		// 	'href'  => admin_url( 'admin.php?page=wpla-settings&tab=settings' ),
+		// 	'parent'  => 'ced_etsy_admin_bar',
+		// 	'meta'  => array('class' => 'wpla-toolbar-page')
+		// );
+		// $wp_admin_bar->add_node($args);
+
+		// // Settings - Accounts tab
+		// $args = array(
+		// 	'id'    => 'wpla_settings_accounts',
+		// 	'title' => __( 'Accounts', 'wp-lister-for-amazon' ),
+		// 	'href'  => admin_url( 'admin.php?page=wpla-settings&tab=accounts' ),
+		// 	'parent'  => 'ced_etsy_admin_bar',
+		// 	'meta'  => array('class' => 'wpla-toolbar-page')
+		// );
+		// $wp_admin_bar->add_node($args);
+
+		// // Settings - Categories tab
+		// $args = array(
+		// 	'id'    => 'wpla_settings_categories',
+		// 	'title' => __( 'Categories', 'wp-lister-for-amazon' ),
+		// 	'href'  => admin_url( 'admin.php?page=wpla-settings&tab=categories' ),
+		// 	'parent'  => 'ced_etsy_admin_bar',
+		// 	'meta'  => array('class' => 'wpla-toolbar-page')
+		// );
+		// $wp_admin_bar->add_node($args);
+
+		// // Settings - Advanced tab
+		// $args = array(
+		// 	'id'    => 'wpla_settings_advanced',
+		// 	'title' => __( 'Advanced', 'wp-lister-for-amazon' ),
+		// 	'href'  => admin_url( 'admin.php?page=wpla-settings&tab=advanced' ),
+		// 	'parent'  => 'ced_etsy_admin_bar',
+		// 	'meta'  => array('class' => 'wpla-toolbar-page')
+		// );
+		// $wp_admin_bar->add_node($args);
+
+		// // Settings - Developer tab
+		// $args = array(
+		// 	'id'    => 'wpla_settings_developer',
+		// 	'title' => __( 'Developer', 'wp-lister-for-amazon' ),
+		// 	'href'  => admin_url( 'admin.php?page=wpla-settings&tab=developer' ),
+		// 	'parent'  => 'ced_etsy_admin_bar',
+		// 	'meta'  => array('class' => 'wpla-toolbar-page')
+		// );
+		// $wp_admin_bar->add_node($args);
+
+		// ## BEGIN PRO ##
+		// // Settings - Updates tab
+		// $args = array(
+		// 	'id'    => 'wpla_settings_license',
+		// 	'title' => __( 'Updates', 'wp-lister-for-amazon' ),
+		// 	'href'  => admin_url( 'admin.php?page=wpla-settings&tab=license' ),
+		// 	'parent'  => 'ced_etsy_admin_bar',
+		// 	'meta'  => array('class' => 'wpla-toolbar-page')
+		// );
+		// $wp_admin_bar->add_node($args);
 	}
 }
